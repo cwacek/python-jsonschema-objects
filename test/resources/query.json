@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema",
+
+    "type": "object",
+
+    "definitions": {
+        "_query_ctype": {
+            "properties": {
+                "@ctype": {
+                    "enum": [
+                        "query"
+                    ]
+                }
+            }
+        },
+        "query_request": {
+            "allOf": [
+                {"$ref": "file:schema.json#/definitions/_base"},
+                {"$ref": "file:schema.json#/definitions/_request"},
+                {"$ref": "#/definitions/_query_ctype"}
+            ]
+        },
+        "query_reply": {
+            "allOf": [
+                {"$ref": "file:schema.json#/definitions/_base"},
+                {"$ref": "file:schema.json#/definitions/_reply"},
+                {"$ref": "#/definitions/_query_ctype"}
+            ]
+        }
+    }
+}

@@ -1,0 +1,105 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "file:///schema.json#",
+    "definitions": {
+        "_base": {
+            "type": "object",
+            "properties": {
+                "@version": {
+                    "type": "number"
+                },
+                "@mtype": {
+                    "type": "string",
+                    "enum": [
+                        "request",
+                        "reply"
+                    ]
+                },
+                "@ctype": {
+                    "type": "string",
+                    "enum": [
+                        "query",
+                        "ping",
+                        "register"
+                    ]
+                },
+                "header": {
+                    "$ref": "#/definitions/header"
+                },
+                "data": { "type": "object"}
+            },
+            "required": [
+                "@version",
+                "@mtype",
+                "@ctype",
+                "header"
+            ]
+        },
+        "header": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "origin": {
+                    "type": "string"
+                },
+                "expires": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "id",
+                "origin",
+                "expires"
+            ]
+        },
+        "_reply": {
+            "properties": {
+                "@status": {
+                    "type": "string",
+                    "enum": [
+                        "success",
+                        "failed",
+                        "unauthorized",
+                        "duplicate"
+                    ]
+                },
+                    "@mtype": {
+                        "enum": [
+                            "reply"
+                        ]
+                    }
+            },
+            "required": ["@status"],
+            "allOf": [
+                {
+                "$ref": "#/definitions/_base"
+            }
+            ]
+        },
+        "_request": {
+
+            "allOf": [
+                {
+                "$ref": "#/definitions/_base"
+            },
+            {
+                "properties": {
+                    "@mtype": {
+                        "enum": [
+                            "request"
+                        ]
+                    }
+                }
+            }
+            ]
+        }
+    },
+
+    "title": "Message",
+    "oneOf": [
+        { "$ref": "file:query.json#/definitions/query_request" },
+        { "$ref": "file:query.json#/definitions/query_reply" }
+    ]
+}
