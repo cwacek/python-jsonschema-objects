@@ -10,6 +10,8 @@ class ProtocolJSONEncoder(json.JSONEncoder):
             props = {}
             for raw, trans in obj.__prop_names__.iteritems():
                 props[raw] = getattr(obj, trans)
+                if props[raw] is None:
+                    del props[raw]
             return props
         else:
             return json.JSONEncoder.default(self, obj)

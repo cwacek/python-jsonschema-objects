@@ -28,6 +28,10 @@ class ProtocolBase(object):
         )
 
     def __init__(this, **props):
+        this._properties = dict(zip(this.__prop_names__.keys(),
+                                    [None for x in
+                                    xrange(len(this.__prop_names__))]))
+
         for prop in props:
             try:
                 propname = this.__prop_names__[prop]
@@ -39,6 +43,9 @@ class ProtocolBase(object):
 
             setattr(this, propname, props[prop])
 
+        if len(props) > 0:
+            this.validate()
+
     @classmethod
     def propinfo(cls, propname):
         if propname not in cls.__propinfo__:
@@ -46,6 +53,7 @@ class ProtocolBase(object):
         return cls.__propinfo__[propname]
 
     def serialize(self):
+        self.validate()
         enc = util.ProtocolJSONEncoder()
         return enc.encode(self)
 
@@ -59,22 +67,36 @@ class ProtocolBase(object):
                             .format(missing, this.__class__))
 
         for prop, val in this._properties.iteritems():
-            info = this.propinfo(prop)
+            if val is None:
+                continue
 
-            for param, paramval in info.iteritems():
-                validator = getattr(validators, param, None)
-                if validator is not None:
-                    validator(paramval, val)
+            this.validate_property(prop, val)
 
         return True
 
-    def validate_property(self, propinfo, propval):
+    def validate_property(self, prop, val):
         """Validate a property value, and return true or false
 
         :propinfo: A dictionary containing property info
         :propval: The property value
         :returns: True or False
         """
+        info = self.propinfo(prop)
+
+        for param, paramval in info.iteritems():
+            validator = getattr(validators, param, None)
+            if validator is not None:
+                if param == 'minimum':
+                    validator(paramval, val,
+                            info.get('exclusiveMinimum',
+                                False))
+                elif param == 'maximum':
+                    validator(paramval, val,
+                            info.get('exclusiveMaximum',
+                                False))
+                else:
+                    validator(paramval, val)
+
 
 
 class ClassBuilder(object):
@@ -207,9 +229,6 @@ class ClassBuilder(object):
 
                 props[prop] = make_property(prop, detail, desc)
 
-        props['_properties'] = dict(zip(props.keys(),
-                                        [None for x in
-                                         xrange(len(props.keys()))]))
 
         """ If this object itself has a 'oneOf' designation, then
         make the validation 'type' the list of potential objects.
@@ -264,8 +283,7 @@ def make_property(prop, info, desc=""):
                 raise TypeError(
                     "Value must be one of {0}".format(info['type']))
 
-        if info['type'] in this.__SCHEMA_TYPES__.keys() and val
-            is not None:
+        if (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
             val = this.__SCHEMA_TYPES__[info['type']](val)
 
         elif issubclass(info['type'], ProtocolBase):
@@ -274,6 +292,7 @@ def make_property(prop, info, desc=""):
 
             val.validate()
 
+        this.validate_property(prop, val)
         this._properties[prop] = val
 
     def delprop(this):

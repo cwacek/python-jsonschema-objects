@@ -60,7 +60,7 @@ class SpecialFencePreprocessor(Preprocessor):
             if m:
                 if m.group('lang'):
                     lang = m.group('lang')
-                    example = json.loads(m.group('code'))
+                    example = m.group('code')
                     try:
                         self.EXAMPLES[lang].append(example)
                     except KeyError:

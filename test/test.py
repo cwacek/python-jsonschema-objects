@@ -3,44 +3,98 @@
 
 import nose
 import nose.tools
+from sure import expect, this
 
+import json
 from noseOfYeti.tokeniser.support import noy_sup_setUp
 from unittest import TestCase
 import nose
 
 import pkg_resources
 import python_jsonschema_objects as pjs
-import python_jsonschema_objects.markdown_support as markdown_support
 
-describe TestCase, 'it can extract code blocks from metadata':
+describe TestCase, 'markdown extraction':
 
     before_each:
         md = pkg_resources.resource_filename('python_jsonschema_objects',
                 '../README.md')
-        self.examples = markdown_support.extract_code_blocks(md)
-        import pdb; pdb.set_trace()
+        self.examples = pjs.markdown_support.extract_code_blocks(md)
+        self.example = json.loads(self.examples['schema'][0])
 
-    it 'passes':
-        pass
+    it 'loads schema files':
+        self.examples.should.have.key('schema')
 
+    describe 'ObjectBuilder':
 
+        it 'should be able to read an object':
+            examples = map(json.loads, self.examples['schema'])
+            for ex in examples:
+                builder = pjs.ObjectBuilder(self.example)
+                builder.should.be.ok
 
-"""
-import protobuilder
-import md_extractor
+        it 'should be able to build classes':
+            examples = map(json.loads, self.examples['schema'])
+            for ex in examples:
+                builder = pjs.ObjectBuilder(self.example)
+                builder.should.be.ok
+                namespace = builder.build_classes()
+                this(namespace).should.be.ok
 
+        context 'PersonExample':
+            before_each:
+                self.builder = pjs.ObjectBuilder(self.example)
+                namespace = self.builder.build_classes()
+                self.Person = namespace.ExampleSchema
 
-def test_examples():
-    uri = "../../protocol/json/schema.json"
-    validator = protobuilder.Validator(uri)
+            it 'should allow empty objects':
+                person = self.Person()
+                person.should.be.ok
 
-    protocol_examples = md_extractor.extract_examples(
-            "../../../README.md")
+            it 'should allow attributes to be given':
+                person = self.Person(firstName="James",
+                        lastName="Bond", age=35)
+                person.firstName.should.equal("James")
+                person.lastName.should.equal("Bond")
+                person.age.should.equal(35)
+                person.should.be.ok
 
-    for ex in protocol_examples:
-        yield assert_json_validates, ex, validator
+            it 'should allow non-required attributes to be missing':
+                person = self.Person(firstName="James",
+                        lastName="Bond")
+                person.should.be.ok
+                person.firstName.should.equal("James")
+                person.lastName.should.equal("Bond")
 
+            it 'should not allow required attributes to be missing':
+                self.Person.when.called_with(firstName="James").should.throw(
+                        pjs.ValidationError
+                        )
 
-def assert_json_validates(obj, validator):
-    assert validator.validate(obj)
-"""
+            it 'should validate minimum age':
+                self.Person.when.called_with(
+                        firstName="James", lastName="Bond",
+                        age=-10).should.throw(pjs.ValidationError)
+
+                person = self.Person(firstName="James",
+                        lastName="Bond")
+
+                def setage(x):
+                    person.age = x
+
+                setage.when.called_with(-1).should.throw(pjs.ValidationError)
+
+            it 'should validate before serializing':
+                person = self.Person(firstName="James",
+                        lastName="Bond")
+
+                person._properties['age'] = -1
+
+                person.serialize.when.called_with().should.throw(pjs.ValidationError)
+
+            it 'should remove null values when serializing':
+                person = self.Person(firstName="James",
+                        lastName="Bond")
+
+                json_str = person.serialize()
+                json.loads(json_str).should_not.have.key('age')
+
