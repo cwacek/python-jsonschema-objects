@@ -80,6 +80,10 @@ with validation, directly from an input JSON schema. These
 classes can seamlessly encode back and forth to JSON valid
 according to the schema.
 
+## Installation
+
+    pip install python_jsonschema_objects
+
 ## Tests
 
 Tests are managed using the excellent Tox. Simply `pip install
