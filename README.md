@@ -80,6 +80,11 @@ with validation, directly from an input JSON schema. These
 classes can seamlessly encode back and forth to JSON valid
 according to the schema.
 
+## Tests
+
+Tests are managed using the excellent Tox. Simply `pip install
+tox`, then `tox`.
+
 ## Changelog
 
 0.0.1 - Class generation works, including 'oneOf' and 'allOf'
