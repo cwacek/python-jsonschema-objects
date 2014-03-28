@@ -1,6 +1,3 @@
-import classbuilder
-
-
 class ValidationError(Exception):
     pass
 
@@ -14,6 +11,7 @@ def multipleOf(param, value):
 
 
 def type(param, value):
+    import classbuilder
     if isinstance(param, basestring):
         param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
     if not isinstance(value, param):

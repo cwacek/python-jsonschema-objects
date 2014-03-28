@@ -6,10 +6,10 @@ import codecs
 import os.path
 import inflection
 
-import classbuilder
-from validators import ValidationError
-import util
-import markdown_support
+import python_jsonschema_objects.classbuilder as classbuilder
+from python_jsonschema_objects.validators import ValidationError
+import python_jsonschema_objects.util
+import python_jsonschema_objects.markdown_support
 
 FILE = __file__
 

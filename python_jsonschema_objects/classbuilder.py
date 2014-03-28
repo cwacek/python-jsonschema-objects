@@ -1,5 +1,7 @@
-import util
-import validators
+import python_jsonschema_objects.util as util
+import python_jsonschema_objects.validators as validators
+
+import six
 
 
 class ProtocolBase(object):
@@ -12,7 +14,7 @@ class ProtocolBase(object):
         'integer': int,
         'number': float,
         'null': None,
-        'string': unicode,
+        'string': six.text_type,
         'object': dict
     }
 

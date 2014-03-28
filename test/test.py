@@ -1,4 +1,4 @@
-# coding: spec
+# -*- coding: spec -*-
 # This is a comparison of DSL syntax to what is generated
 
 import nose
