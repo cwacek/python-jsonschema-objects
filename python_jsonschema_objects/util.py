@@ -2,6 +2,83 @@ import copy
 import json
 
 
+class ArrayValidator(object):
+
+    def __init__(self, ary):
+        self.data = ary
+
+    def validate(self):
+        import classbuilder
+        import validators
+        if not isinstance(self.__itemtype__, (tuple, list)):
+            self.__itemtype__ = [
+                self.__itemtype__ for x in xrange(len(self.data))]
+
+        if len(self.__itemtype__) > self.data:
+          raise ValidationError("Array does not have sufficient elements to validate against {0}".format(self.__itemtype__))
+
+        for i, elem in enumerate(self.data):
+            try:
+              typ = self.__itemtype__[i]
+            except IndexError:
+              pass  # It's actually permissible to run over a tuple constraint.
+
+            if isinstance(typ, dict):
+                for param, paramval in typ.iteritems():
+                    validator = getattr(validators, param, None)
+                    if validator is not None:
+                        if param == 'minimum':
+                            validator(paramval, elem,
+                                      info.get('exclusiveMinimum',
+                                               False))
+                        elif param == 'maximum':
+                            validator(paramval, elem,
+                                      info.get('exclusiveMaximum',
+                                               False))
+                        else:
+                            validator(paramval, elem)
+
+            elif issubclass(typ, classbuilder.ProtocolBase):
+                val = typ(**elem)
+                val.validate()
+
+    @staticmethod
+    def create(name, item_constraint=None, addl_constraints={}):
+        """ Create an array validator based on the passed in constraints.
+
+        If item_constraint is a tuple, it is assumed that tuple validation
+        is being performed. If it is a class or dictionary, list validation
+        will be performed. Classes are assumed to be subclasses of ProtocolBase,
+        while dictionaries are expected to be basic types ('string', 'number', ...).
+
+        addl_constraints is expected to be key-value pairs of any of the other
+        constraints permitted by JSON Schema v4.
+        """
+        import classbuilder
+        props = {}
+
+        if item_constraint is not None:
+          if isinstance(item_constraint, (tuple, list)):
+              for i, elem in enumerate(item_constraint):
+                  isdict = isinstance(elem, (dict,))
+                  isklass = isinstance(elem, type) and issubclass(elem, classbuilder.ProtocolBase)
+                  if not any([isdict, isklass]):
+                      raise TypeError("Item constraint (position {0}) was not a schema".format(i))
+          else:
+              isdict = isinstance(item_constraint, (dict,))
+              isklass = isinstance(item_constraint, type) and issubclass(item_constraint, classbuilder.ProtocolBase)
+              if not any([isdict, isklass]):
+                  raise TypeError("Item constraint was not a schema")
+
+        props['__itemtype__'] = item_constraint
+
+        props.update(addl_constraints)
+
+        validator = type(name, (ArrayValidator,), props)
+
+        return validator
+
+
 class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
@@ -62,7 +139,7 @@ def resolve_ref_uri(base, ref):
     if ref[0] == '#':
     # Local ref
         uri = base
-        if uri[-1] == '#':
+        if len(uri) > 0 and uri[-1] == '#':
             uri += ref[1:]
         else:
             uri += ref

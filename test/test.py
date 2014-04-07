@@ -29,7 +29,7 @@ describe TestCase, 'markdown extraction':
         it 'should be able to read an object':
             examples = map(json.loads, self.examples['schema'])
             for ex in examples:
-                builder = pjs.ObjectBuilder(self.example)
+                builder = pjs.ObjectBuilder(ex)
                 builder.should.be.ok
 
         it 'should be able to build classes':
