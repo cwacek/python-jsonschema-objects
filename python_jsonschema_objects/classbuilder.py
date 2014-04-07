@@ -303,7 +303,6 @@ class ClassBuilder(object):
 
 
 def make_property(prop, info, desc=""):
-    print ("Creating property for {0}: {1}".format(prop, info))
 
     def getprop(this):
         try:
@@ -337,7 +336,6 @@ def make_property(prop, info, desc=""):
                     "Value must be one of {0}: \n{1}".format(info['type'], errstr))
 
         elif info['type'] == 'array':
-            import pdb; pdb.set_trace()
             instance = info['validator'](val)
             instance.validate()
 

@@ -16,8 +16,8 @@ class ArrayValidator(object):
 
         if len(self.__itemtype__) > len(self.data):
           raise validators.ValidationError(
-              "Array does not have sufficient elements to validate against {0}"
-              .format(self.__itemtype__))
+              "{1} does not have sufficient elements to validate against {0}"
+              .format(self.__itemtype__, self.data))
 
         for i, elem in enumerate(self.data):
             try:
@@ -76,7 +76,6 @@ class ArrayValidator(object):
                   raise TypeError("Item constraint was not a schema")
 
               if isdict and item_constraint['type'] == 'array':
-                  import pdb; pdb.set_trace()
                   item_constraint = ArrayValidator.create(name + "#sub",
                       item_constraint=item_constraint['items'],
                       addl_constraints=item_constraint)
