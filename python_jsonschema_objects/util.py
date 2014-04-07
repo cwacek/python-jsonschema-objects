@@ -14,8 +14,10 @@ class ArrayValidator(object):
             self.__itemtype__ = [
                 self.__itemtype__ for x in xrange(len(self.data))]
 
-        if len(self.__itemtype__) > self.data:
-          raise ValidationError("Array does not have sufficient elements to validate against {0}".format(self.__itemtype__))
+        if len(self.__itemtype__) > len(self.data):
+          raise validators.ValidationError(
+              "Array does not have sufficient elements to validate against {0}"
+              .format(self.__itemtype__))
 
         for i, elem in enumerate(self.data):
             try:
@@ -40,6 +42,9 @@ class ArrayValidator(object):
 
             elif issubclass(typ, classbuilder.ProtocolBase):
                 val = typ(**elem)
+                val.validate()
+            elif issubclass(typ, ArrayValidator):
+                val = typ(elem)
                 val.validate()
 
     @staticmethod
@@ -69,6 +74,13 @@ class ArrayValidator(object):
               isklass = isinstance(item_constraint, type) and issubclass(item_constraint, classbuilder.ProtocolBase)
               if not any([isdict, isklass]):
                   raise TypeError("Item constraint was not a schema")
+
+              if isdict and item_constraint['type'] == 'array':
+                  import pdb; pdb.set_trace()
+                  item_constraint = ArrayValidator.create(name + "#sub",
+                      item_constraint=item_constraint['items'],
+                      addl_constraints=item_constraint)
+
 
         props['__itemtype__'] = item_constraint
 

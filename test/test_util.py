@@ -105,3 +105,19 @@ describe TestCase, 'ArrayValidator':
       instance = validator([{'firstName': 'winner', 'lastName': 'Dinosaur'}, 12324 ])
       instance.validate.when.called_with().should_not.throw(ValidationError)
 
+    it 'should validate nested arrays':
+
+      validator = ArrayValidator.create(
+          'test',
+          item_constraint={'type': 'array', 'items': {'type': 'integer'}}
+      )
+
+      instance = validator([[1,2,4,5], [1,2,4]])
+      instance.validate.when.called_with().should_not.throw(ValidationError)
+
+      instance = validator([[1,2,'h',5], [1,2,4]])
+      instance.validate.when.called_with().should.throw(ValidationError)
+
+      instance = validator([[1,2,'h',5], [1,2,'4']])
+      instance.validate.when.called_with().should.throw(ValidationError)
+

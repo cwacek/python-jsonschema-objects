@@ -32,7 +32,7 @@ class ProtocolBase(object):
     def __init__(this, **props):
         this._properties = dict(zip(this.__prop_names__.keys(),
                                     [None for x in
-                                    xrange(len(this.__prop_names__))]))
+                                     xrange(len(this.__prop_names__))]))
 
         for prop in props:
             try:
@@ -90,15 +90,14 @@ class ProtocolBase(object):
             if validator is not None:
                 if param == 'minimum':
                     validator(paramval, val,
-                            info.get('exclusiveMinimum',
-                                False))
+                              info.get('exclusiveMinimum',
+                                       False))
                 elif param == 'maximum':
                     validator(paramval, val,
-                            info.get('exclusiveMaximum',
-                                False))
+                              info.get('exclusiveMaximum',
+                                       False))
                 else:
                     validator(paramval, val)
-
 
 
 class ClassBuilder(object):
@@ -172,6 +171,12 @@ class ClassBuilder(object):
                     parent)
                 return self.resolved[uri]
 
+        elif 'array' in clsdata and 'items' in clsdata:
+            self.resolved[uri] = self._build_object(
+                uri,
+                clsdata,
+                parent)
+
         elif (clsdata.get('type', None) == 'object' or
               clsdata.get('properties', None) is not None):
             self.resolved[uri] = self._build_object(
@@ -225,12 +230,53 @@ class ClassBuilder(object):
                                             {'type': potential}, desc
                                             )
 
+            elif 'type' in detail and detail['type'] == 'array':
+                if 'items' in detail and isinstance(detail['items'], dict):
+                    if '$ref' in detail['items']:
+                        uri = util.resolve_ref_uri(
+                            self.resolver.resolution_scope,
+                            detail['items']['$ref'])
+                        typ = self.construct(uri, detail['items'])
+                        propdata = {
+                            'type': 'array',
+                            'validator': util.ArrayValidator.create(
+                                uri,
+                                item_constraint=typ)}
+                    else:
+                        uri = "{0}/{1}_{2}".format(nm,
+                                                   prop, "<anonymous_field>")
+                        try:
+                            typ = self.construct(uri, detail['items'])
+                            propdata = {'type': 'array',
+                                        'validator': util.ArrayValidator.create(uri, item_constraint=typ,
+                                                                                addl_constraints=detail)}
+                        except NotImplementedError:
+                            typ = detail['items']
+                            propdata = {'type': 'array',
+                                        'validator': util.ArrayValidator.create(uri,
+                                                                                item_constraint=typ,
+                                                                                addl_constraints=detail)}
+
+                    props[prop] = make_property(prop,
+                                                propdata,
+                                                typ.__doc__)
+                elif 'items' in detail:
+                    typs = []
+                    for i, elem in enumerate(detail['items']):
+                        uri = "{0}/{1}/<anonymous_{2}>".format(nm, prop, i)
+                        typ = self.construct(uri, detail['items'])
+                        typs.append(typ)
+
+                    props[prop] = make_property(prop,
+                                                {'type': 'tuple',
+                                                 'items': typ},
+                                                typ.__doc__)
+
             else:
                 desc = detail[
                     'description'] if 'description' in detail else ""
 
                 props[prop] = make_property(prop, detail, desc)
-
 
         """ If this object itself has a 'oneOf' designation, then
         make the validation 'type' the list of potential objects.
@@ -257,6 +303,7 @@ class ClassBuilder(object):
 
 
 def make_property(prop, info, desc=""):
+    print ("Creating property for {0}: {1}".format(prop, info))
 
     def getprop(this):
         try:
@@ -276,7 +323,8 @@ def make_property(prop, info, desc=""):
                     try:
                         val = typ(**val)
                     except Exception as e:
-                        errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
+                        errors.append(
+                            "Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
                         val.validate()
@@ -286,7 +334,12 @@ def make_property(prop, info, desc=""):
             if not ok:
                 errstr = "\n".join(errors)
                 raise TypeError(
-                        "Value must be one of {0}: \n{1}".format(info['type'], errstr))
+                    "Value must be one of {0}: \n{1}".format(info['type'], errstr))
+
+        elif info['type'] == 'array':
+            import pdb; pdb.set_trace()
+            instance = info['validator'](val)
+            instance.validate()
 
         elif (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
             val = this.__SCHEMA_TYPES__[info['type']](val)

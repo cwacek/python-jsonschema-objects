@@ -15,8 +15,11 @@ def type(param, value):
     if isinstance(param, basestring):
         param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
     if not isinstance(value, param):
-        raise ValidationError(
-            "{0} was not an instance of {1}".format(value, param))
+        try:
+          value = param(value)
+        except:
+            raise ValidationError(
+                "{0} was not an instance of {1}".format(value, param))
 
 
 def enum(param, value):
