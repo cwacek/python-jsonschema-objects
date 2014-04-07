@@ -11,6 +11,8 @@ from python_jsonschema_objects.validators import ValidationError
 import python_jsonschema_objects.util
 import python_jsonschema_objects.markdown_support
 
+__all__ = ['ObjectBuilder', 'markdown_support', 'ValidationError']
+
 FILE = __file__
 
 class ObjectBuilder(object):

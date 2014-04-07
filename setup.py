@@ -58,7 +58,6 @@ local_file = lambda *f: \
 install_requires, dependency_links = \
     parse_requirements('requirements.txt')
 
-
 if __name__ == '__main__':
     if 'register' in sys.argv:
         import register
