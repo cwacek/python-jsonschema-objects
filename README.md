@@ -91,5 +91,8 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.2 - Array item type validation now works. Specifying 'items',
+will now enforce types, both in the tuple and list syntaxes.
+
 0.0.1 - Class generation works, including 'oneOf' and 'allOf'
 relationships. All basic validations work.
