@@ -272,9 +272,11 @@ def make_property(prop, info, desc=""):
                     ok = True
                     break
                 elif not isinstance(val, ProtocolBase):
+                    errors = []
                     try:
                         val = typ(**val)
-                    except:
+                    except Exception as e:
+                        errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
                         val.validate()
@@ -282,10 +284,11 @@ def make_property(prop, info, desc=""):
                         break
 
             if not ok:
+                errstr = "\n".join(errors)
                 raise TypeError(
-                    "Value must be one of {0}".format(info['type']))
+                        "Value must be one of {0}: \n{1}".format(info['type'], errstr))
 
-        if (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
+        elif (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
             val = this.__SCHEMA_TYPES__[info['type']](val)
 
         elif issubclass(info['type'], ProtocolBase):
