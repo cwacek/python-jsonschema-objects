@@ -333,7 +333,7 @@ def make_property(prop, info, desc=""):
             if not ok:
                 errstr = "\n".join(errors)
                 raise TypeError(
-                    "Value must be one of {0}: \n{1}".format(info['type'], errstr))
+                    "Object must be one of {0}: \n{1}".format(info['type'], errstr))
 
         elif info['type'] == 'array':
             instance = info['validator'](val)
