@@ -96,6 +96,9 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.3 - Added support for other array validations (minItems,
+maxItems, uniqueItems).
+
 0.0.2 - Array item type validation now works. Specifying 'items',
 will now enforce types, both in the tuple and list syntaxes.
 
