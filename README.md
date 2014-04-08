@@ -22,6 +22,11 @@ For example, given the following schema:
             "description": "Age in years",
             "type": "integer",
             "minimum": 0
+        },
+        "dogs": {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 4
         }
     },
     "required": ["firstName", "lastName"]

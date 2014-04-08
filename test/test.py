@@ -98,3 +98,19 @@ describe TestCase, 'markdown extraction':
                 json_str = person.serialize()
                 json.loads(json_str).should_not.have.key('age')
 
+            it 'should serialize lists':
+                person = self.Person(
+                        firstName="James",
+                        lastName="Bond",
+                        dogs=["Lassie", "Bobo"]
+                        )
+
+                json_str = person.serialize()
+                json.loads(json_str).should.equal(
+                    {
+                      'firstName': "James",
+                      'lastName': "Bond",
+                      'dogs': ["Lassie", "Bobo"]
+                      }
+                    )
+

@@ -10,8 +10,7 @@ from unittest import TestCase
 import nose
 
 import python_jsonschema_objects as pjs
-from python_jsonschema_objects.util import ArrayValidator
-from python_jsonschema_objects.validators import ValidationError
+from python_jsonschema_objects.validators import ValidationError, ArrayValidator
 
 md = pkg_resources.resource_filename('python_jsonschema_objects',
         '../README.md')
