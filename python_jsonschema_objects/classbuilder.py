@@ -239,7 +239,7 @@ class ClassBuilder(object):
                         typ = self.construct(uri, detail['items'])
                         propdata = {
                             'type': 'array',
-                            'validator': util.ArrayValidator.create(
+                            'validator': validators.ArrayValidator.create(
                                 uri,
                                 item_constraint=typ)}
                     else:
@@ -248,12 +248,12 @@ class ClassBuilder(object):
                         try:
                             typ = self.construct(uri, detail['items'])
                             propdata = {'type': 'array',
-                                        'validator': util.ArrayValidator.create(uri, item_constraint=typ,
+                                        'validator': validators.ArrayValidator.create(uri, item_constraint=typ,
                                                                                 addl_constraints=detail)}
                         except NotImplementedError:
                             typ = detail['items']
                             propdata = {'type': 'array',
-                                        'validator': util.ArrayValidator.create(uri,
+                                        'validator': validators.ArrayValidator.create(uri,
                                                                                 item_constraint=typ,
                                                                                 addl_constraints=detail)}
 
