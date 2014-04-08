@@ -8,22 +8,59 @@ class ArrayValidator(object):
         self.data = ary
 
     def validate(self):
+        self.validate_items()
+        self.validate_length()
+        self.validate_uniqueness()
+
+    def validate_uniqueness(self):
         import classbuilder
         import validators
+
+        if getattr(self, 'uniqueItems', None) is not None:
+            testset = set(self.data)
+            if len(testset) != len(self.data):
+                raise validators.ValidationError(
+                    "{0} had duplicate elements, but uniqueness required"
+                    .format(self.data))
+
+    def validate_length(self):
+        import classbuilder
+        import validators
+
+        if getattr(self, 'minItems', None) is not None:
+            if len(self.data) < self.minItems:
+                raise validators.ValidationError(
+                    "{1} has too few elements. Wanted {0}."
+                    .format(self.minItems, self.data))
+
+        if getattr(self, 'maxItems', None) is not None:
+            if len(self.data) > self.maxItems:
+                raise validators.ValidationError(
+                    "{1} has too few elements. Wanted {0}."
+                    .format(self.maxItems, self.data))
+
+    def validate_items(self):
+        import classbuilder
+        import validators
+
+        if self.__itemtype__ is None:
+            return
+
         if not isinstance(self.__itemtype__, (tuple, list)):
             self.__itemtype__ = [
                 self.__itemtype__ for x in xrange(len(self.data))]
 
         if len(self.__itemtype__) > len(self.data):
-          raise validators.ValidationError(
-              "{1} does not have sufficient elements to validate against {0}"
-              .format(self.__itemtype__, self.data))
+            raise validators.ValidationError(
+                "{1} does not have sufficient elements to validate against {0}"
+                .format(self.__itemtype__, self.data))
 
         for i, elem in enumerate(self.data):
             try:
-              typ = self.__itemtype__[i]
+                typ = self.__itemtype__[i]
             except IndexError:
-              pass  # It's actually permissible to run over a tuple constraint.
+                # It's actually permissible to run over a tuple constraint.
+                pass
 
             if isinstance(typ, dict):
                 for param, paramval in typ.iteritems():
@@ -48,7 +85,7 @@ class ArrayValidator(object):
                 val.validate()
 
     @staticmethod
-    def create(name, item_constraint=None, addl_constraints={}):
+    def create(name, item_constraint=None, **addl_constraints):
         """ Create an array validator based on the passed in constraints.
 
         If item_constraint is a tuple, it is assumed that tuple validation
@@ -63,23 +100,32 @@ class ArrayValidator(object):
         props = {}
 
         if item_constraint is not None:
-          if isinstance(item_constraint, (tuple, list)):
-              for i, elem in enumerate(item_constraint):
-                  isdict = isinstance(elem, (dict,))
-                  isklass = isinstance(elem, type) and issubclass(elem, classbuilder.ProtocolBase)
-                  if not any([isdict, isklass]):
-                      raise TypeError("Item constraint (position {0}) was not a schema".format(i))
-          else:
-              isdict = isinstance(item_constraint, (dict,))
-              isklass = isinstance(item_constraint, type) and issubclass(item_constraint, classbuilder.ProtocolBase)
-              if not any([isdict, isklass]):
-                  raise TypeError("Item constraint was not a schema")
+            if isinstance(item_constraint, (tuple, list)):
+                for i, elem in enumerate(item_constraint):
+                    isdict = isinstance(elem, (dict,))
+                    isklass = isinstance(
+                        elem,
+                        type) and issubclass(
+                        elem,
+                        classbuilder.ProtocolBase)
+                    if not any([isdict, isklass]):
+                        raise TypeError(
+                            "Item constraint (position {0}) was not a schema".format(i))
+            else:
+                isdict = isinstance(item_constraint, (dict,))
+                isklass = isinstance(
+                    item_constraint,
+                    type) and issubclass(
+                    item_constraint,
+                    classbuilder.ProtocolBase)
+                if not any([isdict, isklass]):
+                    raise TypeError("Item constraint was not a schema")
 
-              if isdict and item_constraint['type'] == 'array':
-                  item_constraint = ArrayValidator.create(name + "#sub",
-                      item_constraint=item_constraint['items'],
-                      addl_constraints=item_constraint)
-
+                if isdict and item_constraint['type'] == 'array':
+                    item_constraint = ArrayValidator.create(name + "#sub",
+                                                            item_constraint=item_constraint[
+                                                                'items'],
+                                                            addl_constraints=item_constraint)
 
         props['__itemtype__'] = item_constraint
 

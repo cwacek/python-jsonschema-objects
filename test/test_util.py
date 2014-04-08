@@ -121,3 +121,39 @@ describe TestCase, 'ArrayValidator':
       instance = validator([[1,2,'h',5], [1,2,'4']])
       instance.validate.when.called_with().should.throw(ValidationError)
 
+    it 'should validate length':
+      validator = ArrayValidator.create(
+          'test',
+          minItems=1,
+          maxItems=3
+      )
+
+      instance = validator(range(1))
+      instance.validate.when.called_with().should_not.throw(ValidationError)
+
+      instance = validator(range(2))
+      instance.validate.when.called_with().should_not.throw(ValidationError)
+
+      instance = validator(range(3))
+      instance.validate.when.called_with().should_not.throw(ValidationError)
+
+      instance = validator(range(4))
+      instance.validate.when.called_with().should.throw(ValidationError)
+
+      instance = validator([])
+      instance.validate.when.called_with().should.throw(ValidationError)
+
+    it 'should validate uniqueness':
+      validator = ArrayValidator.create(
+          'test',
+          uniqueItems=True
+      )
+
+      instance = validator([])
+      instance.validate.when.called_with().should_not.throw(ValidationError)
+
+      instance = validator([1,2,3,4])
+      instance.validate.when.called_with().should_not.throw(ValidationError)
+
+      instance = validator([1,2,2,4])
+      instance.validate.when.called_with().should.throw(ValidationError, 'uniqueness')
