@@ -61,12 +61,19 @@ install_requires, dependency_links = \
 if __name__ == '__main__':
     if 'register' in sys.argv or 'upload' in sys.argv:
         import register
-        long_description = register.markdown_to_rst("README.md")
+        try:
+          long_description = register.markdown_to_rst("README.md")
+          if len(long_description) < 1:
+            raise Exception("Failed to convert README.md")
+        except Exception as e:
+          sys.stderr.write("Error: {0}\n".format(e))
+          sys.exit(1)
+
     else:
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.3b',
+          version='0.0.4',
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,

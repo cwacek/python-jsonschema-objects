@@ -96,6 +96,10 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.4 - Fixed some bugs that only showed up under specific schema
+layouts, including one which forced remote lookups for
+schema-local references.
+
 0.0.3b - Fixed ReStructuredText generation
 
 0.0.3 - Added support for other array validations (minItems,
