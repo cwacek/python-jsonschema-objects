@@ -191,7 +191,7 @@ class ArrayValidator(object):
 
         props.update(addl_constraints)
 
-        validator = klassType(name, (ArrayValidator,), props)
+        validator = klassType(str(name), (ArrayValidator,), props)
 
         return validator
 

@@ -164,10 +164,10 @@ class ClassBuilder(object):
             if uri in self.resolved:
                 return self.resolved[uri]
             else:
-                reffed_doc = self.resolver.resolve_remote(uri)
+                with self.resolver.resolving(uri) as resolved:
                 self.resolved[uri] = self._build_object(
                     uri,
-                    reffed_doc,
+                    resolved,
                     parent)
                 return self.resolved[uri]
 
