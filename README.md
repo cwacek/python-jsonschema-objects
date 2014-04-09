@@ -96,6 +96,8 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.3b - Fixed ReStructuredText generation
+
 0.0.3 - Added support for other array validations (minItems,
 maxItems, uniqueItems).
 

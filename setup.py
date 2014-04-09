@@ -59,14 +59,14 @@ install_requires, dependency_links = \
     parse_requirements('requirements.txt')
 
 if __name__ == '__main__':
-    if 'register' in sys.argv:
+    if 'register' in sys.argv or 'upload' in sys.argv:
         import register
         long_description = register.markdown_to_rst("README.md")
     else:
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.3',
+          version='0.0.3b',
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,
