@@ -141,6 +141,9 @@ class ArrayValidator(object):
                         else:
                             validator(paramval, elem)
 
+            elif issubclass(typ, classbuilder.LiteralValue):
+                val = typ(elem)
+                val.validate()
             elif issubclass(typ, classbuilder.ProtocolBase):
                 val = typ(**elem)
                 val.validate()

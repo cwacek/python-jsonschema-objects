@@ -30,6 +30,7 @@ class ProtocolBase(object):
         )
 
     def __init__(this, **props):
+        this._extended_properties = dict()
         this._properties = dict(zip(this.__prop_names__.keys(),
                                     [None for x in
                                      xrange(len(this.__prop_names__))]))
@@ -38,15 +39,41 @@ class ProtocolBase(object):
             try:
                 propname = this.__prop_names__[prop]
             except KeyError:
-                raise AttributeError(
-                    "{0} is not valid property "
-                    "of '{1}'".format(prop,
-                                      this.__class__))
+                propname = prop
 
             setattr(this, propname, props[prop])
 
         if len(props) > 0:
             this.validate()
+
+    def __setattr__(self, name, val):
+      if name.startswith("_"):
+        object.__setattr__(self, name, val)
+      elif name in self.__propinfo__:
+        # If its in __propinfo__, then it actually has a property defined.
+        # The property does special validation, so we actually need to
+        # run its setter. We get it from the class definition and call
+        # it directly. XXX Heinous.
+        prop = self.__class__.__dict__[name]
+        prop.fset(self, val)
+      else:
+        # This is an additional property of some kind
+        if getattr(self, '__extensible__', None) is False:
+          raise validators.ValidationError(
+              "Attempted to set unknown property '{0}', but 'additionalProperties' is false.")
+        else:
+          typ = getattr(self, '__extensible__', None)
+          if typ is not None:
+            val = typ(val)
+
+        self._extended_properties[name] = val
+
+    def __getattr__(self, name):
+      if name not in self._extended_properties:
+        raise AttributeError("{0} is not a valid property of {1}".format(
+          name, self.__class__.__name__))
+
+      return self._extended_properties[name]
 
     @classmethod
     def propinfo(cls, propname):
@@ -98,6 +125,37 @@ class ProtocolBase(object):
                                        False))
                 else:
                     validator(paramval, val)
+
+
+class LiteralValue(ProtocolBase):
+  """Docstring for LiteralValue """
+
+  def __init__(self, value):
+      """@todo: to be defined
+
+      :value: @todo
+
+      """
+      self._value = value
+      self.validate()
+
+  def __repr__(self):
+      return "<%s %s>" % (
+          self.__class__.__name__,
+          str(self._value)
+      )
+
+  def validate(self):
+      self.validate_property('__literal__', self._value)
+
+  def __int__(self):
+    return int(self._value)
+
+  def __float__(self):
+    return float(self._value)
+
+  def __str__(self):
+    return str(self._value)
 
 
 class ClassBuilder(object):
@@ -165,10 +223,10 @@ class ClassBuilder(object):
                 return self.resolved[uri]
             else:
                 with self.resolver.resolving(uri) as resolved:
-                self.resolved[uri] = self._build_object(
-                    uri,
-                    resolved,
-                    parent)
+                    self.resolved[uri] = self._build_object(
+                        uri,
+                        resolved,
+                        parent)
                 return self.resolved[uri]
 
         elif 'array' in clsdata and 'items' in clsdata:
@@ -178,16 +236,36 @@ class ClassBuilder(object):
                 parent)
 
         elif (clsdata.get('type', None) == 'object' or
-              clsdata.get('properties', None) is not None):
+              clsdata.get('properties', None) is not None or
+              clsdata.get('additionalProperties', None is not None)):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
                 parent)
             return self.resolved[uri]
+        elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean'):
+            self.resolved[uri] = self._build_literal(
+                uri,
+                clsdata)
+            return self.resolved[uri]
         else:
             raise NotImplementedError(
                 "Unable to parse schema object with "
                 "no type and no reference")
+
+    def _build_literal(self, nm, clsdata):
+      """@todo: Docstring for _build_literal
+
+      :nm: @todo
+      :clsdata: @todo
+      :returns: @todo
+
+      """
+      cls = type(str(nm.split('/')[-1]), tuple((LiteralValue,)), {
+        '__propinfo__': { '__literal__': clsdata}
+        })
+
+      return cls
 
     def _build_object(self, nm, clsdata, parents):
 
@@ -207,21 +285,35 @@ class ClassBuilder(object):
             name_translation[prop] = prop.replace('@', '')
             prop = name_translation[prop]
 
-            if 'type' not in detail and '$ref' in detail:
+            if detail.get('type', None) == 'object':
+                uri = "{0}/{1}_{2}".format(nm,
+                                           prop, "<anonymous>")
+                self.resolved[uri] = self.construct(
+                    uri,
+                    detail,
+                    (ProtocolBase,))
+
+                props[prop] = make_property(prop,
+                    {'type': self.resolved[uri]},
+                      self.resolved[uri].__doc__)
+                properties[prop]['type'] = self.resolved[uri]
+
+            elif 'type' not in detail and '$ref' in detail:
                 ref = detail['$ref']
                 uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
-                if uri in self.resolved:
-                    props[prop] = make_property(prop,
-                                                {'type': self.resolved[uri]},
-                                                self.resolved[uri].__doc__)
-                    properties[prop]['$ref'] = uri
-                    properties[prop]['type'] = self.resolved[uri]
-                else:
+                if uri not in self.resolved:
                     with self.resolver.resolving(ref) as resolved:
                         self.resolved[uri] = self.construct(
                             uri,
                             resolved,
                             (ProtocolBase,))
+
+                props[prop] = make_property(prop,
+                                            {'type': self.resolved[uri]},
+                                            self.resolved[uri].__doc__)
+                properties[prop]['$ref'] = uri
+                properties[prop]['type'] = self.resolved[uri]
+
             elif 'oneOf' in detail:
                 potential = self.resolve_classes(detail['oneOf'])
                 desc = detail[
@@ -285,6 +377,27 @@ class ClassBuilder(object):
             klasses = self.resolve_classes(clsdata['oneOf'])
             # Need a validation to check that it meets one of them
             props['__validation__'] = {'type': klasses}
+
+        props['__extensible__'] = True
+        if 'additionalProperties' in clsdata:
+          addlProp = clsdata['additionalProperties']
+
+          if addlProp is False:
+            props['__extensible__'] = False
+          else:
+            if '$ref' in addlProp:
+                refs = self.resolve_classes([addlProp])
+            else:
+                uri = "{0}/{1}_{2}".format(nm,
+                                           "<additionalProperties>", "<anonymous>")
+                self.resolved[uri] = self.construct(
+                    uri,
+                    addlProp,
+                    (ProtocolBase,))
+                refs = [self.resolved[uri]]
+
+            props['__extensible__'] = refs[0]
+
 
         props['__prop_names__'] = name_translation
 
