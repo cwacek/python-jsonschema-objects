@@ -1,6 +1,7 @@
 import python_jsonschema_objects.util as util
 import python_jsonschema_objects.validators as validators
 
+import itertools
 import six
 
 
@@ -23,7 +24,8 @@ class ProtocolBase(object):
 
     def __repr__(self):
         props = ["%s=%s" % (k, str(v)) for k, v in
-                 self._properties.iteritems()]
+                 itertools.chain(self._properties.iteritems(),
+                                 self._extended_properties.iteritems())]
         return "<%s %s>" % (
             self.__class__.__name__,
             " ".join(props)
