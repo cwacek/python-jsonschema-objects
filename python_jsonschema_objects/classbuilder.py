@@ -70,6 +70,10 @@ class ProtocolBase(object):
 
         self._extended_properties[name] = val
 
+    def __iter__(self):
+      import itertools
+      return itertools.chain(iter(self._extended_properties), iter(self._properties))
+
     def __getattr__(self, name):
       if name not in self._extended_properties:
         raise AttributeError("{0} is not a valid property of {1}".format(
