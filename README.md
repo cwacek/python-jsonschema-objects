@@ -96,6 +96,10 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.5 - Improved validation for additionalItems (and tests to
+match). Provided dictionary-syntax access to object properties
+and iteration over properties.
+
 0.0.4 - Fixed some bugs that only showed up under specific schema
 layouts, including one which forced remote lookups for
 schema-local references.
