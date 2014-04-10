@@ -74,7 +74,8 @@ class ProtocolBase(object):
 
     def __iter__(self):
       import itertools
-      return itertools.chain(iter(self._extended_properties), iter(self._properties))
+      return itertools.chain(self._extended_properties.iteritems(),
+                             self._properties.iteritems())
 
     def __getitem__(self, key):
       return self.__getattr__(key)
