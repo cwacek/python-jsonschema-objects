@@ -63,8 +63,10 @@ class ProtocolBase(object):
               "Attempted to set unknown property '{0}', but 'additionalProperties' is false.")
         else:
           typ = getattr(self, '__extensible__', None)
-          if typ is not None:
+          if isinstance(typ, type) and issubclass(typ, LiteralValue):
             val = typ(val)
+          elif isinstance(typ, type) and issubclass(typ, ProtocolBase):
+            val = typ(**val)
 
         self._extended_properties[name] = val
 
