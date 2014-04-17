@@ -1,11 +1,12 @@
 import python_jsonschema_objects.util as util
 import python_jsonschema_objects.validators as validators
 
+import collections
 import itertools
 import six
 
 
-class ProtocolBase(object):
+class ProtocolBase( collections.MutableMapping):
     __propinfo__ = {}
     __required__ = set()
 
@@ -72,16 +73,24 @@ class ProtocolBase(object):
 
         self._extended_properties[name] = val
 
+    """ Implement collections.MutableMapping methods """
+
     def __iter__(self):
       import itertools
-      return itertools.chain(self._extended_properties.iteritems(),
-                             self._properties.iteritems())
+      return itertools.chain(self._extended_properties.iterkeys(),
+                             self._properties.iterkeys())
+
+    def __len__(self):
+      return len(self._extended_properties) + len(self._properties)
 
     def __getitem__(self, key):
       return self.__getattr__(key)
 
     def __setitem__(self, key, val):
       return self.__setattr__(key, val)
+
+    def __delitem__(self, key):
+      return self.__delattr__(key)
 
     def __getattr__(self, name):
       if name not in self._extended_properties:
