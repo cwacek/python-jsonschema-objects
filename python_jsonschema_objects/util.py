@@ -12,6 +12,10 @@ class ProtocolJSONEncoder(json.JSONEncoder):
                 props[raw] = getattr(obj, trans)
                 if props[raw] is None:
                     del props[raw]
+            for raw, data in obj._extended_properties.iteritems():
+                props[raw] = data
+                if props[raw] is None:
+                    del props[raw]
             return props
         else:
             return json.JSONEncoder.default(self, obj)
