@@ -103,7 +103,7 @@ class ProtocolBase(object):
 
     def validate(this):
         missing = [x for x in this.__required__
-                   if this._properties[x] is None]
+                   if x not in this._properties or this._properties[x] is None]
 
         if len(missing) > 0:
             raise validators.ValidationError(
@@ -422,6 +422,12 @@ class ClassBuilder(object):
         if 'required' in clsdata:
             for prop in clsdata['required']:
                 required.add(prop.replace('@', ''))
+
+        invalid_requires = [req for req in required if req not in props['__propinfo__']]
+        if len(invalid_requires) > 0:
+          raise validators.ValidationError("Schema Definition Error: {0} schema requires "
+                                           "'{1}', but properties are not defined"
+                                           .format(nm, invalid_requires))
 
         props['__required__'] = required
 
