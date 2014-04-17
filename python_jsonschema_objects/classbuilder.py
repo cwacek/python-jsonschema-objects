@@ -138,7 +138,14 @@ class ProtocolBase( collections.MutableMapping):
             if val is None:
                 continue
 
-            this.validate_property(prop, val)
+            if isinstance(val, ProtocolBase):
+                val.validate()
+            elif isinstance(val, list):
+                for subval in val:
+                  subval.validate()
+            else:
+                import pdb; pdb.set_trace()
+                this.validate_property(prop, val)
 
         return True
 
@@ -514,8 +521,9 @@ def make_property(prop, info, desc=""):
                 val = info['type'](**val)
 
             val.validate()
+        else:
+            raise TypeError("Unknown object type: '{0}'".format(info['type']))
 
-        this.validate_property(prop, val)
         this._properties[prop] = val
 
     def delprop(this):
