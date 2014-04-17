@@ -285,7 +285,7 @@ class ClassBuilder(object):
       :returns: @todo
 
       """
-      cls = type(str(nm.split('/')[-1]), tuple((LiteralValue,)), {
+      cls = type(str(nm), tuple((LiteralValue,)), {
         '__propinfo__': { '__literal__': clsdata}
         })
 
@@ -391,8 +391,10 @@ class ClassBuilder(object):
             else:
                 desc = detail[
                     'description'] if 'description' in detail else ""
+                uri = "{0}/{1}".format(nm, prop)
+                typ = self.construct(uri, detail)
 
-                props[prop] = make_property(prop, detail, desc)
+                props[prop] = make_property(prop, {'type': typ}, desc)
 
         """ If this object itself has a 'oneOf' designation, then
         make the validation 'type' the list of potential objects.
@@ -480,10 +482,14 @@ def make_property(prop, info, desc=""):
 
         elif info['type'] == 'array':
             instance = info['validator'](val)
-            instance.validate()
+            val = instance.validate()
 
         elif (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
             val = this.__SCHEMA_TYPES__[info['type']](val)
+
+        elif issubclass(info['type'], LiteralValue):
+            if not isinstance(val, info['type']):
+                val = info['type'](val)
 
         elif issubclass(info['type'], ProtocolBase):
             if not isinstance(val, info['type']):

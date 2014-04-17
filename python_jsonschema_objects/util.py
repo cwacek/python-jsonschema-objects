@@ -6,6 +6,9 @@ class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         import classbuilder
+
+        if isinstance(obj, classbuilder.LiteralValue):
+            return obj._value
         if isinstance(obj, classbuilder.ProtocolBase):
             props = {}
             for raw, trans in obj.__prop_names__.iteritems():
