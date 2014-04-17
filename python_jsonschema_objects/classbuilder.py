@@ -20,6 +20,21 @@ class ProtocolBase( collections.MutableMapping):
         'object': dict
     }
 
+    def as_dict(self):
+      out = {}
+      for prop in self:
+          propval = getattr(self, prop)
+          proptype = self.__propinfo__[prop]['type']
+
+          if proptype == 'array':
+              out[prop] = [x.as_dict() for x in propval]
+          elif proptype == 'object':
+              out[prop] = propval.as_dict() if propval is not None else {}
+          elif propval is not None:
+              out[prop] = propval.as_dict()
+
+      return out
+
     def __str__(self):
         return repr(self)
 
@@ -162,6 +177,9 @@ class LiteralValue(ProtocolBase):
       """
       self._value = value
       self.validate()
+
+  def as_dict(self):
+      return self._value
 
   def __repr__(self):
       return "<%s %s>" % (
