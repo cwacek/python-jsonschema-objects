@@ -96,6 +96,10 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.6 - All literals now use a standardized LiteralValue type.
+Array validation actually coerces element types. `as_dict` can
+translate objects to dictionaries seamlessly.
+
 0.0.5 - Improved validation for additionalItems (and tests to
 match). Provided dictionary-syntax access to object properties
 and iteration over properties.
