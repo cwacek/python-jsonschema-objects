@@ -53,17 +53,17 @@ describe TestCase, 'markdown extraction':
             it 'should allow attributes to be given':
                 person = self.Person(firstName="James",
                         lastName="Bond", age=35)
-                person.firstName.should.equal("James")
-                person.lastName.should.equal("Bond")
-                person.age.should.equal(35)
+                str(person.firstName).should.equal("James")
+                str(person.lastName).should.equal("Bond")
+                int(person.age).should.equal(35)
                 person.should.be.ok
 
             it 'should allow non-required attributes to be missing':
                 person = self.Person(firstName="James",
                         lastName="Bond")
                 person.should.be.ok
-                person.firstName.should.equal("James")
-                person.lastName.should.equal("Bond")
+                str(person.firstName).should.equal("James")
+                str(person.lastName).should.equal("Bond")
 
             it 'should not allow required attributes to be missing':
                 self.Person.when.called_with(firstName="James").should.throw(
@@ -114,3 +114,13 @@ describe TestCase, 'markdown extraction':
                       }
                     )
 
+            it 'should transform into dictionaries recursively"':
+                pdict = dict(
+                        firstName="James",
+                        lastName="Bond",
+                        dogs=["Lassie", "Bobo"]
+                        )
+
+                person = self.Person( **pdict)
+
+                person.as_dict().should.equal(pdict)

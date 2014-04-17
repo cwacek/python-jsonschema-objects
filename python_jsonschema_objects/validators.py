@@ -72,9 +72,10 @@ class ArrayValidator(object):
         self.data = ary
 
     def validate(self):
-        self.validate_items()
+        converted = self.validate_items()
         self.validate_length()
         self.validate_uniqueness()
+        return converted
 
     def validate_uniqueness(self):
         import classbuilder
@@ -119,6 +120,7 @@ class ArrayValidator(object):
                 "{1} does not have sufficient elements to validate against {0}"
                 .format(self.__itemtype__, self.data))
 
+        typed_elems = []
         for i, elem in enumerate(self.data):
             try:
                 typ = self.__itemtype__[i]
@@ -144,15 +146,20 @@ class ArrayValidator(object):
             elif issubclass(typ, classbuilder.LiteralValue):
                 val = typ(elem)
                 val.validate()
+                typed_elems.append(val)
             elif issubclass(typ, classbuilder.ProtocolBase):
                 try:
                   val = typ(**elem)
                 except TypeError:
                   raise ValidationError("'{0}' was not a valid value for '{1}'".format(elem, typ))
                 val.validate()
+                typed_elems.append(val)
             elif issubclass(typ, ArrayValidator):
                 val = typ(elem)
                 val.validate()
+                typed_elems.append(val)
+
+        return typed_elems
 
     @staticmethod
     def create(name, item_constraint=None, **addl_constraints):
