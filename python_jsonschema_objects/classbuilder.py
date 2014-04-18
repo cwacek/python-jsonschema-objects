@@ -24,12 +24,9 @@ class ProtocolBase( collections.MutableMapping):
       out = {}
       for prop in self:
           propval = getattr(self, prop)
-          proptype = self.__propinfo__[prop]['type']
 
-          if proptype == 'array':
+          if isinstance(propval, list):
               out[prop] = [x.as_dict() for x in propval]
-          elif proptype == 'object':
-              out[prop] = propval.as_dict() if propval is not None else {}
           elif propval is not None:
               out[prop] = propval.as_dict()
 
