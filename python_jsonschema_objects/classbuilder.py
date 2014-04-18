@@ -16,7 +16,7 @@ class ProtocolBase( collections.MutableMapping):
         'integer': int,
         'number': float,
         'null': None,
-        'string': six.text_type,
+        'string': six.string_types,
         'object': dict
     }
 
@@ -78,7 +78,13 @@ class ProtocolBase( collections.MutableMapping):
               "Attempted to set unknown property '{0}', but 'additionalProperties' is false.")
         else:
           typ = getattr(self, '__extensible__', None)
-          if isinstance(typ, type) and issubclass(typ, LiteralValue):
+          if typ is True:
+            # There is no type defined, so just make it a basic literal
+            # Pick the type based on the type of the values
+            valtype = [k for k, t in self.__SCHEMA_TYPES__.iteritems()
+                       if t is not None and isinstance(val, t)][0]
+            val = MakeLiteral(name, valtype, val)
+          elif isinstance(typ, type) and issubclass(typ, LiteralValue):
             val = typ(val)
           elif isinstance(typ, type) and issubclass(typ, ProtocolBase):
             val = typ(**val)
@@ -529,9 +535,6 @@ def make_property(prop, info, desc=""):
         elif info['type'] == 'array':
             instance = info['validator'](val)
             val = instance.validate()
-
-        #elif (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
-        #    val = this.__SCHEMA_TYPES__[info['type']](val)
 
         elif issubclass(info['type'], LiteralValue):
             if not isinstance(val, info['type']):
