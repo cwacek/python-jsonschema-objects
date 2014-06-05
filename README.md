@@ -96,6 +96,9 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.7 - Required properties containing the '@' symbol no longer
+cause `build_classes()` to fail.
+
 0.0.6 - All literals now use a standardized LiteralValue type.
 Array validation actually coerces element types. `as_dict` can
 translate objects to dictionaries seamlessly.

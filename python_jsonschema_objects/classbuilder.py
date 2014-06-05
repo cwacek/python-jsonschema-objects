@@ -450,7 +450,7 @@ class ClassBuilder(object):
 
         if 'required' in clsdata:
             for prop in clsdata['required']:
-                required.add(prop.replace('@', ''))
+                required.add(prop)
 
         invalid_requires = [req for req in required if req not in props['__propinfo__']]
         if len(invalid_requires) > 0:
