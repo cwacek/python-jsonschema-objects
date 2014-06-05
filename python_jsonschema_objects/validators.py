@@ -181,15 +181,15 @@ class ArrayValidator(object):
                 for i, elem in enumerate(item_constraint):
                     isdict = isinstance(elem, (dict,))
                     isklass = isinstance( elem, klassType) and issubclass(
-                        elem, classbuilder.ProtocolBase)
+                        elem, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                     if not any([isdict, isklass]):
                         raise TypeError(
                             "Item constraint (position {0}) was not a schema".format(i))
             else:
                 isdict = isinstance(item_constraint, (dict,))
-                isklass = isinstance( item_constraint,
-                    klassType) and issubclass( item_constraint, classbuilder.ProtocolBase)
+                isklass = isinstance( item_constraint, klassType) and issubclass(
+                    item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                 if not any([isdict, isklass]):
                     raise TypeError("Item constraint was not a schema")

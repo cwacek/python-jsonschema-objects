@@ -16,7 +16,7 @@ class ProtocolBase( collections.MutableMapping):
         'integer': int,
         'number': float,
         'null': None,
-        'string': six.text_type,
+        'string': six.string_types,
         'object': dict
     }
 
@@ -24,12 +24,9 @@ class ProtocolBase( collections.MutableMapping):
       out = {}
       for prop in self:
           propval = getattr(self, prop)
-          proptype = self.__propinfo__[prop]['type']
 
-          if proptype == 'array':
+          if isinstance(propval, list):
               out[prop] = [x.as_dict() for x in propval]
-          elif proptype == 'object':
-              out[prop] = propval.as_dict() if propval is not None else {}
           elif propval is not None:
               out[prop] = propval.as_dict()
 
@@ -81,7 +78,13 @@ class ProtocolBase( collections.MutableMapping):
               "Attempted to set unknown property '{0}', but 'additionalProperties' is false.")
         else:
           typ = getattr(self, '__extensible__', None)
-          if isinstance(typ, type) and issubclass(typ, LiteralValue):
+          if typ is True:
+            # There is no type defined, so just make it a basic literal
+            # Pick the type based on the type of the values
+            valtype = [k for k, t in self.__SCHEMA_TYPES__.iteritems()
+                       if t is not None and isinstance(val, t)][0]
+            val = MakeLiteral(name, valtype, val)
+          elif isinstance(typ, type) and issubclass(typ, LiteralValue):
             val = typ(val)
           elif isinstance(typ, type) and issubclass(typ, ProtocolBase):
             val = typ(**val)
@@ -125,51 +128,47 @@ class ProtocolBase( collections.MutableMapping):
         enc = util.ProtocolJSONEncoder()
         return enc.encode(self)
 
-    def validate(this):
-        missing = [x for x in this.__required__
-                   if x not in this._properties or this._properties[x] is None]
+    def validate(self):
+        missing = [x for x in self.__required__
+                   if x not in self._properties or self._properties[x] is None]
 
         if len(missing) > 0:
             raise validators.ValidationError(
                 "'{0}' are required attributes for {1}"
-                            .format(missing, this.__class__))
+                            .format(missing, self.__class__))
 
-        for prop, val in this._properties.iteritems():
+        for prop, val in self._properties.iteritems():
             if val is None:
                 continue
 
-            this.validate_property(prop, val)
+            if isinstance(val, ProtocolBase):
+                val.validate()
+            elif isinstance(val, LiteralValue):
+                val.validate()
+            elif isinstance(val, list):
+                for subval in val:
+                  subval.validate()
+            else:
+                # This object is of the wrong type, but just try setting it
+                # The property setter will enforce its correctness
+                # and handily coerce its type at the same time
+                setattr(self, prop, val)
 
         return True
 
-    def validate_property(self, prop, val):
-        """Validate a property value, and return true or false
+def MakeLiteral(name, typ, value, **properties):
+      properties.update({'type': typ})
+      klass =  type(str(name), tuple((LiteralValue,)), {
+        '__propinfo__': { '__literal__': properties}
+        })
 
-        :propinfo: A dictionary containing property info
-        :propval: The property value
-        :returns: True or False
-        """
-        info = self.propinfo(prop)
-
-        for param, paramval in info.iteritems():
-            validator = getattr(validators, param, None)
-            if validator is not None:
-                if param == 'minimum':
-                    validator(paramval, val,
-                              info.get('exclusiveMinimum',
-                                       False))
-                elif param == 'maximum':
-                    validator(paramval, val,
-                              info.get('exclusiveMaximum',
-                                       False))
-                else:
-                    validator(paramval, val)
+      return klass(value)
 
 
-class LiteralValue(ProtocolBase):
+class LiteralValue(object):
   """Docstring for LiteralValue """
 
-  def __init__(self, value):
+  def __init__(self, value, typ=None):
       """@todo: to be defined
 
       :value: @todo
@@ -181,6 +180,17 @@ class LiteralValue(ProtocolBase):
   def as_dict(self):
       return self._value
 
+  @classmethod
+  def propinfo(cls, propname):
+      if propname not in cls.__propinfo__:
+          return {}
+      return cls.__propinfo__[propname]
+
+  def serialize(self):
+      self.validate()
+      enc = util.ProtocolJSONEncoder()
+      return enc.encode(self)
+
   def __repr__(self):
       return "<%s %s>" % (
           self.__class__.__name__,
@@ -188,7 +198,31 @@ class LiteralValue(ProtocolBase):
       )
 
   def validate(self):
-      self.validate_property('__literal__', self._value)
+      info = self.propinfo('__literal__')
+
+      for param, paramval in info.iteritems():
+          validator = getattr(validators, param, None)
+          if validator is not None:
+              if param == 'minimum':
+                  validator(paramval, self._value,
+                            info.get('exclusiveMinimum',
+                                     False))
+              elif param == 'maximum':
+                  validator(paramval, self._value,
+                            info.get('exclusiveMaximum',
+                                     False))
+              else:
+                  validator(paramval, self._value)
+
+  def __cmp__(self, other):
+    if isinstance(other, six.integer_types):
+      return cmp(int(self), other)
+    elif isinstance(other, six.string_types):
+      return cmp(str(self), other)
+    elif isinstance(other, float):
+      return cmp(float(self), other)
+    else:
+      return cmp(id(self), id(other))
 
   def __int__(self):
     return int(self._value)
@@ -502,9 +536,6 @@ def make_property(prop, info, desc=""):
             instance = info['validator'](val)
             val = instance.validate()
 
-        elif (info['type'] in this.__SCHEMA_TYPES__.keys() and val is not None):
-            val = this.__SCHEMA_TYPES__[info['type']](val)
-
         elif issubclass(info['type'], LiteralValue):
             if not isinstance(val, info['type']):
                 val = info['type'](val)
@@ -514,8 +545,9 @@ def make_property(prop, info, desc=""):
                 val = info['type'](**val)
 
             val.validate()
+        else:
+            raise TypeError("Unknown object type: '{0}'".format(info['type']))
 
-        this.validate_property(prop, val)
         this._properties[prop] = val
 
     def delprop(this):
