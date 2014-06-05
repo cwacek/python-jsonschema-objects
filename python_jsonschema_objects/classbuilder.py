@@ -5,6 +5,9 @@ import collections
 import itertools
 import six
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ProtocolBase( collections.MutableMapping):
     __propinfo__ = {}
@@ -260,7 +263,14 @@ class ClassBuilder(object):
 
         return pp
 
-    def construct(self, uri, clsdata, parent=(ProtocolBase,)):
+    def construct(self, uri, *args, **kw):
+        """ Wrapper to debug things """
+        logger.debug("Constructing {0}".format(uri))
+        ret = self._construct(uri, *args, **kw)
+        logger.debug("Constructed {0}".format(ret))
+        return ret
+
+    def _construct(self, uri, clsdata, parent=(ProtocolBase,)):
         if 'oneOf' in clsdata:
             potential_parents = self.resolve_classes(clsdata['oneOf'])
 
@@ -272,6 +282,8 @@ class ClassBuilder(object):
                         (p,))
                 else:
                     raise Exception("Don't know how to deal with this")
+
+            return self.resolved[uri]
 
         elif 'anyOf' in clsdata:
             raise NotImplementedError(
@@ -295,15 +307,24 @@ class ClassBuilder(object):
 
         elif '$ref' in clsdata:
 
-            if uri in self.resolved:
-                return self.resolved[uri]
+            if 'type' in clsdata and issubclass(clsdata['type'], ProtocolBase):
+                # It's possible that this reference was already resolved, in which
+                # case it will have its type parameter set
+                logging.debug("Using previously resolved type "
+                              "(with different URI) for {0}".format(uri))
+                self.resolved[uri] = clsdata['type']
+            elif uri in self.resolved:
+                logging.debug("Using previously resolved object for {0}".format(uri))
             else:
+                logging.debug("Resolving object for {0}".format(uri))
+
                 with self.resolver.resolving(uri) as resolved:
                     self.resolved[uri] = self._build_object(
                         uri,
                         resolved,
                         parent)
-                return self.resolved[uri]
+
+            return self.resolved[uri]
 
         elif 'array' in clsdata and 'items' in clsdata:
             self.resolved[uri] = self._build_object(
@@ -323,6 +344,22 @@ class ClassBuilder(object):
             self.resolved[uri] = self._build_literal(
                 uri,
                 clsdata)
+            return self.resolved[uri]
+        elif 'enum' in clsdata:  # This is constraining an enum from elsewhere almost certainly.
+            if type(clsdata['enum'][0]) in (int,):
+                obj = self._build_literal(uri, 'integer')
+            if type(clsdata['enum'][0]) in (float,):
+                obj = self._build_literal(uri, 'number')
+            elif type(clsdata['enum'][0]) in (str, basestring, unicode):
+                obj = self._build_literal(uri, 'string')
+            elif type(clsdata['enum'][0]) in (bool,):
+                obj = self._build_literal(uri, 'boolean')
+
+            self.resolved[uri] = obj
+            return obj
+
+        elif 'type' in clsdata and issubclass(clsdata['type'], ProtocolBase):
+            self.resolved[uri] = clsdata.get('type')
             return self.resolved[uri]
         else:
             raise NotImplementedError(
@@ -344,6 +381,7 @@ class ClassBuilder(object):
       return cls
 
     def _build_object(self, nm, clsdata, parents):
+        logger.debug("Building object {0}".format(nm))
 
         props = {}
 
