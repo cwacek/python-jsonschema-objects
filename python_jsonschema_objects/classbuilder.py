@@ -39,7 +39,8 @@ class ProtocolBase( collections.MutableMapping):
         return repr(self)
 
     def __repr__(self):
-        props = ["%s=%s" % (k, str(v)) for k, v in
+        inverter = dict((v, k) for k,v in self.__prop_names__.iteritems())
+        props = ["%s=%s" % (inverter[k], str(v)) for k, v in
                  itertools.chain(self._properties.iteritems(),
                                  self._extended_properties.iteritems())]
         return "<%s %s>" % (
@@ -47,19 +48,32 @@ class ProtocolBase( collections.MutableMapping):
             " ".join(props)
         )
 
+    @classmethod
+    def from_json(cls, jsonmsg):
+      import json
+      msg = json.loads(jsonmsg)
+      return cls(**msg)
+
     def __init__(this, **props):
         this._extended_properties = dict()
-        this._properties = dict(zip(this.__prop_names__.keys(),
+        this._properties = dict(zip(this.__prop_names__.values(),
                                     [None for x in
                                      xrange(len(this.__prop_names__))]))
 
         for prop in props:
-            try:
-                propname = this.__prop_names__[prop]
-            except KeyError:
-                propname = prop
+            #try:
+            #    propname = this.__prop_names__[prop]
+            #except KeyError:
+            #    propname = prop
 
-            setattr(this, propname, props[prop])
+            try:
+              logging.debug("Setting value for '{0}' to {1}"
+                  .format(prop, props[prop]))
+              setattr(this, prop, props[prop])
+            except validators.ValidationError as e:
+              import sys
+              raise type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
+                  prop, this.__class__.__name__)), sys.exc_info()[2]
 
         if len(props) > 0:
             this.validate()
@@ -72,13 +86,14 @@ class ProtocolBase( collections.MutableMapping):
         # The property does special validation, so we actually need to
         # run its setter. We get it from the class definition and call
         # it directly. XXX Heinous.
-        prop = self.__class__.__dict__[name]
+        prop = self.__class__.__dict__[self.__prop_names__[name]]
         prop.fset(self, val)
       else:
         # This is an additional property of some kind
         if getattr(self, '__extensible__', None) is False:
           raise validators.ValidationError(
-              "Attempted to set unknown property '{0}', but 'additionalProperties' is false.")
+              "Attempted to set unknown property '{0}', "
+              "but 'additionalProperties' is false.".format(name))
         else:
           typ = getattr(self, '__extensible__', None)
           if typ is True:
@@ -87,7 +102,7 @@ class ProtocolBase( collections.MutableMapping):
             valtype = [k for k, t in self.__SCHEMA_TYPES__.iteritems()
                        if t is not None and isinstance(val, t)][0]
             val = MakeLiteral(name, valtype, val)
-          elif isinstance(typ, type) and issubclass(typ, LiteralValue):
+          elif isinstance(typ, type) and typ.isLiteralClass is True:
             val = typ(val)
           elif isinstance(typ, type) and issubclass(typ, ProtocolBase):
             val = typ(**val)
@@ -132,8 +147,10 @@ class ProtocolBase( collections.MutableMapping):
         return enc.encode(self)
 
     def validate(self):
+        propname = lambda x: self.__prop_names__[x]
         missing = [x for x in self.__required__
-                   if x not in self._properties or self._properties[x] is None]
+                   if propname(x) not in self._properties
+                   or self._properties[propname(x)] is None]
 
         if len(missing) > 0:
             raise validators.ValidationError(
@@ -146,7 +163,7 @@ class ProtocolBase( collections.MutableMapping):
 
             if isinstance(val, ProtocolBase):
                 val.validate()
-            elif isinstance(val, LiteralValue):
+            elif val.isLiteralClass is True:
                 val.validate()
             elif isinstance(val, list):
                 for subval in val:
@@ -170,6 +187,8 @@ def MakeLiteral(name, typ, value, **properties):
 
 class LiteralValue(object):
   """Docstring for LiteralValue """
+
+  isLiteralClass = True
 
   def __init__(self, value, typ=None):
       """@todo: to be defined
@@ -216,6 +235,7 @@ class LiteralValue(object):
                                      False))
               else:
                   validator(paramval, self._value)
+
 
   def __cmp__(self, other):
     if isinstance(other, six.integer_types):
@@ -574,7 +594,7 @@ def make_property(prop, info, desc=""):
             instance = info['validator'](val)
             val = instance.validate()
 
-        elif issubclass(info['type'], LiteralValue):
+        elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):
                 val = info['type'](val)
 
