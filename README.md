@@ -96,6 +96,10 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.8 - Fixed bugs that occurred when the same class was read
+from different locations in the schema, and thus had a different
+URI
+
 0.0.7 - Required properties containing the '@' symbol no longer
 cause `build_classes()` to fail.
 
