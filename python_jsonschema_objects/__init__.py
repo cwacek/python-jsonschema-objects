@@ -21,7 +21,9 @@ FILE = __file__
 
 class ObjectBuilder(object):
 
-    def __init__(self, schema_uri):
+    def __init__(self, schema_uri, resolved={}):
+        self.mem_resolved = resolved
+
         if isinstance(schema_uri, basestring):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
@@ -35,12 +37,18 @@ class ObjectBuilder(object):
         self.resolver = jsonschema.RefResolver.from_schema(
             self.schema,
             handlers={
-                'file': self.relative_file_resolver
+                'file': self.relative_file_resolver,
+                'memory': self.memory_resolver
             }
         )
 
         self.validator = Draft4Validator(self.schema,
                                          resolver=self.resolver)
+
+        self.classes = self.build_classes()
+
+    def memory_resolver(self, uri):
+        return self.mem_resolved[uri[7:]]
 
     def relative_file_resolver(self, uri):
         path = os.path.join(self.basedir, uri[8:])
@@ -49,7 +57,11 @@ class ObjectBuilder(object):
         return result
 
     def validate(self, obj):
-        return self.validator.is_valid(obj)
+        try:
+            return self.validator.validate(obj)
+        except jsonschema.ValidationError as e:
+            raise ValidationError(e)
+
 
     def build_classes(self):
         builder = classbuilder.ClassBuilder(self.resolver)

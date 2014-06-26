@@ -26,6 +26,18 @@ describe TestCase, 'markdown extraction':
 
     describe 'ObjectBuilder':
 
+        it 'should load memory: references':
+            examples = {json.loads(v)['title']: json.loads(v) for v in self.examples['schema']}
+
+            builder = pjs.ObjectBuilder(examples['Other'], resolved=examples)
+            builder.should.be.ok
+            import pdb; pdb.set_trace()
+
+            builder.validate.when.called_with({'MyAddress': '1234'}).should.throw(pjs.ValidationError)
+            builder.validate.when.called_with({'MyAddress': '1234'}).should_not.throw(pjs.ValidationError)
+
+
+
         it 'should be able to read an object':
             examples = map(json.loads, self.examples['schema'])
             for ex in examples:

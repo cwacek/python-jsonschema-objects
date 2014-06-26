@@ -163,7 +163,7 @@ class ProtocolBase( collections.MutableMapping):
 
             if isinstance(val, ProtocolBase):
                 val.validate()
-            elif val.isLiteralClass is True:
+            elif getattr(val, 'isLiteralClass', None) is True:
                 val.validate()
             elif isinstance(val, list):
                 for subval in val:

@@ -1,5 +1,3 @@
-# python-jsonschema-objects
-
 ## What
 
 python-jsonschema-objects provides an *automatic* class-based
@@ -84,6 +82,36 @@ This avoids that problem by auto-generating classes, complete
 with validation, directly from an input JSON schema. These
 classes can seamlessly encode back and forth to JSON valid
 according to the schema.
+
+## Other Features
+
+The ObjectBuilder can be passed a dictionary specifying
+'memory' schemas when instantiated. This will allow it to
+resolve references where the referenced schemas are retrieved
+out of band and provided at instantiation.
+
+For instance:
+
+``` schema
+{
+    "title": "OutOfBand",
+    "definitions": {
+        "address": {
+            "type": "string"
+        }
+    }
+}
+```
+
+``` schema
+{
+    "title": "Other",
+    "properties": {
+        "MyAddress": {"$ref": "memory:OutOfBand#definitions/address"}
+    },
+    "additionalProperties": false
+}
+```
 
 ## Installation
 
