@@ -383,8 +383,8 @@ class ClassBuilder(object):
             return self.resolved[uri]
         else:
             raise NotImplementedError(
-                "Unable to parse schema object with "
-                "no type and no reference")
+                "Unable to parse schema object '{0}' with "
+                "no type and no reference".format(clsdata))
 
     def _build_literal(self, nm, clsdata):
       """@todo: Docstring for _build_literal

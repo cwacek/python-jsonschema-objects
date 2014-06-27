@@ -19,42 +19,38 @@ describe TestCase, 'markdown extraction':
         md = pkg_resources.resource_filename('python_jsonschema_objects',
                 '../README.md')
         self.examples = pjs.markdown_support.extract_code_blocks(md)
-        self.example = json.loads(self.examples['schema'][0])
+        self.examples = {json.loads(v)['title']: json.loads(v) for v in self.examples['schema']}
+        self.example = self.examples['Example Schema']
 
     it 'loads schema files':
-        self.examples.should.have.key('schema')
+        self.examples.should.have.key('Other')
 
     describe 'ObjectBuilder':
 
         it 'should load memory: references':
-            examples = {json.loads(v)['title']: json.loads(v) for v in self.examples['schema']}
 
-            builder = pjs.ObjectBuilder(examples['Other'], resolved=examples)
+            builder = pjs.ObjectBuilder(self.examples['Other'], resolved=self.examples)
             builder.should.be.ok
-            import pdb; pdb.set_trace()
 
-            builder.validate.when.called_with({'MyAddress': '1234'}).should.throw(pjs.ValidationError)
+            builder.validate.when.called_with({'MyAddress': 1234}).should.throw(pjs.ValidationError)
             builder.validate.when.called_with({'MyAddress': '1234'}).should_not.throw(pjs.ValidationError)
 
 
-
         it 'should be able to read an object':
-            examples = map(json.loads, self.examples['schema'])
-            for ex in examples:
-                builder = pjs.ObjectBuilder(ex)
+            for nm, ex in self.examples.iteritems():
+                builder = pjs.ObjectBuilder(ex, resolved=self.examples)
                 builder.should.be.ok
 
         it 'should be able to build classes':
-            examples = map(json.loads, self.examples['schema'])
-            for ex in examples:
-                builder = pjs.ObjectBuilder(self.example)
+            for nm, ex in self.examples.iteritems():
+                builder = pjs.ObjectBuilder(self.example, resolved=self.examples)
                 builder.should.be.ok
                 namespace = builder.build_classes()
                 this(namespace).should.be.ok
 
         context 'PersonExample':
             before_each:
-                self.builder = pjs.ObjectBuilder(self.example)
+                self.builder = pjs.ObjectBuilder(self.example, resolved=self.examples )
                 namespace = self.builder.build_classes()
                 self.Person = namespace.ExampleSchema
 

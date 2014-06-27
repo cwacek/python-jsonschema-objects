@@ -94,20 +94,17 @@ For instance:
 
 ``` schema
 {
-    "title": "OutOfBand",
-    "definitions": {
-        "address": {
-            "type": "string"
-        }
-    }
+    "title": "Address",
+    "type": "string"
 }
 ```
 
 ``` schema
 {
     "title": "Other",
+    "type": "object",
     "properties": {
-        "MyAddress": {"$ref": "memory:OutOfBand#definitions/address"}
+        "MyAddress": {"$ref": "memory:Address"}
     },
     "additionalProperties": false
 }
