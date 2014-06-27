@@ -365,16 +365,8 @@ class ClassBuilder(object):
                 uri,
                 clsdata)
             return self.resolved[uri]
-        elif 'enum' in clsdata:  # This is constraining an enum from elsewhere almost certainly.
-            if type(clsdata['enum'][0]) in (int,):
-                obj = self._build_literal(uri, 'integer')
-            if type(clsdata['enum'][0]) in (float,):
-                obj = self._build_literal(uri, 'number')
-            elif type(clsdata['enum'][0]) in (str, basestring, unicode):
-                obj = self._build_literal(uri, 'string')
-            elif type(clsdata['enum'][0]) in (bool,):
-                obj = self._build_literal(uri, 'boolean')
-
+        elif 'enum' in clsdata:
+            obj = self._build_literal(uri, clsdata)
             self.resolved[uri] = obj
             return obj
 

@@ -25,7 +25,14 @@ For example, given the following schema:
             "type": "array",
             "items": {"type": "string"},
             "maxItems": 4
-        }
+        },
+        "gender": {
+            "type": "string",
+            "enum": ["male", "female"]
+        },
+        "deceased": {
+            "enum": ["yes", "no", 1, 0, "true", "false"]
+            }
     },
     "required": ["firstName", "lastName"]
 }

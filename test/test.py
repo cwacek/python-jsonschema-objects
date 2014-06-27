@@ -66,6 +66,30 @@ describe TestCase, 'markdown extraction':
                 int(person.age).should.equal(35)
                 person.should.be.ok
 
+            it 'should validate enumerations':
+                person = self.Person()
+
+                def set_gender(gender):
+                    person.gender = gender
+
+                set_gender.when.called_with("robot").should.throw(pjs.ValidationError)
+                set_gender.when.called_with("male").should_not.throw(pjs.ValidationError)
+                set_gender.when.called_with("female").should_not.throw(pjs.ValidationError)
+
+            it 'should validate mixed-type enumerations':
+                person = self.Person()
+
+                def set_status(status):
+                    person.deceased = status
+
+                set_status.when.called_with("robot").should.throw(pjs.ValidationError)
+                set_status.when.called_with("yes").should_not.throw(pjs.ValidationError)
+                set_status.when.called_with("no").should_not.throw(pjs.ValidationError)
+                set_status.when.called_with(1).should_not.throw(pjs.ValidationError)
+                set_status.when.called_with(2).should.throw(pjs.ValidationError)
+                set_status.when.called_with(2.3).should.throw(pjs.ValidationError)
+
+
             it 'should allow non-required attributes to be missing':
                 person = self.Person(firstName="James",
                         lastName="Bond")
