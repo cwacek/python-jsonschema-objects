@@ -52,7 +52,9 @@ class ProtocolBase( collections.MutableMapping):
     def from_json(cls, jsonmsg):
       import json
       msg = json.loads(jsonmsg)
-      return cls(**msg)
+      obj = cls(**msg)
+      obj.validate()
+      return obj
 
     def __init__(this, **props):
         this._extended_properties = dict()
@@ -68,15 +70,15 @@ class ProtocolBase( collections.MutableMapping):
 
             try:
               logging.debug("Setting value for '{0}' to {1}"
-                  .format(prop, props[prop]))
+                            .format(prop, props[prop]))
               setattr(this, prop, props[prop])
             except validators.ValidationError as e:
               import sys
               raise type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
                   prop, this.__class__.__name__)), sys.exc_info()[2]
 
-        if len(props) > 0:
-            this.validate()
+        #if len(props) > 0:
+        #    this.validate()
 
     def __setattr__(self, name, val):
       if name.startswith("_"):

@@ -98,7 +98,9 @@ describe TestCase, 'markdown extraction':
                 str(person.lastName).should.equal("Bond")
 
             it 'should not allow required attributes to be missing':
-                self.Person.when.called_with(firstName="James").should.throw(
+                person = self.Person(firstName="James")
+
+                person.validate.when.called_with().should.throw(
                         pjs.ValidationError
                         )
 
