@@ -73,7 +73,7 @@ if __name__ == '__main__':
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.8',
+          version='0.0.9',
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,

@@ -121,6 +121,9 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.9 - Added support for 'memory:' schema URIs, which can be
+used to reference externally resolved schemas.
+
 0.0.8 - Fixed bugs that occurred when the same class was read
 from different locations in the schema, and thus had a different
 URI
