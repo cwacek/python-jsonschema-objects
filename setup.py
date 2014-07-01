@@ -60,11 +60,11 @@ if __name__ == '__main__':
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.10.post1',
+          version='0.0.10.post2',
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,
-          license="LICENSE",
+          license="MIT",
           author_email='cwacek@gmail.com',
           include_package_data=True,
           url='http://github.com/cwacek/python-jsonschema-objects',
