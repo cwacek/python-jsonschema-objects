@@ -35,18 +35,43 @@ describe TestCase, 'markdown extraction':
             builder.validate.when.called_with({'MyAddress': 1234}).should.throw(pjs.ValidationError)
             builder.validate.when.called_with({'MyAddress': '1234'}).should_not.throw(pjs.ValidationError)
 
-
         it 'should be able to read an object':
             for nm, ex in self.examples.iteritems():
                 builder = pjs.ObjectBuilder(ex, resolved=self.examples)
                 builder.should.be.ok
 
-        it 'should be able to build classes':
-            for nm, ex in self.examples.iteritems():
-                builder = pjs.ObjectBuilder(self.example, resolved=self.examples)
+        context "additionalProperties":
+
+            before_each:
+                builder = pjs.ObjectBuilder(self.examples['Example Schema'], resolved=self.examples)
                 builder.should.be.ok
-                namespace = builder.build_classes()
-                this(namespace).should.be.ok
+                self.Person = builder.classes['ExampleSchema']
+                builder = pjs.ObjectBuilder(self.examples['Other'], resolved=self.examples)
+                builder.should.be.ok
+                self.Other = builder.classes['Other']
+
+            it 'should allow additionalProperties by default':
+
+                def set_attribute(object):
+                    object.randomAttribute = 4
+
+                person = self.Person()
+                set_attribute.when.called_with(person).should_not.throw(Exception)
+
+                int(person.randomAttribute).should.equal(4)
+
+            it 'should still raise errors when accessing undefined attributes':
+
+                person = self.Person()
+                #person.should_not.have.property('randomAttribute')
+
+            it 'should not allow undefined attributes if false':
+
+                def set_attribute(object):
+                    object.randomAttribute = 4
+
+                other = self.Other()
+                set_attribute.when.called_with(other).should.throw(pjs.ValidationError)
 
         context 'PersonExample':
             before_each:
@@ -65,6 +90,11 @@ describe TestCase, 'markdown extraction':
                 str(person.lastName).should.equal("Bond")
                 int(person.age).should.equal(35)
                 person.should.be.ok
+
+            it 'should validate when decoding from json':
+                self.Person.from_json.when.called_with(
+                        '{"firstName":"James"}'
+                        ).should.throw(pjs.ValidationError)
 
             it 'should validate enumerations':
                 person = self.Person()

@@ -2,19 +2,6 @@
 # -*- coding: utf-8 -*-
 # <python_jsonschema_objects - An object wrapper for JSON Schema definitions>
 # Copyright (C) <2014-2014>  Chris Wacek <cwacek@gmail.com
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, see <http://www.gnu.org/licenses/>
 
 import ast
 import os
@@ -73,10 +60,11 @@ if __name__ == '__main__':
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.10',
+          version='0.0.10.post1',
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,
+          license="LICENSE",
           author_email='cwacek@gmail.com',
           include_package_data=True,
           url='http://github.com/cwacek/python-jsonschema-objects',
