@@ -17,9 +17,9 @@ class ProtocolBase( collections.MutableMapping):
         'array': list,
         'boolean': bool,
         'integer': int,
-        'number': float,
+        'number': (float, int),
         'null': None,
-        'string': six.string_types,
+        'string': basestring,
         'object': dict
     }
 
@@ -63,10 +63,6 @@ class ProtocolBase( collections.MutableMapping):
                                      xrange(len(this.__prop_names__))]))
 
         for prop in props:
-            #try:
-            #    propname = this.__prop_names__[prop]
-            #except KeyError:
-            #    propname = prop
 
             try:
               logging.debug("Setting value for '{0}' to {1}"
@@ -329,7 +325,8 @@ class ClassBuilder(object):
 
         elif '$ref' in clsdata:
 
-            if 'type' in clsdata and issubclass(clsdata['type'], ProtocolBase):
+            if 'type' in clsdata and issubclass(
+                    clsdata['type'], (ProtocolBase, LiteralValue)):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
                 logging.debug("Using previously resolved type "
@@ -562,12 +559,23 @@ def make_property(prop, info, desc=""):
     def setprop(this, val):
         if isinstance(info['type'], (list, tuple)):
             ok = False
+            errors = []
             for typ in info['type']:
                 if isinstance(val, typ):
                     ok = True
                     break
-                elif not isinstance(val, ProtocolBase):
-                    errors = []
+                elif getattr(typ, 'isLiteralClass'):
+                    try:
+                        val = typ(val)
+                    except Exception as e:
+                        errors.append(
+                            "Failed to coerce to '{0}': {1}".format(typ, e))
+                        pass
+                    else:
+                        val.validate()
+                        ok = True
+                        break
+                elif issubclass(typ, ProtocolBase):
                     try:
                         val = typ(**val)
                     except Exception as e:
@@ -581,7 +589,7 @@ def make_property(prop, info, desc=""):
 
             if not ok:
                 errstr = "\n".join(errors)
-                raise TypeError(
+                raise validators.ValidationError(
                     "Object must be one of {0}: \n{1}".format(info['type'], errstr))
 
         elif info['type'] == 'array':

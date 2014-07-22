@@ -117,6 +117,33 @@ For instance:
 }
 ```
 
+Generated wrappers can also properly deserialize data
+representing 'oneOf' relationships, so long as the candidate
+schemas are unique.
+
+``` schema
+{
+    "title": "Age",
+    "type": "integer"
+}
+
+```
+
+``` schema
+{
+    "title": "OneOf",
+    "type": "object",
+    "properties": {
+        "MyData": { "oneOf":[
+            {"$ref": "memory:Address"},
+            {"$ref": "memory:Age"}
+            ]
+        }
+    },
+    "additionalProperties": false
+}
+```
+
 ## Installation
 
     pip install python_jsonschema_objects

@@ -40,6 +40,23 @@ describe TestCase, 'markdown extraction':
                 builder = pjs.ObjectBuilder(ex, resolved=self.examples)
                 builder.should.be.ok
 
+        context "oneOf":
+            before_each:
+                builder = pjs.ObjectBuilder(self.examples['OneOf'], resolved=self.examples)
+                builder.should.be.ok
+                self.OneOf = builder.classes['Oneof']
+
+            it 'should validate against any of the provided schemas':
+
+                self.OneOf.from_json.when.called_with('{"MyData": "an address"}').should_not.throw()
+                self.OneOf.from_json.when.called_with('{"MyData": 1234}').should_not.throw()
+
+            it 'should fail to validate when given something that does not match':
+                self.OneOf.from_json.when.called_with(
+                    '{"MyData": 1234.234}'
+                ).should.throw(pjs.ValidationError)
+
+
         context "additionalProperties":
 
             before_each:
