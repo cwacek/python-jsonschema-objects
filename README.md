@@ -108,6 +108,14 @@ For instance:
 
 ``` schema
 {
+    "title": "AddlPropsAllowed",
+    "type": "object",
+    "additionalProperties": true
+}
+```
+
+``` schema
+{
     "title": "Other",
     "type": "object",
     "properties": {
@@ -154,6 +162,8 @@ Tests are managed using the excellent Tox. Simply `pip install
 tox`, then `tox`.
 
 ## Changelog
+
+0.0.12 - Support "true" as a value for 'additionalProperties'
 
 0.0.11 - Generated wrappers can now properly deserialize data
 representing 'oneOf' relationships, so long as the candidate

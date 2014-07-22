@@ -511,6 +511,8 @@ class ClassBuilder(object):
 
           if addlProp is False:
             props['__extensible__'] = False
+          elif addlProp is True:
+            props['__extensible__'] = True
           else:
             if '$ref' in addlProp:
                 refs = self.resolve_classes([addlProp])

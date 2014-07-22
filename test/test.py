@@ -77,6 +77,13 @@ describe TestCase, 'markdown extraction':
 
                 int(person.randomAttribute).should.equal(4)
 
+            it 'should be oky with additionalProperties == True':
+                builder = pjs.ObjectBuilder(self.examples['AddlPropsAllowed'], resolved=self.examples)
+                builder.should.be.ok
+
+                test = builder.classes['Addlpropsallowed']()
+                test.randomAttribute = 40
+
             it 'should still raise errors when accessing undefined attributes':
 
                 person = self.Person()
