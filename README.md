@@ -155,9 +155,13 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.11 - Generated wrappers can now properly deserialize data
+representing 'oneOf' relationships, so long as the candidate
+schemas are unique.
+
 0.0.10 - Fixed incorrect checking of enumerations which
 previously enforced that all enumeration values be of the same
-type. 
+type.
 
 0.0.9 - Added support for 'memory:' schema URIs, which can be
 used to reference externally resolved schemas.
