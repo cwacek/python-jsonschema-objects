@@ -205,5 +205,3 @@ will now enforce types, both in the tuple and list syntaxes.
 
 0.0.1 - Class generation works, including 'oneOf' and 'allOf'
 relationships. All basic validations work.
-
-Testing hooks
