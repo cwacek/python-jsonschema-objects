@@ -163,6 +163,9 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.13 - Lazily build object classes. Allows low-overhead use
+of jsonschema validators.
+
 0.0.12 - Support "true" as a value for 'additionalProperties'
 
 0.0.11 - Generated wrappers can now properly deserialize data
