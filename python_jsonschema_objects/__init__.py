@@ -45,7 +45,13 @@ class ObjectBuilder(object):
         self.validator = Draft4Validator(self.schema,
                                          resolver=self.resolver)
 
-        self.classes = self.build_classes()
+        self._classes = None
+
+    @property
+    def classes(self):
+        if self._classes is None:
+          self._classes = self.build_classes()
+        return self._classes
 
     def memory_resolver(self, uri):
         return self.mem_resolved[uri[7:]]
@@ -61,7 +67,6 @@ class ObjectBuilder(object):
             return self.validator.validate(obj)
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
-
 
     def build_classes(self):
         builder = classbuilder.ClassBuilder(self.resolver)
