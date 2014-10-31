@@ -1,3 +1,6 @@
+import six
+
+
 class ValidationError(Exception):
     pass
 
@@ -13,7 +16,7 @@ def multipleOf(param, value):
 
 
 def type(param, value):
-    import classbuilder
+    from python_jsonschema_objects import classbuilder
     if isinstance(param, basestring):
         param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
     if not isinstance(value, param):
@@ -75,8 +78,8 @@ class ArrayValidator(object):
         return converted
 
     def validate_uniqueness(self):
-        import classbuilder
-        import validators
+        from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if getattr(self, 'uniqueItems', None) is not None:
             testset = set(self.data)
@@ -86,8 +89,8 @@ class ArrayValidator(object):
                     .format(self.data))
 
     def validate_length(self):
-        import classbuilder
-        import validators
+        from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if getattr(self, 'minItems', None) is not None:
             if len(self.data) < self.minItems:
@@ -102,8 +105,8 @@ class ArrayValidator(object):
                     .format(self.maxItems, self.data))
 
     def validate_items(self):
-        import classbuilder
-        import validators
+        from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if self.__itemtype__ is None:
             return
@@ -126,7 +129,7 @@ class ArrayValidator(object):
                 pass
 
             if isinstance(typ, dict):
-                for param, paramval in typ.iteritems():
+                for param, paramval in six.iteritems(typ):
                     validator = getattr(validators, param, None)
                     if validator is not None:
                         if param == 'minimum':
@@ -170,7 +173,7 @@ class ArrayValidator(object):
         addl_constraints is expected to be key-value pairs of any of the other
         constraints permitted by JSON Schema v4.
         """
-        import classbuilder
+        from python_jsonschema_objects import classbuilder
         props = {}
 
         if item_constraint is not None:

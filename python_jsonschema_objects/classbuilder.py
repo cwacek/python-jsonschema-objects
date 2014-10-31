@@ -19,7 +19,7 @@ class ProtocolBase( collections.MutableMapping):
         'integer': int,
         'number': (float, int),
         'null': None,
-        'string': basestring,
+        'string': six.string_types,
         'object': dict
     }
 
@@ -39,10 +39,10 @@ class ProtocolBase( collections.MutableMapping):
         return repr(self)
 
     def __repr__(self):
-        inverter = dict((v, k) for k,v in self.__prop_names__.iteritems())
+        inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
         props = ["%s=%s" % (inverter[k], str(v)) for k, v in
-                 itertools.chain(self._properties.iteritems(),
-                                 self._extended_properties.iteritems())]
+                 itertools.chain(six.iteritems(self._properties),
+                                 six.iteritems(self._extended_properties))]
         return "<%s %s>" % (
             self.__class__.__name__,
             " ".join(props)
@@ -70,8 +70,8 @@ class ProtocolBase( collections.MutableMapping):
               setattr(this, prop, props[prop])
             except validators.ValidationError as e:
               import sys
-              raise type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
-                  prop, this.__class__.__name__)), sys.exc_info()[2]
+              raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
+                  prop, this.__class__.__name__)), sys.exc_info()[2])
 
         #if len(props) > 0:
         #    this.validate()
@@ -97,7 +97,7 @@ class ProtocolBase( collections.MutableMapping):
           if typ is True:
             # There is no type defined, so just make it a basic literal
             # Pick the type based on the type of the values
-            valtype = [k for k, t in self.__SCHEMA_TYPES__.iteritems()
+            valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
                        if t is not None and isinstance(val, t)][0]
             val = MakeLiteral(name, valtype, val)
           elif isinstance(typ, type) and typ.isLiteralClass is True:
@@ -155,7 +155,7 @@ class ProtocolBase( collections.MutableMapping):
                 "'{0}' are required attributes for {1}"
                             .format(missing, self.__class__))
 
-        for prop, val in self._properties.iteritems():
+        for prop, val in six.iteritems(self._properties):
             if val is None:
                 continue
 
@@ -220,7 +220,7 @@ class LiteralValue(object):
   def validate(self):
       info = self.propinfo('__literal__')
 
-      for param, paramval in info.iteritems():
+      for param, paramval in six.iteritems(info):
           validator = getattr(validators, param, None)
           if validator is not None:
               if param == 'minimum':

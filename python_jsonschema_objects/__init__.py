@@ -5,6 +5,7 @@ import json
 import codecs
 import os.path
 import inflection
+import six
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class ObjectBuilder(object):
     def __init__(self, schema_uri, resolved={}):
         self.mem_resolved = resolved
 
-        if isinstance(schema_uri, basestring):
+        if isinstance(schema_uri, six.string_types):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
             with open(uri) as fin:
@@ -79,7 +80,7 @@ class ObjectBuilder(object):
                     builder.construct(uri, defn)
 
         nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
-        nm = inflection.parameterize(unicode(nm), '_')
+        nm = inflection.parameterize(six.text_type(nm), '_')
 
         builder.construct(nm, self.schema)
 
@@ -87,7 +88,7 @@ class ObjectBuilder(object):
             util.Namespace.from_mapping(dict(
                 (inflection.camelize(uri.split('/')[-1]),
                  klass) for uri,
-                klass in builder.resolved.iteritems()))
+                klass in six.iteritems(builder.resolved)))
         )
 
 

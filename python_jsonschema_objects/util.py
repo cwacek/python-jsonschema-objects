@@ -1,3 +1,4 @@
+import six
 import copy
 import json
 
@@ -5,17 +6,17 @@ import json
 class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
-        import classbuilder
+        from python_jsonschema_objects import classbuilder
 
         if isinstance(obj, classbuilder.LiteralValue):
             return obj._value
         if isinstance(obj, classbuilder.ProtocolBase):
             props = {}
-            for raw, trans in obj.__prop_names__.iteritems():
+            for raw, trans in six.iteritems(obj.__prop_names__):
                 props[raw] = getattr(obj, trans)
                 if props[raw] is None:
                     del props[raw]
-            for raw, data in obj._extended_properties.iteritems():
+            for raw, data in six.iteritems(obj._extended_properties):
                 props[raw] = data
                 if props[raw] is None:
                     del props[raw]
@@ -28,13 +29,13 @@ def propmerge(into, data_from):
     """ Merge JSON schema requirements into a dictionary """
     newprops = copy.deepcopy(into)
 
-    for prop, propval in data_from.iteritems():
+    for prop, propval in six.iteritems(data_from):
         if prop not in newprops:
             newprops[prop] = propval
             continue
 
         new_sp = newprops[prop]
-        for subprop, spval in propval.iteritems():
+        for subprop, spval in six.iteritems(propval):
             if subprop not in new_sp:
                 new_sp[subprop] = spval
 
