@@ -60,7 +60,7 @@ class ProtocolBase( collections.MutableMapping):
         this._extended_properties = dict()
         this._properties = dict(zip(this.__prop_names__.values(),
                                     [None for x in
-                                     xrange(len(this.__prop_names__))]))
+                                     six.moves.xrange(len(this.__prop_names__))]))
 
         for prop in props:
 
