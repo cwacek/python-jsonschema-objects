@@ -113,7 +113,7 @@ class ArrayValidator(object):
 
         if not isinstance(self.__itemtype__, (tuple, list)):
             self.__itemtype__ = [
-                self.__itemtype__ for x in xrange(len(self.data))]
+                self.__itemtype__ for x in six.moves.xrange(len(self.data))]
 
         if len(self.__itemtype__) > len(self.data):
             raise validators.ValidationError(
