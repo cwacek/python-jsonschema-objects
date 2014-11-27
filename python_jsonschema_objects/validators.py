@@ -17,7 +17,7 @@ def multipleOf(param, value):
 
 def type(param, value):
     from python_jsonschema_objects import classbuilder
-    if isinstance(param, basestring):
+    if isinstance(param, six.string_types):
         param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
     if not isinstance(value, param):
         raise ValidationError(

@@ -111,8 +111,8 @@ class ProtocolBase( collections.MutableMapping):
 
     def __iter__(self):
       import itertools
-      return itertools.chain(self._extended_properties.iterkeys(),
-                             self._properties.iterkeys())
+      return itertools.chain(six.iterkeys(self._extended_properties),
+                             six.iterkeys(self._properties))
 
     def __len__(self):
       return len(self._extended_properties) + len(self._properties)
