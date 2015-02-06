@@ -145,10 +145,13 @@ class ArrayValidator(object):
                 val.validate()
                 typed_elems.append(val)
             elif issubclass(typ, classbuilder.ProtocolBase):
-                try:
-                  val = typ(**elem)
-                except TypeError:
-                  raise ValidationError("'{0}' was not a valid value for '{1}'".format(elem, typ))
+                if not isinstance(elem, typ):
+                    try:
+                      val = typ(**elem)
+                    except TypeError:
+                      raise ValidationError("'{0}' was not a valid value for '{1}'".format(elem, typ))
+                else:
+                    val = elem
                 val.validate()
                 typed_elems.append(val)
             elif issubclass(typ, ArrayValidator):
