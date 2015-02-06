@@ -1,3 +1,6 @@
+import six
+
+
 class ValidationError(Exception):
     pass
 
@@ -13,8 +16,8 @@ def multipleOf(param, value):
 
 
 def type(param, value):
-    import classbuilder
-    if isinstance(param, basestring):
+    from python_jsonschema_objects import classbuilder
+    if isinstance(param, six.string_types):
         param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
     if not isinstance(value, param):
         raise ValidationError(
@@ -75,8 +78,8 @@ class ArrayValidator(object):
         return converted
 
     def validate_uniqueness(self):
-        import classbuilder
-        import validators
+        from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if getattr(self, 'uniqueItems', None) is not None:
             testset = set(self.data)
@@ -86,8 +89,8 @@ class ArrayValidator(object):
                     .format(self.data))
 
     def validate_length(self):
-        import classbuilder
-        import validators
+        from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if getattr(self, 'minItems', None) is not None:
             if len(self.data) < self.minItems:
@@ -102,15 +105,15 @@ class ArrayValidator(object):
                     .format(self.maxItems, self.data))
 
     def validate_items(self):
-        import classbuilder
-        import validators
+        from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if self.__itemtype__ is None:
             return
 
         if not isinstance(self.__itemtype__, (tuple, list)):
             self.__itemtype__ = [
-                self.__itemtype__ for x in xrange(len(self.data))]
+                self.__itemtype__ for x in six.moves.xrange(len(self.data))]
 
         if len(self.__itemtype__) > len(self.data):
             raise validators.ValidationError(
@@ -126,7 +129,7 @@ class ArrayValidator(object):
                 pass
 
             if isinstance(typ, dict):
-                for param, paramval in typ.iteritems():
+                for param, paramval in six.iteritems(typ):
                     validator = getattr(validators, param, None)
                     if validator is not None:
                         if param == 'minimum':
@@ -173,7 +176,7 @@ class ArrayValidator(object):
         addl_constraints is expected to be key-value pairs of any of the other
         constraints permitted by JSON Schema v4.
         """
-        import classbuilder
+        from python_jsonschema_objects import classbuilder
         props = {}
 
         if item_constraint is not None:

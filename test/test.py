@@ -1,6 +1,7 @@
 # -*- coding: spec -*-
 # This is a comparison of DSL syntax to what is generated
 
+import six
 import nose
 import nose.tools
 from sure import expect, this
@@ -36,7 +37,7 @@ describe TestCase, 'markdown extraction':
             builder.validate.when.called_with({'MyAddress': '1234'}).should_not.throw(pjs.ValidationError)
 
         it 'should be able to read an object':
-            for nm, ex in self.examples.iteritems():
+            for nm, ex in six.iteritems(self.examples):
                 builder = pjs.ObjectBuilder(ex, resolved=self.examples)
                 builder.should.be.ok
 
