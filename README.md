@@ -58,7 +58,7 @@ Validations will also be applied as the object is manipulated.
 
 ``` python
 >>> james.age = -2
-python_jsonschema_objects.validators.ValidationError: -4 was less
+python_jsonschema_objects.validators.ValidationError: -2 was less
 or equal to than 0
 ```
 
