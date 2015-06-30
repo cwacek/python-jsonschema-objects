@@ -163,6 +163,10 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.14 - Roll in a number of fixes from Github contributors,
+including fixes for oneOf handling, array validation, and Python
+3 support.
+
 0.0.13 - Lazily build object classes. Allows low-overhead use
 of jsonschema validators.
 
