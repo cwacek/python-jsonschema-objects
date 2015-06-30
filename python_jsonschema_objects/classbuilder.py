@@ -24,16 +24,18 @@ class ProtocolBase( collections.MutableMapping):
     }
 
     def as_dict(self):
-      out = {}
-      for prop in self:
-          propval = getattr(self, prop)
+        out = {}
+        for prop in self:
+            propval = getattr(self, prop)
 
-          if isinstance(propval, list):
-              out[prop] = [x.as_dict() for x in propval]
-          elif propval is not None:
-              out[prop] = propval.as_dict()
+            if isinstance(propval, list):
+                out[prop] = [x.as_dict() for x in propval]
+            elif not isinstance(propval, LiteralValue) and propval is not None:
+                out[prop] = propval
+            elif propval is not None:
+                out[prop] = propval.as_dict()
 
-      return out
+        return out
 
     def __str__(self):
         return repr(self)
@@ -564,10 +566,16 @@ def make_property(prop, info, desc=""):
             ok = False
             errors = []
             for typ in info['type']:
+                if isinstance(typ, dict):
+                    typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
+                    if typ == None:
+                        typ = type(None)
+                    ok = True
+                    break
                 if isinstance(val, typ):
                     ok = True
                     break
-                elif getattr(typ, 'isLiteralClass'):
+                elif hasattr(typ, 'isLiteralClass'):
                     try:
                         val = typ(val)
                     except Exception as e:
