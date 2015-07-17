@@ -42,7 +42,7 @@ class ProtocolBase( collections.MutableMapping):
 
     def __repr__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
-        props = ["%s=%s" % (inverter[k], str(v)) for k, v in
+        props = ["%s=%s" % (inverter.get(k, k), str(v)) for k, v in
                  itertools.chain(six.iteritems(self._properties),
                                  six.iteritems(self._extended_properties))]
         return "<%s %s>" % (
