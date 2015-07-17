@@ -556,13 +556,21 @@ def make_property(prop, info, desc=""):
         if isinstance(info['type'], (list, tuple)):
             ok = False
             errors = []
+            type_checks = []
+
             for typ in info['type']:
-                if isinstance(typ, dict):
-                    typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
-                    if typ == None:
-                        typ = type(None)
-                    ok = True
-                    break
+              if not isinstance(typ, dict):
+                type_checks.append(typ)
+                continue
+              typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
+              if typ == None:
+                typ = type(None)
+              if isinstance(typ, (list, tuple)):
+                type_checks.extend(typ)
+              else:
+                type_checks.append(typ)
+
+            for typ in type_checks:
                 if isinstance(val, typ):
                     ok = True
                     break
