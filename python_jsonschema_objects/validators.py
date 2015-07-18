@@ -4,66 +4,132 @@ import six
 class ValidationError(Exception):
     pass
 
-klassType = type
+class ValidatorRegistry(object):
+
+    def __init__(self):
+       self.registry = {}
+
+    def register(self, name=None):
+       def f(functor):
+          self.registry[name if name is not None else functor.__name__] = functor
+          return functor
+       return f
+
+    def __call__(self, name):
+       return self.registry.get(name)
 
 
-def multipleOf(param, value):
+registry = ValidatorRegistry()
+
+@registry.register()
+def multipleOf(param, value, _):
     quot, rem = divmod(value, param)
     if rem != 0:
         raise ValidationError(
             "{0} was not a multiple of {1}".format(value,
                                                    param))
 
-
-def type(param, value):
-    from python_jsonschema_objects import classbuilder
-    if isinstance(param, six.string_types):
-        param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
-    if not isinstance(value, param):
-        raise ValidationError(
-            "'{0}' was not an instance of {1}".format(value, param))
-
-
-def enum(param, value):
+@registry.register()
+def enum(param, value, _):
     if value not in param:
         raise ValidationError(
             "{0} was not one of {1}".format(value, param))
 
 
-def minimum(param, value, exclusive):
+@registry.register()
+def minimum(param, value, type_data):
+    exclusive = type_data.get('exclusiveMinimum')
     if exclusive:
         if value < param:
             raise ValidationError(
                 "{0} was less than {1}".format(value, param))
-    else:
-        if value <= param:
+    elif value <= param:
             raise ValidationError(
                 "{0} was less or equal to than {1}".format(value, param))
 
 
-def maximum(param, value, exclusive):
-    return minimum(value, param, not exclusive)
+@registry.register()
+def maximum(param, value, type_data):
+    exclusive = info.get('exclusiveMaximum')
+    if exclusive:
+        if value < param:
+            raise ValidationError(
+                "{0} was more than {1}".format(value, param))
+    elif value <= param:
+        raise ValidationError(
+            "{0} was more than or equal to {1}".format(value, param))
 
 
-def maxLength(param, value):
+@registry.register()
+def maxLength(param, value, _):
     if len(value) > param:
         raise ValidationError(
             "{0} was longer than {1} characters".format(value, param))
 
 
-def minLength(param, value):
+@registry.register()
+def minLength(param, value, _):
     if len(value) < param:
         raise ValidationError(
             "{0} was fewer than {1} characters".format(value, param))
 
 
-def pattern(param, value):
+@registry.register()
+def pattern(param, value, _):
     import re
     match = re.search(param, value)
     if not match:
         raise ValidationError(
             "{0} did not match {1}".format(value, param)
         )
+
+
+type_registry = ValidatorRegistry()
+
+@type_registry.register(name='boolean')
+def check_integer_type(param, value, _):
+    if not isinstance(value, bool):
+        raise ValidationError(
+            "{0} is not a boolean".format(value))
+
+@type_registry.register(name='integer')
+def check_integer_type(param, value, _):
+    if not isinstance(value, int):
+        raise ValidationError(
+            "{0} is not an integer".format(value))
+
+@type_registry.register(name='number')
+def check_number_type(param, value, _):
+    if not isinstance(value, (float, int)):
+        raise ValidationError(
+            "{0} is neither an integer or a float".format(value))
+
+@type_registry.register(name='null')
+def check_null_type(param, value, _):
+    if value is not None:
+        raise ValidationError(
+            "{0} is not None".format(value))
+
+@type_registry.register(name='string')
+def check_string_type(param, value, _):
+    if not isinstance(value, six.string_types):
+        raise ValidationError(
+            "{0} is not a string".format(value))
+
+@type_registry.register(name='object')
+def check_null_type(param, value, _):
+    from python_jsonschema_objects.classbuilder import ProtocolBase
+    if not isinstance(value, (dict, ProtocolBase)):
+        raise ValidationError(
+            "{0} is not an object (neither dict nor ProtocolBase)".format(value))
+
+@registry.register(name='type')
+def check_type(param, value, type_data):
+    type_check = type_registry(param)
+    if type_check is None:
+        raise ValidationError(
+            "{0} is an invalid type".format(value))
+    type_check(param, value, type_data)
 
 
 class ArrayValidator(object):
@@ -79,34 +145,31 @@ class ArrayValidator(object):
 
     def validate_uniqueness(self):
         from python_jsonschema_objects import classbuilder
-        from python_jsonschema_objects import validators
 
         if getattr(self, 'uniqueItems', None) is not None:
             testset = set(self.data)
             if len(testset) != len(self.data):
-                raise validators.ValidationError(
+                raise ValidationError(
                     "{0} had duplicate elements, but uniqueness required"
                     .format(self.data))
 
     def validate_length(self):
         from python_jsonschema_objects import classbuilder
-        from python_jsonschema_objects import validators
 
         if getattr(self, 'minItems', None) is not None:
             if len(self.data) < self.minItems:
-                raise validators.ValidationError(
+                raise ValidationError(
                     "{1} has too few elements. Wanted {0}."
                     .format(self.minItems, self.data))
 
         if getattr(self, 'maxItems', None) is not None:
             if len(self.data) > self.maxItems:
-                raise validators.ValidationError(
+                raise ValidationError(
                     "{1} has too few elements. Wanted {0}."
                     .format(self.maxItems, self.data))
 
     def validate_items(self):
         from python_jsonschema_objects import classbuilder
-        from python_jsonschema_objects import validators
 
         if self.__itemtype__ is None:
             return
@@ -124,18 +187,9 @@ class ArrayValidator(object):
         for elem, typ in zip(self.data, type_checks):
             if isinstance(typ, dict):
                 for param, paramval in six.iteritems(typ):
-                    validator = getattr(validators, param, None)
+                    validator = registry(param)
                     if validator is not None:
-                        if param == 'minimum':
-                            validator(paramval, elem,
-                                      info.get('exclusiveMinimum',
-                                               False))
-                        elif param == 'maximum':
-                            validator(paramval, elem,
-                                      info.get('exclusiveMaximum',
-                                               False))
-                        else:
-                            validator(paramval, elem)
+                        validator(paramval, elem, typ)
 
             elif issubclass(typ, classbuilder.LiteralValue):
                 val = typ(elem)
@@ -181,7 +235,7 @@ class ArrayValidator(object):
             if isinstance(item_constraint, (tuple, list)):
                 for i, elem in enumerate(item_constraint):
                     isdict = isinstance(elem, (dict,))
-                    isklass = isinstance( elem, klassType) and issubclass(
+                    isklass = isinstance( elem, type) and issubclass(
                         elem, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                     if not any([isdict, isklass]):
@@ -189,7 +243,7 @@ class ArrayValidator(object):
                             "Item constraint (position {0}) was not a schema".format(i))
             else:
                 isdict = isinstance(item_constraint, (dict,))
-                isklass = isinstance( item_constraint, klassType) and issubclass(
+                isklass = isinstance( item_constraint, type) and issubclass(
                     item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                 if not any([isdict, isklass]):
@@ -205,7 +259,7 @@ class ArrayValidator(object):
 
         props.update(addl_constraints)
 
-        validator = klassType(str(name), (ArrayValidator,), props)
+        validator = type(str(name), (ArrayValidator,), props)
 
         return validator
 

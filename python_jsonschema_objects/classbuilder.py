@@ -222,19 +222,11 @@ class LiteralValue(object):
   def validate(self):
       info = self.propinfo('__literal__')
 
+      # this duplicates logic in validators.ArrayValidator.check_items; unify it.
       for param, paramval in six.iteritems(info):
-          validator = getattr(validators, param, None)
+          validator = validators.registry(param)
           if validator is not None:
-              if param == 'minimum':
-                  validator(paramval, self._value,
-                            info.get('exclusiveMinimum',
-                                     False))
-              elif param == 'maximum':
-                  validator(paramval, self._value,
-                            info.get('exclusiveMaximum',
-                                     False))
-              else:
-                  validator(paramval, self._value)
+              validator(paramval, self._value, info)
 
 
   def __cmp__(self, other):
