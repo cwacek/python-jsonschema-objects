@@ -348,7 +348,7 @@ class ClassBuilder(object):
 
             return self.resolved[uri]
 
-        elif 'array' in clsdata and 'items' in clsdata:
+        elif clsdata.get('type') == 'array' and 'items' in clsdata:
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
