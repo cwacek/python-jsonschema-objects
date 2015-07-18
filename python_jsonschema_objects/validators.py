@@ -4,8 +4,6 @@ import six
 class ValidationError(Exception):
     pass
 
-klassType = type
-
 
 def multipleOf(param, value):
     quot, rem = divmod(value, param)
@@ -13,16 +11,6 @@ def multipleOf(param, value):
         raise ValidationError(
             "{0} was not a multiple of {1}".format(value,
                                                    param))
-
-
-def type(param, value):
-    from python_jsonschema_objects import classbuilder
-    if isinstance(param, six.string_types):
-        param = classbuilder.ProtocolBase.__SCHEMA_TYPES__[param]
-    if not isinstance(value, param):
-        raise ValidationError(
-            "'{0}' was not an instance of {1}".format(value, param))
-
 
 def enum(param, value):
     if value not in param:
@@ -191,7 +179,7 @@ class ArrayValidator(object):
                             "Item constraint (position {0}) was not a schema".format(i))
             else:
                 isdict = isinstance(item_constraint, (dict,))
-                isklass = isinstance( item_constraint, klassType) and issubclass(
+                isklass = isinstance( item_constraint, type) and issubclass(
                     item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                 if not any([isdict, isklass]):
@@ -207,7 +195,7 @@ class ArrayValidator(object):
 
         props.update(addl_constraints)
 
-        validator = klassType(str(name), (ArrayValidator,), props)
+        validator = type(str(name), (ArrayValidator,), props)
 
         return validator
 
