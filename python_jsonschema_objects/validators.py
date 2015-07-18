@@ -137,9 +137,13 @@ class ArrayValidator(object):
                 typed_elems.append(val)
             elif issubclass(typ, classbuilder.ProtocolBase):
                 if not isinstance(elem, typ):
+                    data = elem
+                    if hasattr(data, 'as_dict'):
+                        # abc.meta objects can't be used for **; get the raw dict.
+                        data = elem.as_dict()
                     try:
-                      val = typ(**elem)
-                    except TypeError:
+                      val = typ(**data)
+                    except TypeError, e:
                       raise ValidationError("'{0}' was not a valid value for '{1}'".format(elem, typ))
                 else:
                     val = elem
