@@ -58,22 +58,22 @@ class ProtocolBase( collections.MutableMapping):
       obj.validate()
       return obj
 
-    def __init__(this, **props):
-        this._extended_properties = dict()
-        this._properties = dict(zip(this.__prop_names__.values(),
+    def __init__(self, **props):
+        self._extended_properties = dict()
+        self._properties = dict(zip(self.__prop_names__.values(),
                                     [None for x in
-                                     six.moves.xrange(len(this.__prop_names__))]))
+                                     six.moves.xrange(len(self.__prop_names__))]))
 
         for prop in props:
 
             try:
               logging.debug("Setting value for '{0}' to {1}"
                             .format(prop, props[prop]))
-              setattr(this, prop, props[prop])
+              setattr(self, prop, props[prop])
             except validators.ValidationError as e:
               import sys
               raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
-                  prop, this.__class__.__name__)), sys.exc_info()[2])
+                  prop, self.__class__.__name__)), sys.exc_info()[2])
 
         #if len(props) > 0:
         #    this.validate()
@@ -555,13 +555,13 @@ class ClassBuilder(object):
 
 def make_property(prop, info, desc=""):
 
-    def getprop(this):
+    def getprop(self):
         try:
-            return this._properties[prop]
+            return self._properties[prop]
         except KeyError:
             raise AttributeError("No such attribute")
 
-    def setprop(this, val):
+    def setprop(self, val):
         if isinstance(info['type'], (list, tuple)):
             ok = False
             errors = []
@@ -619,12 +619,12 @@ def make_property(prop, info, desc=""):
         else:
             raise TypeError("Unknown object type: '{0}'".format(info['type']))
 
-        this._properties[prop] = val
+        self._properties[prop] = val
 
-    def delprop(this):
-        if prop in this.__required__:
+    def delprop(self):
+        if prop in self.__required__:
             raise AttributeError("'%s' is required" % prop)
         else:
-            del this._properties[prop]
+            del self._properties[prop]
 
     return property(getprop, setprop, delprop, desc)
