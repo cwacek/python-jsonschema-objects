@@ -71,13 +71,11 @@ class ObjectBuilder(object):
 
     def build_classes(self):
         builder = classbuilder.ClassBuilder(self.resolver)
-        for k, v in iteritems(self.schema):
-            if k == 'definitions':
-                for nm, defn in iteritems(v):
-                    uri = util.resolve_ref_uri(
-                        self.resolver.resolution_scope,
-                        "#/definitions/" + nm)
-                    builder.construct(uri, defn)
+        for nm, defn in iteritems(self.schema.get('definitions', {})):
+            uri = util.resolve_ref_uri(
+                self.resolver.resolution_scope,
+                "#/definitions/" + nm)
+            builder.construct(uri, defn)
 
         nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
         nm = inflection.parameterize(six.text_type(nm), '_')
