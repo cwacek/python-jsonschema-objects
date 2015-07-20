@@ -111,23 +111,17 @@ class ArrayValidator(object):
         if self.__itemtype__ is None:
             return
 
-        if not isinstance(self.__itemtype__, (tuple, list)):
-            self.__itemtype__ = [
-                self.__itemtype__ for x in six.moves.xrange(len(self.data))]
-
-        if len(self.__itemtype__) > len(self.data):
-            raise validators.ValidationError(
+        type_checks = self.__itemtype__
+        if not isinstance(type_checks, (tuple, list)):
+            # we were given items = {'type': 'blah'} ; thus ensure the type for all data.
+            type_checks = [type_checks] * len(self.data)
+        elif len(type_checks) > len(self.data):
+            raise ValidationError(
                 "{1} does not have sufficient elements to validate against {0}"
                 .format(self.__itemtype__, self.data))
 
         typed_elems = []
-        for i, elem in enumerate(self.data):
-            try:
-                typ = self.__itemtype__[i]
-            except IndexError:
-                # It's actually permissible to run over a tuple constraint.
-                pass
-
+        for elem, typ in zip(self.data, type_checks):
             if isinstance(typ, dict):
                 for param, paramval in six.iteritems(typ):
                     validator = getattr(validators, param, None)
