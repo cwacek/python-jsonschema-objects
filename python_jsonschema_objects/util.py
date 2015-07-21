@@ -69,12 +69,7 @@ def propmerge(into, data_from):
 def resolve_ref_uri(base, ref):
     if ref[0] == '#':
     # Local ref
-        uri = base
-        if len(uri) > 0 and uri[-1] == '#':
-            uri += ref[1:]
-        else:
-            uri += ref
-
+        uri = base.rsplit("#", 1)[0] + ref
     else:
         uri = ref
 
