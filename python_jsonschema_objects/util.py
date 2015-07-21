@@ -16,6 +16,17 @@ def safe_issubclass(x, y):
         return False
 
 
+def coerce_for_expansion(mapping):
+    """Given a value, make sure it is usable for f(**val) expansion.
+
+    In py2.7, the value must be a dictionary- thus a as_dict() method
+    will be invoked if available.  In py3k, the raw mapping is returned
+    unmodified."""
+    if six.PY2 and hasattr(mapping, 'as_dict'):
+       return mapping.as_dict()
+    return mapping
+
+
 class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):

@@ -29,7 +29,7 @@ class ProtocolBase( collections.MutableMapping):
             propval = getattr(self, prop)
 
             if isinstance(propval, list):
-                out[prop] = [x.as_dict() for x in propval]
+                out[prop] = [getattr(x, 'as_dict', lambda :x)() for x in propval]
             elif not isinstance(propval, LiteralValue) and propval is not None:
                 out[prop] = propval
             elif propval is not None:
@@ -79,35 +79,34 @@ class ProtocolBase( collections.MutableMapping):
         #    this.validate()
 
     def __setattr__(self, name, val):
-      if name.startswith("_"):
-        object.__setattr__(self, name, val)
-      elif name in self.__propinfo__:
-        # If its in __propinfo__, then it actually has a property defined.
-        # The property does special validation, so we actually need to
-        # run its setter. We get it from the class definition and call
-        # it directly. XXX Heinous.
-        prop = self.__class__.__dict__[self.__prop_names__[name]]
-        prop.fset(self, val)
-      else:
-        # This is an additional property of some kind
-        if getattr(self, '__extensible__', None) is False:
-          raise validators.ValidationError(
-              "Attempted to set unknown property '{0}', "
-              "but 'additionalProperties' is false.".format(name))
+        if name.startswith("_"):
+            object.__setattr__(self, name, val)
+        elif name in self.__propinfo__:
+            # If its in __propinfo__, then it actually has a property defined.
+            # The property does special validation, so we actually need to
+            # run its setter. We get it from the class definition and call
+            # it directly. XXX Heinous.
+            prop = self.__class__.__dict__[self.__prop_names__[name]]
+            prop.fset(self, val)
         else:
-          typ = getattr(self, '__extensible__', None)
-          if typ is True:
-            # There is no type defined, so just make it a basic literal
-            # Pick the type based on the type of the values
-            valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
-                       if t is not None and isinstance(val, t)][0]
-            val = MakeLiteral(name, valtype, val)
-          elif isinstance(typ, type) and typ.isLiteralClass is True:
-            val = typ(val)
-          elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
-            val = typ(**val)
+            # This is an additional property of some kind
+            typ = getattr(self, '__extensible__', None)
+            if typ is False:
+                raise validators.ValidationError(
+                    "Attempted to set unknown property '{0}', "
+                    "but 'additionalProperties' is false.".format(name))
+            if typ is True:
+                # There is no type defined, so just make it a basic literal
+                # Pick the type based on the type of the values
+                valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
+                           if t is not None and isinstance(val, t)][0]
+                val = MakeLiteral(name, valtype, val)
+            elif isinstance(typ, type) and getattr(typ, 'isLiteralClass', None) is True:
+                val = typ(val)
+            elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
+                val = typ(**util.coerce_for_expansion(val))
 
-        self._extended_properties[name] = val
+            self._extended_properties[name] = val
 
     """ Implement collections.MutableMapping methods """
 
@@ -580,7 +579,7 @@ def make_property(prop, info, desc=""):
                         break
                 elif util.safe_issubclass(typ, ProtocolBase):
                     try:
-                        val = typ(**val)
+                        val = typ(**util.coerce_for_expansion(val))
                     except Exception as e:
                         errors.append(
                             "Failed to coerce to '{0}': {1}".format(typ, e))
@@ -605,7 +604,7 @@ def make_property(prop, info, desc=""):
 
         elif util.safe_issubclass(info['type'], ProtocolBase):
             if not isinstance(val, info['type']):
-                val = info['type'](**val)
+                val = info['type'](**util.coerce_for_expansion(val))
 
             val.validate()
         else:
