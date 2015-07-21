@@ -104,7 +104,7 @@ class ProtocolBase( collections.MutableMapping):
             val = MakeLiteral(name, valtype, val)
           elif isinstance(typ, type) and typ.isLiteralClass is True:
             val = typ(val)
-          elif isinstance(typ, type) and issubclass(typ, ProtocolBase):
+          elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
             val = typ(**val)
 
         self._extended_properties[name] = val
@@ -287,7 +287,7 @@ class ClassBuilder(object):
             potential_parents = self.resolve_classes(clsdata['oneOf'])
 
             for p in potential_parents:
-                if issubclass(p, ProtocolBase):
+                if util.safe_issubclass(p, ProtocolBase):
                     self.resolved[uri] = self._build_object(
                         uri,
                         clsdata,
@@ -308,7 +308,7 @@ class ClassBuilder(object):
                 if isinstance(p, dict):
                     # This is additional constraints
                     clsdata.update(p)
-                elif issubclass(p, ProtocolBase):
+                elif util.safe_issubclass(p, ProtocolBase):
                     parents.append(p)
 
             self.resolved[uri] = self._build_object(
@@ -319,7 +319,7 @@ class ClassBuilder(object):
 
         elif '$ref' in clsdata:
 
-            if 'type' in clsdata and issubclass(
+            if 'type' in clsdata and util.safe_issubclass(
                     clsdata['type'], (ProtocolBase, LiteralValue)):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
@@ -364,7 +364,7 @@ class ClassBuilder(object):
             self.resolved[uri] = obj
             return obj
 
-        elif 'type' in clsdata and issubclass(clsdata['type'], ProtocolBase):
+        elif 'type' in clsdata and util.safe_issubclass(clsdata['type'], ProtocolBase):
             self.resolved[uri] = clsdata.get('type')
             return self.resolved[uri]
         else:
@@ -578,7 +578,7 @@ def make_property(prop, info, desc=""):
                         val.validate()
                         ok = True
                         break
-                elif issubclass(typ, ProtocolBase):
+                elif util.safe_issubclass(typ, ProtocolBase):
                     try:
                         val = typ(**val)
                     except Exception as e:
@@ -603,7 +603,7 @@ def make_property(prop, info, desc=""):
             if not isinstance(val, info['type']):
                 val = info['type'](val)
 
-        elif issubclass(info['type'], ProtocolBase):
+        elif util.safe_issubclass(info['type'], ProtocolBase):
             if not isinstance(val, info['type']):
                 val = info['type'](**val)
 

@@ -1,4 +1,5 @@
 import six
+from python_jsonschema_objects import util
 
 
 class ValidationError(Exception):
@@ -191,11 +192,11 @@ class ArrayValidator(object):
                     if validator is not None:
                         validator(paramval, elem, typ)
 
-            elif issubclass(typ, classbuilder.LiteralValue):
+            elif util.safe_issubclass(typ, classbuilder.LiteralValue):
                 val = typ(elem)
                 val.validate()
                 typed_elems.append(val)
-            elif issubclass(typ, classbuilder.ProtocolBase):
+            elif util.safe_issubclass(typ, classbuilder.ProtocolBase):
                 if not isinstance(elem, typ):
                     data = elem
                     if hasattr(data, 'as_dict'):
@@ -209,7 +210,7 @@ class ArrayValidator(object):
                     val = elem
                 val.validate()
                 typed_elems.append(val)
-            elif issubclass(typ, ArrayValidator):
+            elif util.safe_issubclass(typ, ArrayValidator):
                 val = typ(elem)
                 val.validate()
                 typed_elems.append(val)
@@ -235,7 +236,7 @@ class ArrayValidator(object):
             if isinstance(item_constraint, (tuple, list)):
                 for i, elem in enumerate(item_constraint):
                     isdict = isinstance(elem, (dict,))
-                    isklass = isinstance( elem, type) and issubclass(
+                    isklass = isinstance( elem, type) and util.safe_issubclass(
                         elem, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                     if not any([isdict, isklass]):
@@ -243,7 +244,7 @@ class ArrayValidator(object):
                             "Item constraint (position {0}) was not a schema".format(i))
             else:
                 isdict = isinstance(item_constraint, (dict,))
-                isklass = isinstance( item_constraint, type) and issubclass(
+                isklass = isinstance( item_constraint, type) and util.safe_issubclass(
                     item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                 if not any([isdict, isklass]):

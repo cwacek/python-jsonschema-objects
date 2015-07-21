@@ -2,6 +2,19 @@ import six
 import copy
 import json
 
+def safe_issubclass(x, y):
+    """Safe version of issubclass() that will not throw TypeErrors.
+
+    Invoking issubclass('object', some-abc.meta instances) will result
+    in the underlying implementation throwing TypeError's from trying to
+    memoize the result- 'object' isn't a usable weakref target at that level.
+    Unfortunately this gets exposed all the way up to our code; thus a
+    'safe' version of the function."""
+    try:
+        return issubclass(x, y)
+    except TypeError:
+        return False
+
 
 class ProtocolJSONEncoder(json.JSONEncoder):
 
