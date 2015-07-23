@@ -67,8 +67,7 @@ class ProtocolBase( collections.MutableMapping):
         for prop in props:
 
             try:
-              logging.debug("Setting value for '{0}' to {1}"
-                            .format(prop, props[prop]))
+              logging.debug("Setting value for %s' to %s", prop, props[prop])
               setattr(self, prop, props[prop])
             except validators.ValidationError as e:
               import sys
@@ -323,12 +322,12 @@ class ClassBuilder(object):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
                 logging.debug("Using previously resolved type "
-                              "(with different URI) for {0}".format(uri))
+                              "(with different URI) for %s", uri)
                 self.resolved[uri] = clsdata['type']
             elif uri in self.resolved:
-                logging.debug("Using previously resolved object for {0}".format(uri))
+                logging.debug("Using previously resolved object for %s", uri)
             else:
-                logging.debug("Resolving object for {0}".format(uri))
+                logging.debug("Resolving object for %s", uri)
 
                 with self.resolver.resolving(uri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
