@@ -350,13 +350,13 @@ class ClassBuilder(object):
 
         elif (clsdata.get('type', None) == 'object' or
               clsdata.get('properties', None) is not None or
-              clsdata.get('additionalProperties', None is not None)):
+              clsdata.get('additionalProperties', False)):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
                 parent)
             return self.resolved[uri]
-        elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean'):
+        elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean', 'null'):
             self.resolved[uri] = self._build_literal(
                 uri,
                 clsdata)
