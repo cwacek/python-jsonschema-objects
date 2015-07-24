@@ -102,7 +102,8 @@ class ProtocolBase( collections.MutableMapping):
                 # There is no type defined, so just make it a basic literal
                 # Pick the type based on the type of the values
                 valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
-                           if t is not None and isinstance(val, t)][0]
+                           if t is not None and isinstance(val, t)]
+                valtype = valtype[0]
                 val = MakeLiteral(name, valtype, val)
             elif isinstance(typ, type) and getattr(typ, 'isLiteralClass', None) is True:
                 val = typ(val)
@@ -579,16 +580,17 @@ def make_property(prop, info, desc=""):
                     break
                 elif hasattr(typ, 'isLiteralClass'):
                     try:
-                        val = typ(val)
+                        validator = typ(val)
                     except Exception as e:
                         errors.append(
                             "Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        val.validate()
+                        validator.validate()
                         ok = True
                         break
                 elif util.safe_issubclass(typ, ProtocolBase):
+                    # force conversion- thus the val rather than validator assignment
                     try:
                         val = typ(**util.coerce_for_expansion(val))
                     except Exception as e:
@@ -611,7 +613,8 @@ def make_property(prop, info, desc=""):
 
         elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):
-                val = info['type'](val)
+                validator = info['type'](val)
+            validator.validate()
 
         elif util.safe_issubclass(info['type'], ProtocolBase):
             if not isinstance(val, info['type']):
