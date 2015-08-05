@@ -362,7 +362,7 @@ class ClassBuilder(object):
                 clsdata,
                 parent)
             return self.resolved[uri]
-        elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean'):
+        elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean', 'null'):
             self.resolved[uri] = self._build_literal(
                 uri,
                 clsdata)
