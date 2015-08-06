@@ -33,7 +33,7 @@ class ProtocolBase( collections.MutableMapping):
             propval = getattr(self, prop)
 
             if isinstance(propval, list):
-                out[prop] = [x.as_dict() for x in propval]
+                out[prop] = [getattr(x, 'as_dict', lambda :x)() for x in propval]
             elif not isinstance(propval, LiteralValue) and propval is not None:
                 out[prop] = propval
             elif propval is not None:
@@ -42,11 +42,15 @@ class ProtocolBase( collections.MutableMapping):
         return out
 
     def __str__(self):
-        return repr(self)
+        inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
+        props = ["%s" % (inverter.get(k, k),) for k, v in
+                 itertools.chain(six.iteritems(self._properties),
+                                 six.iteritems(self._extended_properties))]
+        return "<%s attributes: %s>" % (self.__class__.__name__, ", ".join(props))
 
     def __repr__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
-        props = ["%s=%s" % (inverter[k], str(v)) for k, v in
+        props = ["%s=%s" % (inverter.get(k, k), str(v)) for k, v in
                  itertools.chain(six.iteritems(self._properties),
                                  six.iteritems(self._extended_properties))]
         return "<%s %s>" % (
@@ -62,56 +66,55 @@ class ProtocolBase( collections.MutableMapping):
       obj.validate()
       return obj
 
-    def __init__(this, **props):
-        this._extended_properties = dict()
-        this._properties = dict(zip(this.__prop_names__.values(),
+    def __init__(self, **props):
+        self._extended_properties = dict()
+        self._properties = dict(zip(self.__prop_names__.values(),
                                     [None for x in
-                                     six.moves.xrange(len(this.__prop_names__))]))
+                                     six.moves.xrange(len(self.__prop_names__))]))
 
         for prop in props:
 
             try:
-              logging.debug("Setting value for '{0}' to {1}"
-                            .format(prop, props[prop]))
-              setattr(this, prop, props[prop])
+              logging.debug("Setting value for %s' to %s", prop, props[prop])
+              setattr(self, prop, props[prop])
             except validators.ValidationError as e:
               import sys
               raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
-                  prop, this.__class__.__name__)), sys.exc_info()[2])
+                  prop, self.__class__.__name__)), sys.exc_info()[2])
 
         #if len(props) > 0:
         #    this.validate()
 
     def __setattr__(self, name, val):
-      if name.startswith("_"):
-        object.__setattr__(self, name, val)
-      elif name in self.__propinfo__:
-        # If its in __propinfo__, then it actually has a property defined.
-        # The property does special validation, so we actually need to
-        # run its setter. We get it from the class definition and call
-        # it directly. XXX Heinous.
-        prop = self.__class__.__dict__[self.__prop_names__[name]]
-        prop.fset(self, val)
-      else:
-        # This is an additional property of some kind
-        if getattr(self, '__extensible__', None) is False:
-          raise validators.ValidationError(
-              "Attempted to set unknown property '{0}', "
-              "but 'additionalProperties' is false.".format(name))
+        if name.startswith("_"):
+            object.__setattr__(self, name, val)
+        elif name in self.__propinfo__:
+            # If its in __propinfo__, then it actually has a property defined.
+            # The property does special validation, so we actually need to
+            # run its setter. We get it from the class definition and call
+            # it directly. XXX Heinous.
+            prop = self.__class__.__dict__[self.__prop_names__[name]]
+            prop.fset(self, val)
         else:
-          typ = getattr(self, '__extensible__', None)
-          if typ is True:
-            # There is no type defined, so just make it a basic literal
-            # Pick the type based on the type of the values
-            valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
-                       if t is not None and isinstance(val, t)][0]
-            val = MakeLiteral(name, valtype, val)
-          elif isinstance(typ, type) and typ.isLiteralClass is True:
-            val = typ(val)
-          elif isinstance(typ, type) and issubclass(typ, ProtocolBase):
-            val = typ(**val)
+            # This is an additional property of some kind
+            typ = getattr(self, '__extensible__', None)
+            if typ is False:
+                raise validators.ValidationError(
+                    "Attempted to set unknown property '{0}', "
+                    "but 'additionalProperties' is false.".format(name))
+            if typ is True:
+                # There is no type defined, so just make it a basic literal
+                # Pick the type based on the type of the values
+                valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
+                           if t is not None and isinstance(val, t)]
+                valtype = valtype[0]
+                val = MakeLiteral(name, valtype, val)
+            elif isinstance(typ, type) and getattr(typ, 'isLiteralClass', None) is True:
+                val = typ(val)
+            elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
+                val = typ(**util.coerce_for_expansion(val))
 
-        self._extended_properties[name] = val
+            self._extended_properties[name] = val
 
     """ Implement collections.MutableMapping methods """
 
@@ -226,19 +229,11 @@ class LiteralValue(object):
   def validate(self):
       info = self.propinfo('__literal__')
 
+      # this duplicates logic in validators.ArrayValidator.check_items; unify it.
       for param, paramval in six.iteritems(info):
-          validator = getattr(validators, param, None)
+          validator = validators.registry(param)
           if validator is not None:
-              if param == 'minimum':
-                  validator(paramval, self._value,
-                            info.get('exclusiveMinimum',
-                                     False))
-              elif param == 'maximum':
-                  validator(paramval, self._value,
-                            info.get('exclusiveMaximum',
-                                     False))
-              else:
-                  validator(paramval, self._value)
+              validator(paramval, self._value, info)
 
 
   def __cmp__(self, other):
@@ -299,7 +294,7 @@ class ClassBuilder(object):
             potential_parents = self.resolve_classes(clsdata['oneOf'])
 
             for p in potential_parents:
-                if issubclass(p, ProtocolBase):
+                if util.safe_issubclass(p, ProtocolBase):
                     self.resolved[uri] = self._build_object(
                         uri,
                         clsdata,
@@ -320,7 +315,7 @@ class ClassBuilder(object):
                 if isinstance(p, dict):
                     # This is additional constraints
                     clsdata.update(p)
-                elif issubclass(p, ProtocolBase):
+                elif util.safe_issubclass(p, ProtocolBase):
                     parents.append(p)
 
             self.resolved[uri] = self._build_object(
@@ -331,17 +326,17 @@ class ClassBuilder(object):
 
         elif '$ref' in clsdata:
 
-            if 'type' in clsdata and issubclass(
+            if 'type' in clsdata and util.safe_issubclass(
                     clsdata['type'], (ProtocolBase, LiteralValue)):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
                 logging.debug("Using previously resolved type "
-                              "(with different URI) for {0}".format(uri))
+                              "(with different URI) for %s", uri)
                 self.resolved[uri] = clsdata['type']
             elif uri in self.resolved:
-                logging.debug("Using previously resolved object for {0}".format(uri))
+                logging.debug("Using previously resolved object for %s", uri)
             else:
-                logging.debug("Resolving object for {0}".format(uri))
+                logging.debug("Resolving object for %s", uri)
 
                 with self.resolver.resolving(uri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
@@ -352,7 +347,7 @@ class ClassBuilder(object):
 
             return self.resolved[uri]
 
-        elif 'array' in clsdata and 'items' in clsdata:
+        elif clsdata.get('type') == 'array' and 'items' in clsdata:
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
@@ -360,7 +355,7 @@ class ClassBuilder(object):
 
         elif (clsdata.get('type', None) == 'object' or
               clsdata.get('properties', None) is not None or
-              clsdata.get('additionalProperties', None is not None)):
+              clsdata.get('additionalProperties', False)):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
@@ -376,7 +371,7 @@ class ClassBuilder(object):
             self.resolved[uri] = obj
             return obj
 
-        elif 'type' in clsdata and issubclass(clsdata['type'], ProtocolBase):
+        elif 'type' in clsdata and util.safe_issubclass(clsdata['type'], ProtocolBase):
             self.resolved[uri] = clsdata.get('type')
             return self.resolved[uri]
         else:
@@ -559,40 +554,49 @@ class ClassBuilder(object):
 
 def make_property(prop, info, desc=""):
 
-    def getprop(this):
+    def getprop(self):
         try:
-            return this._properties[prop]
+            return self._properties[prop]
         except KeyError:
             raise AttributeError("No such attribute")
 
-    def setprop(this, val):
+    def setprop(self, val):
         if isinstance(info['type'], (list, tuple)):
             ok = False
             errors = []
+            type_checks = []
+
             for typ in info['type']:
-                if isinstance(typ, dict):
-                    typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
-                    if typ == None:
-                        typ = type(None)
-                    ok = True
-                    break
+              if not isinstance(typ, dict):
+                type_checks.append(typ)
+                continue
+              typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
+              if typ == None:
+                typ = type(None)
+              if isinstance(typ, (list, tuple)):
+                type_checks.extend(typ)
+              else:
+                type_checks.append(typ)
+
+            for typ in type_checks:
                 if isinstance(val, typ):
                     ok = True
                     break
                 elif hasattr(typ, 'isLiteralClass'):
                     try:
-                        val = typ(val)
+                        validator = typ(val)
                     except Exception as e:
                         errors.append(
                             "Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        val.validate()
+                        validator.validate()
                         ok = True
                         break
-                elif issubclass(typ, ProtocolBase):
+                elif util.safe_issubclass(typ, ProtocolBase):
+                    # force conversion- thus the val rather than validator assignment
                     try:
-                        val = typ(**val)
+                        val = typ(**util.coerce_for_expansion(val))
                     except Exception as e:
                         errors.append(
                             "Failed to coerce to '{0}': {1}".format(typ, e))
@@ -613,22 +617,23 @@ def make_property(prop, info, desc=""):
 
         elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):
-                val = info['type'](val)
+                validator = info['type'](val)
+            validator.validate()
 
-        elif issubclass(info['type'], ProtocolBase):
+        elif util.safe_issubclass(info['type'], ProtocolBase):
             if not isinstance(val, info['type']):
-                val = info['type'](**val)
+                val = info['type'](**util.coerce_for_expansion(val))
 
             val.validate()
         else:
             raise TypeError("Unknown object type: '{0}'".format(info['type']))
 
-        this._properties[prop] = val
+        self._properties[prop] = val
 
-    def delprop(this):
-        if prop in this.__required__:
+    def delprop(self):
+        if prop in self.__required__:
             raise AttributeError("'%s' is required" % prop)
         else:
-            del this._properties[prop]
+            del self._properties[prop]
 
     return property(getprop, setprop, delprop, desc)

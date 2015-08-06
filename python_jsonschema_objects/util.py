@@ -2,6 +2,30 @@ import six
 import copy
 import json
 
+def safe_issubclass(x, y):
+    """Safe version of issubclass() that will not throw TypeErrors.
+
+    Invoking issubclass('object', some-abc.meta instances) will result
+    in the underlying implementation throwing TypeError's from trying to
+    memoize the result- 'object' isn't a usable weakref target at that level.
+    Unfortunately this gets exposed all the way up to our code; thus a
+    'safe' version of the function."""
+    try:
+        return issubclass(x, y)
+    except TypeError:
+        return False
+
+
+def coerce_for_expansion(mapping):
+    """Given a value, make sure it is usable for f(**val) expansion.
+
+    In py2.7, the value must be a dictionary- thus a as_dict() method
+    will be invoked if available.  In py3k, the raw mapping is returned
+    unmodified."""
+    if six.PY2 and hasattr(mapping, 'as_dict'):
+       return mapping.as_dict()
+    return mapping
+
 
 class ProtocolJSONEncoder(json.JSONEncoder):
 
@@ -69,12 +93,7 @@ def propmerge(into, data_from):
 def resolve_ref_uri(base, ref):
     if ref[0] == '#':
     # Local ref
-        uri = base
-        if len(uri) > 0 and uri[-1] == '#':
-            uri += ref[1:]
-        else:
-            uri += ref
-
+        uri = base.rsplit("#", 1)[0] + ref
     else:
         uri = ref
 
