@@ -14,6 +14,23 @@ import nose
 import pkg_resources
 import python_jsonschema_objects as pjs
 
+describe TestCase, 'regression #9':
+
+    it 'should not throw an error':
+        import python_jsonschema_objects
+        schema = {
+                "$schema": "http://json-schema.org/schema#",
+                "id": "test",
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "email": {"oneOf": [ "string", "integer"]},
+                    },
+                "required": ["email"]
+                }
+        builder = python_jsonschema_objects.ObjectBuilder(schema)
+        builder.build_classes()
+
 describe TestCase, 'markdown extraction':
 
     before_each:
