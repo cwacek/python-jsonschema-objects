@@ -4,10 +4,14 @@ import python_jsonschema_objects.validators as validators
 import collections
 import itertools
 import six
+import sys
 
 import logging
 logger = logging.getLogger(__name__)
 
+# Long is no longer a thing in python3.x
+if sys.version_info > (3,):
+  long = int
 
 class ProtocolBase( collections.MutableMapping):
     __propinfo__ = {}
@@ -17,7 +21,7 @@ class ProtocolBase( collections.MutableMapping):
         'array': list,
         'boolean': bool,
         'integer': int,
-        'number': (float, int),
+        'number': (float, int, long),
         'null': None,
         'string': six.string_types,
         'object': dict
