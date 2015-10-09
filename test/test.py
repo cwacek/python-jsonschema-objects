@@ -14,6 +14,32 @@ import nose
 import pkg_resources
 import python_jsonschema_objects as pjs
 
+describe TestCase, 'underscore properties':
+
+    it 'underscore properties should not be lost':
+        import python_jsonschema_objects
+        schema = {
+                "$schema": "http://json-schema.org/schema#",
+                "title": "AggregateQuery",
+                "type": "object",
+                "properties": {
+                    "group": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+                }
+        builder = python_jsonschema_objects.ObjectBuilder(schema)
+        ns = builder.build_classes()
+        my_obj_type = ns.Aggregatequery
+        request_object = my_obj_type(
+            group={
+                "_id": { "foo_id": "$foo_id", "foo_type": "$foo_type" },
+                "foo": { "$sum": 1 },
+            }
+        )
+        request_object.group._extended_properties.should.contain("_id")
+
 describe TestCase, 'regression #9':
 
     it 'should not throw an error':
@@ -230,3 +256,4 @@ describe TestCase, 'markdown extraction':
                 person = self.Person( **pdict)
 
                 person.as_dict().should.equal(pdict)
+

@@ -16,6 +16,7 @@ if sys.version_info > (3,):
 class ProtocolBase( collections.MutableMapping):
     __propinfo__ = {}
     __required__ = set()
+    __object_attr_list__ = set(["_properties", "_extended_properties"])
 
     __SCHEMA_TYPES__ = {
         'array': list,
@@ -86,7 +87,7 @@ class ProtocolBase( collections.MutableMapping):
         #    this.validate()
 
     def __setattr__(self, name, val):
-        if name.startswith("_"):
+        if name in self.__object_attr_list__:
             object.__setattr__(self, name, val)
         elif name in self.__propinfo__:
             # If its in __propinfo__, then it actually has a property defined.
