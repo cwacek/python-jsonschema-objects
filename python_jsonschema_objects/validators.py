@@ -88,7 +88,7 @@ def pattern(param, value, _):
 type_registry = ValidatorRegistry()
 
 @type_registry.register(name='boolean')
-def check_integer_type(param, value, _):
+def check_boolean_type(param, value, _):
     if not isinstance(value, bool):
         raise ValidationError(
             "{0} is not a boolean".format(value))
@@ -117,8 +117,14 @@ def check_string_type(param, value, _):
         raise ValidationError(
             "{0} is not a string".format(value))
 
+@type_registry.register(name='array')
+def check_array_type(param, value, _):
+    if not isinstance(value, list):
+        raise ValidationError(
+            "{0} is not an array".format(value))
+
 @type_registry.register(name='object')
-def check_null_type(param, value, _):
+def check_object_type(param, value, _):
     from python_jsonschema_objects.classbuilder import ProtocolBase
     if not isinstance(value, (dict, ProtocolBase)):
         raise ValidationError(
