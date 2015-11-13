@@ -162,7 +162,7 @@ class ProtocolBase( collections.MutableMapping):
         if len(missing) > 0:
             raise validators.ValidationError(
                 "'{0}' are required attributes for {1}"
-                            .format(missing, self.__class__))
+                            .format(missing, self.__class__.__name__))
 
         for prop, val in six.iteritems(self._properties):
             if val is None:
