@@ -47,12 +47,19 @@ class ObjectBuilder(object):
                                          resolver=self.resolver)
 
         self._classes = None
+        self._resolved = None
 
     @property
     def classes(self):
         if self._classes is None:
           self._classes = self.build_classes()
         return self._classes
+
+    def get_class(self, uri):
+        if self._resolved is None:
+          self._classes = self.build_classes()
+        return self._resolved.get(uri, None)
+
 
     def memory_resolver(self, uri):
         return self.mem_resolved[uri[7:]]
@@ -81,6 +88,7 @@ class ObjectBuilder(object):
         nm = inflection.parameterize(six.text_type(nm), '_')
 
         builder.construct(nm, self.schema)
+        self._resolved = builder.resolved
 
         return (
             util.Namespace.from_mapping(dict(
