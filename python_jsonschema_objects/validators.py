@@ -51,7 +51,7 @@ def minimum(param, value, type_data):
 
 @registry.register()
 def maximum(param, value, type_data):
-    exclusive = info.get('exclusiveMaximum')
+    exclusive = type_data.get('exclusiveMaximum')
     if exclusive:
         if value < param:
             raise ValidationError(
