@@ -1,7 +1,17 @@
 language: python
 python:
-  - "2.7"
+- '2.7'
 install:
-  - "pip install -r requirements.txt"
-  - "pip install tox"
-script: "tox"
+- pip install -r requirements.txt
+- pip install tox
+script: tox
+deploy:
+  distributions: "sdist bdist_wheel"
+  provider: pypi
+  user: cwacek
+  password:
+    secure: oaPdY7TNgXrpUs0R89nODGCD5gFiiHInBXQST/wj4PRfP/jNj7A1H70n0E/X6NzhhmTWTtGXmgiItMs+gSv1nMvfAGDKMCSh1BQQ6ByRa58MT7P+ORnCaNdxy3dM+40a+JTv8fdGNgTmVDyVGOtSrbt4etD7wEHayVom0XcYBW0=
+  on:
+    tags: true
+    repo: cwacek/python-jsonschema-objects
+    branch: master
