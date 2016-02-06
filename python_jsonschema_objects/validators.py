@@ -27,52 +27,52 @@ def multipleOf(param, value, _):
     quot, rem = divmod(value, param)
     if rem != 0:
         raise ValidationError(
-            "{0} was not a multiple of {1}".format(value,
+            "{0} is not a multiple of {1}".format(value,
                                                    param))
 
 @registry.register()
 def enum(param, value, _):
     if value not in param:
         raise ValidationError(
-            "{0} was not one of {1}".format(value, param))
+            "{0} is not one of {1}".format(value, param))
 
 
 @registry.register()
 def minimum(param, value, type_data):
     exclusive = type_data.get('exclusiveMinimum')
     if exclusive:
-        if value < param:
+        if value <= param:
             raise ValidationError(
-                "{0} was less than {1}".format(value, param))
-    elif value <= param:
+                "{0} is less than or equal to {1}".format(value, param))
+    elif value < param:
             raise ValidationError(
-                "{0} was less or equal to than {1}".format(value, param))
+                "{0} is less than {1}".format(value, param))
 
 
 @registry.register()
 def maximum(param, value, type_data):
     exclusive = type_data.get('exclusiveMaximum')
     if exclusive:
-        if value < param:
+        if value >= param:
             raise ValidationError(
-                "{0} was more than {1}".format(value, param))
-    elif value <= param:
-        raise ValidationError(
-            "{0} was more than or equal to {1}".format(value, param))
+                "{0} is greater than or equal to {1}".format(value, param))
+    elif value > param:
+            raise ValidationError(
+                "{0} is greater than {1}".format(value, param))
 
 
 @registry.register()
 def maxLength(param, value, _):
     if len(value) > param:
         raise ValidationError(
-            "{0} was longer than {1} characters".format(value, param))
+            "{0} is longer than {1} characters".format(value, param))
 
 
 @registry.register()
 def minLength(param, value, _):
     if len(value) < param:
         raise ValidationError(
-            "{0} was fewer than {1} characters".format(value, param))
+            "{0} is fewer than {1} characters".format(value, param))
 
 
 @registry.register()
@@ -81,7 +81,7 @@ def pattern(param, value, _):
     match = re.search(param, value)
     if not match:
         raise ValidationError(
-            "{0} did not match {1}".format(value, param)
+            "{0} does not match {1}".format(value, param)
         )
 
 
@@ -157,7 +157,7 @@ class ArrayValidator(object):
             testset = set(self.data)
             if len(testset) != len(self.data):
                 raise ValidationError(
-                    "{0} had duplicate elements, but uniqueness required"
+                    "{0} has duplicate elements, but uniqueness required"
                     .format(self.data))
 
     def validate_length(self):
@@ -207,7 +207,7 @@ class ArrayValidator(object):
                     try:
                       val = typ(**util.coerce_for_expansion(elem))
                     except TypeError as e:
-                      raise ValidationError("'{0}' was not a valid value for '{1}'".format(elem, typ))
+                      raise ValidationError("'{0}' is not a valid value for '{1}'".format(elem, typ))
                 else:
                     val = elem
                 val.validate()
@@ -243,14 +243,14 @@ class ArrayValidator(object):
 
                     if not any([isdict, isklass]):
                         raise TypeError(
-                            "Item constraint (position {0}) was not a schema".format(i))
+                            "Item constraint (position {0}) is not a schema".format(i))
             else:
                 isdict = isinstance(item_constraint, (dict,))
                 isklass = isinstance( item_constraint, type) and util.safe_issubclass(
                     item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                 if not any([isdict, isklass]):
-                    raise TypeError("Item constraint was not a schema")
+                    raise TypeError("Item constraint is not a schema")
 
                 if isdict and item_constraint['type'] == 'array':
                     item_constraint = ArrayValidator.create(name + "#sub",
