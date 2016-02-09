@@ -163,6 +163,9 @@ tox`, then `tox`.
 
 ## Changelog
 
+0.0.16 - Fix behavior of exclusiveMinimum and exclusiveMaximum
+validators so that they work properly.
+
 0.0.14 - Roll in a number of fixes from Github contributors,
 including fixes for oneOf handling, array validation, and Python
 3 support.
