@@ -85,6 +85,19 @@ def pattern(param, value, _):
         )
 
 
+try:
+    from jsonschema import FormatChecker
+except ImportError:
+    pass
+else:
+    @registry.register()
+    def format(param, value, _):
+        if not FormatChecker().conforms(value, param):
+            raise ValidationError(
+                "'{0}' is not formatted as a {1}".format(value, param)
+            )
+
+
 type_registry = ValidatorRegistry()
 
 @type_registry.register(name='boolean')
