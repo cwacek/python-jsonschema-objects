@@ -1,3 +1,5 @@
 include requirements.txt
 include README.md
 
+include versioneer.py
+include python_jsonschema_objects/_version.py
