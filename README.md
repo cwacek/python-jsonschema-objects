@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/cwacek/python-jsonschema-objects.svg?branch=master)](https://travis-ci.org/cwacek/python-jsonschema-objects)
+
 ## What
 
 python-jsonschema-objects provides an *automatic* class-based
