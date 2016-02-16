@@ -230,7 +230,7 @@ class LiteralValue(object):
       info = self.propinfo('__literal__')
 
       # this duplicates logic in validators.ArrayValidator.check_items; unify it.
-      for param, paramval in six.iteritems(info):
+      for param, paramval in sorted(six.iteritems(info), key=lambda x: x[0].lower() != 'type'):
           validator = validators.registry(param)
           if validator is not None:
               validator(paramval, self._value, info)

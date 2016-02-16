@@ -85,6 +85,19 @@ def pattern(param, value, _):
         )
 
 
+try:
+    from jsonschema import FormatChecker
+except ImportError:
+    pass
+else:
+    @registry.register()
+    def format(param, value, _):
+        if not FormatChecker().conforms(value, param):
+            raise ValidationError(
+                "'{0}' is not formatted as a {1}".format(value, param)
+            )
+
+
 type_registry = ValidatorRegistry()
 
 @type_registry.register(name='boolean')
@@ -95,13 +108,13 @@ def check_boolean_type(param, value, _):
 
 @type_registry.register(name='integer')
 def check_integer_type(param, value, _):
-    if not isinstance(value, int):
+    if not isinstance(value, int) or isinstance(value, bool):
         raise ValidationError(
             "{0} is not an integer".format(value))
 
 @type_registry.register(name='number')
 def check_number_type(param, value, _):
-    if not isinstance(value, (float, int)):
+    if not isinstance(value, (float, int)) or isinstance(value, bool):
         raise ValidationError(
             "{0} is neither an integer or a float".format(value))
 
