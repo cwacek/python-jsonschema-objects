@@ -347,7 +347,7 @@ class ClassBuilder(object):
 
             return self.resolved[uri]
 
-        elif clsdata.get('type') == 'array' and 'items' in clsdata:
+        elif clsdata.get('type') == 'array':
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
@@ -406,6 +406,7 @@ class ClassBuilder(object):
             properties = util.propmerge(properties, clsdata['properties'])
 
         name_translation = {}
+        resolve_to_self = []
 
         for prop, detail in properties.items():
             properties[prop]['raw_name'] = prop
@@ -428,18 +429,36 @@ class ClassBuilder(object):
             elif 'type' not in detail and '$ref' in detail:
                 ref = detail['$ref']
                 uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
-                if uri not in self.resolved:
+                if uri not in self.resolved and uri != nm:
                     with self.resolver.resolving(ref) as resolved:
+                        logger.debug("Constructing {0} for subproperty '{1}' of {2}"
+                                .format(uri, prop, nm))
                         self.resolved[uri] = self.construct(
                             uri,
                             resolved,
                             (ProtocolBase,))
 
-                props[prop] = make_property(prop,
-                                            {'type': self.resolved[uri]},
-                                            self.resolved[uri].__doc__)
-                properties[prop]['$ref'] = uri
-                properties[prop]['type'] = self.resolved[uri]
+                if ref == nm:
+
+                    # This is regression case #28. Recursive definitions....
+                    # Make it so we can assign this property after the fact.
+                    def wrap():
+                        def make_props(klass_obj):
+                            props[prop] = make_property(prop,
+                                                        {'type': klass_obj},
+                                                        klass_obj.__doc__)
+                            properties[prop]['$ref'] = uri
+                            properties[prop]['type'] = klass_obj
+                        return make_props
+
+                    resolve_to_self.append(wrap())
+
+                else:
+                    props[prop] = make_property(prop,
+                                                {'type': self.resolved[uri]},
+                                                self.resolved[uri].__doc__)
+                    properties[prop]['$ref'] = uri
+                    properties[prop]['type'] = self.resolved[uri]
 
             elif 'oneOf' in detail:
                 potential = self.resolve_classes(detail['oneOf'])
@@ -533,6 +552,7 @@ class ClassBuilder(object):
         props['__prop_names__'] = name_translation
 
         props['__propinfo__'] = properties
+        logger.debug("Parents required: {0}".format([p.__required__ for p in parents]))
         required = set.union(*[p.__required__ for p in parents])
 
         if 'required' in clsdata:
@@ -548,6 +568,9 @@ class ClassBuilder(object):
         props['__required__'] = required
 
         cls = type(str(nm.split('/')[-1]), tuple(parents), props)
+
+        for fn in resolve_to_self:
+            fn(cls)
 
         return cls
 
