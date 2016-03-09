@@ -220,13 +220,32 @@ describe TestCase, 'markdown extraction':
                       }
                     )
 
-            it 'should transform into dictionaries recursively"':
-                pdict = dict(
-                        firstName="James",
-                        lastName="Bond",
-                        dogs=["Lassie", "Bobo"]
-                        )
+            describe 'dictionary transformation':
 
-                person = self.Person( **pdict)
+                it 'should work for nested arrays':
+                    pdict = dict(
+                            firstName="James",
+                            lastName="Bond",
+                            dogs=["Lassie", "Bobo"]
+                            )
 
-                person.as_dict().should.equal(pdict)
+                    person = self.Person( **pdict)
+
+                    person.as_dict().should.equal(pdict)
+
+                it 'should work for nested objects':
+                    pdict = dict(
+                            firstName="James",
+                            lastName="Bond",
+                            address={
+                                "street": "10 Example Street",
+                                "city": "Springfield",
+                                "state": "USA"
+                            },
+                            dogs=["Lassie", "Bobo"]
+                            )
+
+                    person = self.Person( **pdict)
+
+                    out_pdict = person.as_dict()
+                    out_pdict.should.equal(pdict)

@@ -34,10 +34,10 @@ class ProtocolBase( collections.MutableMapping):
 
             if isinstance(propval, list):
                 out[prop] = [getattr(x, 'as_dict', lambda :x)() for x in propval]
-            elif not isinstance(propval, LiteralValue) and propval is not None:
-                out[prop] = propval
-            elif propval is not None:
+            elif isinstance(propval, ProtocolBase):
                 out[prop] = propval.as_dict()
+            elif propval is not None:
+                out[prop] = propval
 
         return out
 
