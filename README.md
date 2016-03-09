@@ -28,6 +28,15 @@ For example, given the following schema:
             "items": {"type": "string"},
             "maxItems": 4
         },
+        "address": {
+            "type": "object",
+            "properties": {
+                "street": {"type": "string"},
+                "city": {"type": "string"},
+                "state": {"type": "string"}
+                },
+            "required":["street", "city"]
+            },
         "gender": {
             "type": "string",
             "enum": ["male", "female"]
