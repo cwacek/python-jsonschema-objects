@@ -174,6 +174,11 @@ tox`, then `tox`.
 
 ## Changelog
 
+**0.0.18**
+
++ Fix assignment to schemas defined using 'oneOf'
++ Add sphinx documentation and support for readthedocs
+
 0.0.16 - Fix behavior of exclusiveMinimum and exclusiveMaximum
 validators so that they work properly.
 
