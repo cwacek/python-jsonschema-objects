@@ -62,6 +62,12 @@ class ProtocolBase(collections.MutableMapping):
 
         return out
 
+    def for_json(self):
+        return self.as_dict()
+
+    def __eq__(self, other):
+        return self.as_dict() == other.as_dict()
+
     def __str__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
         props = ["%s" % (inverter.get(k, k),) for k, v in
@@ -202,13 +208,13 @@ class ProtocolBase(collections.MutableMapping):
       return len(self._extended_properties) + len(self._properties)
 
     def __getitem__(self, key):
-      return self.__getattr__(key)
+      return getattr(self, key)
 
     def __setitem__(self, key, val):
-      return self.__setattr__(key, val)
+      return setattr(self,key, val)
 
     def __delitem__(self, key):
-      return self.__delattr__(key)
+      return delattr(self, key)
 
     def __getattr__(self, name):
       if name not in self._extended_properties:
@@ -290,6 +296,9 @@ class LiteralValue(object):
       self.validate()
 
   def as_dict(self):
+      return self.for_json()
+
+  def for_json(self):
       return self._value
 
   @classmethod
