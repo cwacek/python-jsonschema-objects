@@ -142,6 +142,15 @@ describe TestCase, 'markdown extraction':
                 person = self.Person()
                 person.should.be.ok
 
+            it 'should check equality based on data':
+                person = self.Person(firstName="john")
+                person2 = self.Person(firstName="john")
+
+                person.should.equal(person2)
+
+                person2.lastName = "Wayne"
+                person.should_not.equal(person2)
+
             it 'should allow attributes to be given':
                 person = self.Person(firstName="James",
                         lastName="Bond", age=35)
@@ -192,6 +201,21 @@ describe TestCase, 'markdown extraction':
                 person.validate.when.called_with().should.throw(
                         pjs.ValidationError
                         )
+
+            context 'attribute access':
+                before_each:
+                    self.person = self.Person(firstName="James")
+
+                it 'should allow access via dict':
+                    name = self.person['firstName']
+                    name.should.be("James")
+
+                it 'should allow setting via dict':
+                    self.person['firstName'] = "John"
+
+                    self.person.firstName.should.be("John")
+                    name = self.person['firstName']
+                    name.should.be("John")
 
             it 'should validate minimum age':
                 self.Person.when.called_with(
