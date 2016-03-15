@@ -10,6 +10,21 @@ logger = logging.getLogger(__name__)
 
 
 class ProtocolBase(collections.MutableMapping):
+    """ An instance of a class generated from the provided
+    schema. All properties will be validated according to
+    the definitions provided. However, whether or not all required
+    properties have been provide will *not* be validated.
+
+    Args:
+        **props: Properties with which to populate the class object
+
+    Returns:
+        The class object populated with values
+
+    Raises:
+        validators.ValidationError: If any of the provided properties
+            do not pass validation
+    """
     __propinfo__ = {}
     __required__ = set()
 
@@ -24,16 +39,22 @@ class ProtocolBase(collections.MutableMapping):
     }
 
     def as_dict(self):
-      out = {}
-      for prop in self:
-          propval = getattr(self, prop)
+        """ Return a dictionary containing the current values
+        of the object.
 
-          if isinstance(propval, list):
-              out[prop] = [x.as_dict() for x in propval]
-          elif propval is not None:
-              out[prop] = propval.as_dict()
+        Returns:
+            (dict): The object represented as a dictionary
+        """
+        out = {}
+        for prop in self:
+            propval = getattr(self, prop)
 
-      return out
+            if isinstance(propval, list):
+                out[prop] = [x.as_dict() for x in propval]
+            elif propval is not None:
+                out[prop] = propval.as_dict()
+
+        return out
 
     def __str__(self):
         return repr(self)
@@ -50,11 +71,27 @@ class ProtocolBase(collections.MutableMapping):
 
     @classmethod
     def from_json(cls, jsonmsg):
-      import json
-      msg = json.loads(jsonmsg)
-      obj = cls(**msg)
-      obj.validate()
-      return obj
+        """ Create an object directly from a JSON string.
+
+        Applies general validation after creating the
+        object to check whether all required fields are
+        present.
+
+        Args:
+            jsonmsg (str): An object encoded as a JSON string
+
+        Returns:
+            An object of the generated type
+
+        Raises:
+            ValidationError: if `jsonmsg` does not match the schema
+                `cls` was generated from
+        """
+        import json
+        msg = json.loads(jsonmsg)
+        obj = cls(**msg)
+        obj.validate()
+        return obj
 
     def __new__(cls, **props):
         """ Overridden to support oneOf, where we need to 
@@ -177,6 +214,14 @@ class ProtocolBase(collections.MutableMapping):
         return enc.encode(self)
 
     def validate(self):
+        """ Applies all defined validation to the current
+        state of the object, and raises an error if 
+        they are not all met.
+        
+        Raises:
+            ValidationError: if validations do not pass
+        """
+
         propname = lambda x: self.__prop_names__[x]
         missing = [x for x in self.__required__
                    if propname(x) not in self._properties
