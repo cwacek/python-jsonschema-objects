@@ -162,6 +162,17 @@ schemas are unique.
     "additionalProperties": false
 }
 ```
+``` schema
+{
+    "title": "OneOfBare",
+    "type": "object",
+    "oneOf":[
+            {"$ref": "memory:Other"},
+            {"$ref": "memory:Example Schema"}
+            ],
+    "additionalProperties": false
+}
+```
 
 ## Installation
 

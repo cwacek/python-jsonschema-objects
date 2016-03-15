@@ -104,7 +104,7 @@ class ProtocolBase(collections.MutableMapping):
         return obj
 
     def __new__(cls, **props):
-        """ Overridden to support oneOf, where we need to 
+        """ Overridden to support oneOf, where we need to
         instantiate a different class depending on what
         value we've seen """
         if getattr(cls, '__validation__', None) is None:
