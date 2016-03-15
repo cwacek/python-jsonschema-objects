@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ProtocolBase( collections.MutableMapping):
+class ProtocolBase(collections.MutableMapping):
     __propinfo__ = {}
     __required__ = set()
 
@@ -56,25 +56,57 @@ class ProtocolBase( collections.MutableMapping):
       obj.validate()
       return obj
 
-    def __init__(this, **props):
-        this._extended_properties = dict()
-        this._properties = dict(zip(this.__prop_names__.values(),
+    def __new__(cls, **props):
+        """ Overridden to support oneOf, where we need to 
+        instantiate a different class depending on what 
+        value we've seen """
+        if getattr(cls, '__validation__', None) is None:
+            return super(ProtocolBase, cls).__new__(cls, **props)
+
+        valid_types = cls.__validation__.get('type', None)
+
+        if valid_types is None or not isinstance(valid_types, list):
+            return super(ProtocolBase, cls).__new__(cls, **props)
+
+        obj = None
+        validation_errors = []
+        for klass in valid_types:
+            logger.debug("Attempting to instantiate {0} as {1}".format(
+                cls, klass))
+            try:
+                obj = klass(**props)
+            except validators.ValidationError as e:
+                validation_errors.append((klass, e))
+            else:
+                break
+
+        else:  # We got nothing
+            raise validators.ValidationError(
+                "Unable to instantiate any valid types: \n"
+                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+            )
+
+        return obj
+
+    def __init__(self, **props):
+        self._extended_properties = dict()
+        self._properties = dict(zip(self.__prop_names__.values(),
                                     [None for x in
-                                     xrange(len(this.__prop_names__))]))
+                                     xrange(len(self.__prop_names__))]))
 
         for prop in props:
 
             try:
               logging.debug("Setting value for '{0}' to {1}"
                             .format(prop, props[prop]))
-              setattr(this, prop, props[prop])
+              setattr(self, prop, props[prop])
             except validators.ValidationError as e:
               import sys
               raise type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
-                  prop, this.__class__.__name__)), sys.exc_info()[2]
+                  prop, self.__class__.__name__)), sys.exc_info()[2]
 
         #if len(props) > 0:
-        #    this.validate()
+        #    self.validate()
 
     def __setattr__(self, name, val):
       if name.startswith("_"):
@@ -289,21 +321,8 @@ class ClassBuilder(object):
         return ret
 
     def _construct(self, uri, clsdata, parent=(ProtocolBase,)):
-        if 'oneOf' in clsdata:
-            potential_parents = self.resolve_classes(clsdata['oneOf'])
 
-            for p in potential_parents:
-                if issubclass(p, ProtocolBase):
-                    self.resolved[uri] = self._build_object(
-                        uri,
-                        clsdata,
-                        (p,))
-                else:
-                    raise Exception("Don't know how to deal with this")
-
-            return self.resolved[uri]
-
-        elif 'anyOf' in clsdata:
+        if 'anyOf' in clsdata:
             raise NotImplementedError(
                 "anyOf is not supported as bare property")
 
@@ -441,6 +460,7 @@ class ClassBuilder(object):
 
             elif 'oneOf' in detail:
                 potential = self.resolve_classes(detail['oneOf'])
+                logger.debug("Designating {0} as oneOf {1}".format(prop, potential))
                 desc = detail[
                     'description'] if 'description' in detail else ""
                 props[prop] = make_property(prop,
