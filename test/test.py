@@ -75,6 +75,23 @@ describe TestCase, 'markdown extraction':
                 ).should.throw(pjs.ValidationError)
 
 
+        context "oneOfBare":
+            before_each:
+                builder = pjs.ObjectBuilder(self.examples['OneOfBare'], resolved=self.examples)
+                builder.should.be.ok
+                self.OneOf = builder.classes['Oneofbare']
+
+            it 'should validate against any of the provided schemas':
+
+                self.OneOf.from_json.when.called_with('{"MyAddress": "an address"}').should_not.throw()
+                self.OneOf.from_json.when.called_with('{"firstName": "John", "lastName": "Winnebago"}').should_not.throw()
+
+            it 'should fail to validate when given something that does not match':
+                self.OneOf.from_json.when.called_with(
+                    '{"MyData": 1234.234}'
+                ).should.throw(pjs.ValidationError)
+
+
         context "additionalProperties":
 
             before_each:

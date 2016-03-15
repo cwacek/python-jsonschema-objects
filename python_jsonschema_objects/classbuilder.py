@@ -13,7 +13,22 @@ logger = logging.getLogger(__name__)
 if sys.version_info > (3,):
   long = int
 
-class ProtocolBase( collections.MutableMapping):
+class ProtocolBase(collections.MutableMapping):
+    """ An instance of a class generated from the provided
+    schema. All properties will be validated according to
+    the definitions provided. However, whether or not all required
+    properties have been provide will *not* be validated.
+
+    Args:
+        **props: Properties with which to populate the class object
+
+    Returns:
+        The class object populated with values
+
+    Raises:
+        validators.ValidationError: If any of the provided properties
+            do not pass validation
+    """
     __propinfo__ = {}
     __required__ = set()
 
@@ -28,6 +43,12 @@ class ProtocolBase( collections.MutableMapping):
     }
 
     def as_dict(self):
+        """ Return a dictionary containing the current values
+        of the object.
+
+        Returns:
+            (dict): The object represented as a dictionary
+        """
         out = {}
         for prop in self:
             propval = getattr(self, prop)
@@ -60,11 +81,65 @@ class ProtocolBase( collections.MutableMapping):
 
     @classmethod
     def from_json(cls, jsonmsg):
-      import json
-      msg = json.loads(jsonmsg)
-      obj = cls(**msg)
-      obj.validate()
-      return obj
+        """ Create an object directly from a JSON string.
+
+        Applies general validation after creating the
+        object to check whether all required fields are
+        present.
+
+        Args:
+            jsonmsg (str): An object encoded as a JSON string
+
+        Returns:
+            An object of the generated type
+
+        Raises:
+            ValidationError: if `jsonmsg` does not match the schema
+                `cls` was generated from
+        """
+        import json
+        msg = json.loads(jsonmsg)
+        obj = cls(**msg)
+        obj.validate()
+        return obj
+
+    def __new__(cls, **props):
+        """ Overridden to support oneOf, where we need to
+        instantiate a different class depending on what
+        value we've seen """
+        if getattr(cls, '__validation__', None) is None:
+            new = super(ProtocolBase, cls).__new__
+            if new is object.__new__:
+                return new(cls)
+            return new(cls, **props)
+
+        valid_types = cls.__validation__.get('type', None)
+
+        if valid_types is None or not isinstance(valid_types, list):
+            new = super(ProtocolBase, cls).__new__
+            if new is object.__new__:
+                return new(cls)
+            return new(cls, **props)
+
+        obj = None
+        validation_errors = []
+        for klass in valid_types:
+            logger.debug("Attempting to instantiate {0} as {1}".format(
+                cls, klass))
+            try:
+                obj = klass(**props)
+            except validators.ValidationError as e:
+                validation_errors.append((klass, e))
+            else:
+                break
+
+        else:  # We got nothing
+            raise validators.ValidationError(
+                "Unable to instantiate any valid types: \n"
+                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+            )
+
+        return obj
 
     def __init__(self, **props):
         self._extended_properties = dict()
@@ -83,7 +158,7 @@ class ProtocolBase( collections.MutableMapping):
                   prop, self.__class__.__name__)), sys.exc_info()[2])
 
         #if len(props) > 0:
-        #    this.validate()
+        #    self.validate()
 
     def __setattr__(self, name, val):
         if name.startswith("_"):
@@ -154,6 +229,14 @@ class ProtocolBase( collections.MutableMapping):
         return enc.encode(self)
 
     def validate(self):
+        """ Applies all defined validation to the current
+        state of the object, and raises an error if 
+        they are not all met.
+        
+        Raises:
+            ValidationError: if validations do not pass
+        """
+
         propname = lambda x: self.__prop_names__[x]
         missing = [x for x in self.__required__
                    if propname(x) not in self._properties
@@ -290,21 +373,8 @@ class ClassBuilder(object):
         return ret
 
     def _construct(self, uri, clsdata, parent=(ProtocolBase,)):
-        if 'oneOf' in clsdata:
-            potential_parents = self.resolve_classes(clsdata['oneOf'])
 
-            for p in potential_parents:
-                if util.safe_issubclass(p, ProtocolBase):
-                    self.resolved[uri] = self._build_object(
-                        uri,
-                        clsdata,
-                        (p,))
-                else:
-                    raise Exception("Don't know how to deal with this")
-
-            return self.resolved[uri]
-
-        elif 'anyOf' in clsdata:
+        if 'anyOf' in clsdata:
             raise NotImplementedError(
                 "anyOf is not supported as bare property")
 
@@ -443,6 +513,7 @@ class ClassBuilder(object):
 
             elif 'oneOf' in detail:
                 potential = self.resolve_classes(detail['oneOf'])
+                logger.debug("Designating {0} as oneOf {1}".format(prop, potential))
                 desc = detail[
                     'description'] if 'description' in detail else ""
                 props[prop] = make_property(prop,

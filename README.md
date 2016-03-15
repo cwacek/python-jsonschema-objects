@@ -162,6 +162,17 @@ schemas are unique.
     "additionalProperties": false
 }
 ```
+``` schema
+{
+    "title": "OneOfBare",
+    "type": "object",
+    "oneOf":[
+            {"$ref": "memory:Other"},
+            {"$ref": "memory:Example Schema"}
+            ],
+    "additionalProperties": false
+}
+```
 
 ## Installation
 
@@ -173,6 +184,11 @@ Tests are managed using the excellent Tox. Simply `pip install
 tox`, then `tox`.
 
 ## Changelog
+
+**0.0.18**
+
++ Fix assignment to schemas defined using 'oneOf'
++ Add sphinx documentation and support for readthedocs
 
 0.0.16 - Fix behavior of exclusiveMinimum and exclusiveMaximum
 validators so that they work properly.

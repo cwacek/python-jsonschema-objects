@@ -1,3 +1,8 @@
 nose==1.3.0
 rednose==0.4.1
 pyandoc
+=======
+pandoc
+sphinx
+sphinx-autobuild
+recommonmark

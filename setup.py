@@ -68,7 +68,7 @@ if __name__ == '__main__':
           license="MIT",
           author_email='cwacek@gmail.com',
           include_package_data=True,
-          url='http://github.com/cwacek/python-jsonschema-objects',
+          url='http://python-jsonschema-objects.readthedocs.org/',
           packages=find_packages(exclude=['*tests*']),
           install_requires=install_requires,
           dependency_links=dependency_links,
