@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/cwacek/python-jsonschema-objects.svg?branch=master)](https://travis-ci.org/cwacek/python-jsonschema-objects)
+
 ## What
 
 python-jsonschema-objects provides an *automatic* class-based
@@ -26,6 +28,15 @@ For example, given the following schema:
             "items": {"type": "string"},
             "maxItems": 4
         },
+        "address": {
+            "type": "object",
+            "properties": {
+                "street": {"type": "string"},
+                "city": {"type": "string"},
+                "state": {"type": "string"}
+                },
+            "required":["street", "city"]
+            },
         "gender": {
             "type": "string",
             "enum": ["male", "female"]
@@ -58,7 +69,7 @@ Validations will also be applied as the object is manipulated.
 
 ``` python
 >>> james.age = -2
-python_jsonschema_objects.validators.ValidationError: -4 was less
+python_jsonschema_objects.validators.ValidationError: -2 was less
 or equal to than 0
 ```
 
@@ -151,6 +162,17 @@ schemas are unique.
     "additionalProperties": false
 }
 ```
+``` schema
+{
+    "title": "OneOfBare",
+    "type": "object",
+    "oneOf":[
+            {"$ref": "memory:Other"},
+            {"$ref": "memory:Example Schema"}
+            ],
+    "additionalProperties": false
+}
+```
 
 ## Installation
 
@@ -162,6 +184,21 @@ Tests are managed using the excellent Tox. Simply `pip install
 tox`, then `tox`.
 
 ## Changelog
+
+**0.0.18**
+
++ Fix assignment to schemas defined using 'oneOf'
++ Add sphinx documentation and support for readthedocs
+
+0.0.16 - Fix behavior of exclusiveMinimum and exclusiveMaximum
+validators so that they work properly.
+
+0.0.14 - Roll in a number of fixes from Github contributors,
+including fixes for oneOf handling, array validation, and Python
+3 support.
+
+0.0.13 - Lazily build object classes. Allows low-overhead use
+of jsonschema validators.
 
 0.0.12 - Support "true" as a value for 'additionalProperties'
 

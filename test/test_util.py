@@ -85,6 +85,7 @@ describe TestCase, 'ArrayValidator':
           item_constraint=Person
       )
 
+
       instance = validator([{'firstName': 'winner', 'lastName': 'Smith'} ])
       instance.validate.when.called_with().should_not.throw(ValidationError)
 

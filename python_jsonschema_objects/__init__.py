@@ -5,6 +5,7 @@ import json
 import codecs
 import os.path
 import inflection
+import six
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class ObjectBuilder(object):
     def __init__(self, schema_uri, resolved={}):
         self.mem_resolved = resolved
 
-        if isinstance(schema_uri, basestring):
+        if isinstance(schema_uri, six.string_types):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
             with open(uri) as fin:
@@ -45,7 +46,13 @@ class ObjectBuilder(object):
         self.validator = Draft4Validator(self.schema,
                                          resolver=self.resolver)
 
-        self.classes = self.build_classes()
+        self._classes = None
+
+    @property
+    def classes(self):
+        if self._classes is None:
+          self._classes = self.build_classes()
+        return self._classes
 
     def memory_resolver(self, uri):
         return self.mem_resolved[uri[7:]]
@@ -62,19 +69,16 @@ class ObjectBuilder(object):
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
 
-
     def build_classes(self):
         builder = classbuilder.ClassBuilder(self.resolver)
-        for k, v in iteritems(self.schema):
-            if k == 'definitions':
-                for nm, defn in iteritems(v):
-                    uri = util.resolve_ref_uri(
-                        self.resolver.resolution_scope,
-                        "#/definitions/" + nm)
-                    builder.construct(uri, defn)
+        for nm, defn in iteritems(self.schema.get('definitions', {})):
+            uri = util.resolve_ref_uri(
+                self.resolver.resolution_scope,
+                "#/definitions/" + nm)
+            builder.construct(uri, defn)
 
         nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
-        nm = inflection.parameterize(unicode(nm), '_')
+        nm = inflection.parameterize(six.text_type(nm), '_')
 
         builder.construct(nm, self.schema)
 
@@ -82,10 +86,14 @@ class ObjectBuilder(object):
             util.Namespace.from_mapping(dict(
                 (inflection.camelize(uri.split('/')[-1]),
                  klass) for uri,
-                klass in builder.resolved.iteritems()))
+                klass in six.iteritems(builder.resolved)))
         )
 
 
 if __name__ == '__main__':
 
     validator = ObjectBuilder("../../protocol/json/schema.json")
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

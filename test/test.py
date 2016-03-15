@@ -1,6 +1,7 @@
 # -*- coding: spec -*-
 # This is a comparison of DSL syntax to what is generated
 
+import six
 import nose
 import nose.tools
 from sure import expect, this
@@ -12,6 +13,23 @@ import nose
 
 import pkg_resources
 import python_jsonschema_objects as pjs
+
+describe TestCase, 'regression #9':
+
+    it 'should not throw an error':
+        import python_jsonschema_objects
+        schema = {
+                "$schema": "http://json-schema.org/schema#",
+                "id": "test",
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "email": {"oneOf": [ "string", "integer"]},
+                    },
+                "required": ["email"]
+                }
+        builder = python_jsonschema_objects.ObjectBuilder(schema)
+        builder.build_classes()
 
 describe TestCase, 'markdown extraction':
 
@@ -36,7 +54,7 @@ describe TestCase, 'markdown extraction':
             builder.validate.when.called_with({'MyAddress': '1234'}).should_not.throw(pjs.ValidationError)
 
         it 'should be able to read an object':
-            for nm, ex in self.examples.iteritems():
+            for nm, ex in six.iteritems(self.examples):
                 builder = pjs.ObjectBuilder(ex, resolved=self.examples)
                 builder.should.be.ok
 
@@ -50,6 +68,23 @@ describe TestCase, 'markdown extraction':
 
                 self.OneOf.from_json.when.called_with('{"MyData": "an address"}').should_not.throw()
                 self.OneOf.from_json.when.called_with('{"MyData": 1234}').should_not.throw()
+
+            it 'should fail to validate when given something that does not match':
+                self.OneOf.from_json.when.called_with(
+                    '{"MyData": 1234.234}'
+                ).should.throw(pjs.ValidationError)
+
+
+        context "oneOfBare":
+            before_each:
+                builder = pjs.ObjectBuilder(self.examples['OneOfBare'], resolved=self.examples)
+                builder.should.be.ok
+                self.OneOf = builder.classes['Oneofbare']
+
+            it 'should validate against any of the provided schemas':
+
+                self.OneOf.from_json.when.called_with('{"MyAddress": "an address"}').should_not.throw()
+                self.OneOf.from_json.when.called_with('{"firstName": "John", "lastName": "Winnebago"}').should_not.throw()
 
             it 'should fail to validate when given something that does not match':
                 self.OneOf.from_json.when.called_with(
@@ -202,13 +237,32 @@ describe TestCase, 'markdown extraction':
                       }
                     )
 
-            it 'should transform into dictionaries recursively"':
-                pdict = dict(
-                        firstName="James",
-                        lastName="Bond",
-                        dogs=["Lassie", "Bobo"]
-                        )
+            describe 'dictionary transformation':
 
-                person = self.Person( **pdict)
+                it 'should work for nested arrays':
+                    pdict = dict(
+                            firstName="James",
+                            lastName="Bond",
+                            dogs=["Lassie", "Bobo"]
+                            )
 
-                person.as_dict().should.equal(pdict)
+                    person = self.Person( **pdict)
+
+                    person.as_dict().should.equal(pdict)
+
+                it 'should work for nested objects':
+                    pdict = dict(
+                            firstName="James",
+                            lastName="Bond",
+                            address={
+                                "street": "10 Example Street",
+                                "city": "Springfield",
+                                "state": "USA"
+                            },
+                            dogs=["Lassie", "Bobo"]
+                            )
+
+                    person = self.Person( **pdict)
+
+                    out_pdict = person.as_dict()
+                    out_pdict.should.equal(pdict)

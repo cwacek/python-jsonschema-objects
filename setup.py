@@ -8,6 +8,7 @@ import os
 import re
 import sys
 from setuptools import setup, find_packages
+import versioneer
 
 
 def parse_requirements(path):
@@ -60,15 +61,16 @@ if __name__ == '__main__':
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.12',
+          version=versioneer.get_version(),
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,
           license="MIT",
           author_email='cwacek@gmail.com',
           include_package_data=True,
-          url='http://github.com/cwacek/python-jsonschema-objects',
+          url='http://python-jsonschema-objects.readthedocs.org/',
           packages=find_packages(exclude=['*tests*']),
           install_requires=install_requires,
           dependency_links=dependency_links,
+          cmdclass=versioneer.get_cmdclass()
     )

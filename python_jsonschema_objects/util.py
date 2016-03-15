@@ -1,21 +1,46 @@
+import six
 import copy
 import json
+
+def safe_issubclass(x, y):
+    """Safe version of issubclass() that will not throw TypeErrors.
+
+    Invoking issubclass('object', some-abc.meta instances) will result
+    in the underlying implementation throwing TypeError's from trying to
+    memoize the result- 'object' isn't a usable weakref target at that level.
+    Unfortunately this gets exposed all the way up to our code; thus a
+    'safe' version of the function."""
+    try:
+        return issubclass(x, y)
+    except TypeError:
+        return False
+
+
+def coerce_for_expansion(mapping):
+    """Given a value, make sure it is usable for f(**val) expansion.
+
+    In py2.7, the value must be a dictionary- thus a as_dict() method
+    will be invoked if available.  In py3k, the raw mapping is returned
+    unmodified."""
+    if six.PY2 and hasattr(mapping, 'as_dict'):
+       return mapping.as_dict()
+    return mapping
 
 
 class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
-        import classbuilder
+        from python_jsonschema_objects import classbuilder
 
         if isinstance(obj, classbuilder.LiteralValue):
             return obj._value
         if isinstance(obj, classbuilder.ProtocolBase):
             props = {}
-            for raw, trans in obj.__prop_names__.iteritems():
+            for raw, trans in six.iteritems(obj.__prop_names__):
                 props[raw] = getattr(obj, trans)
                 if props[raw] is None:
                     del props[raw]
-            for raw, data in obj._extended_properties.iteritems():
+            for raw, data in six.iteritems(obj._extended_properties):
                 props[raw] = data
                 if props[raw] is None:
                     del props[raw]
@@ -28,13 +53,13 @@ def propmerge(into, data_from):
     """ Merge JSON schema requirements into a dictionary """
     newprops = copy.deepcopy(into)
 
-    for prop, propval in data_from.iteritems():
+    for prop, propval in six.iteritems(data_from):
         if prop not in newprops:
             newprops[prop] = propval
             continue
 
         new_sp = newprops[prop]
-        for subprop, spval in propval.iteritems():
+        for subprop, spval in six.iteritems(propval):
             if subprop not in new_sp:
                 new_sp[subprop] = spval
 
@@ -68,12 +93,7 @@ def propmerge(into, data_from):
 def resolve_ref_uri(base, ref):
     if ref[0] == '#':
     # Local ref
-        uri = base
-        if len(uri) > 0 and uri[-1] == '#':
-            uri += ref[1:]
-        else:
-            uri += ref
-
+        uri = base.rsplit("#", 1)[0] + ref
     else:
         uri = ref
 
