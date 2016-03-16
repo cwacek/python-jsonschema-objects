@@ -188,14 +188,16 @@ class ProtocolBase(collections.MutableMapping):
                 # Pick the type based on the type of the values
                 valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
                            if t is not None and isinstance(val, t)]
-                valtype = valtype[0]
-                val = MakeLiteral(name, valtype, val)
+                if valtype:
+                    valtype = valtype[0]
+                    val = MakeLiteral(name, valtype, val)
             elif isinstance(typ, type) and getattr(typ, 'isLiteralClass', None) is True:
                 val = typ(val)
             elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
                 val = typ(**util.coerce_for_expansion(val))
 
-            self._extended_properties[name] = val
+            if val:
+                self._extended_properties[name] = val
 
     """ Implement collections.MutableMapping methods """
 
