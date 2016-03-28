@@ -214,7 +214,11 @@ class ProtocolBase(collections.MutableMapping):
       return setattr(self,key, val)
 
     def __delitem__(self, key):
-      return delattr(self, key)
+        if key in self._extended_properties:
+            del self._extended_properties[key]
+            return
+
+        return delattr(self, key)
 
     def __getattr__(self, name):
       if name not in self._extended_properties:
