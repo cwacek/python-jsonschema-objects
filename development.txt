@@ -5,3 +5,4 @@ pandoc
 sphinx
 sphinx-autobuild
 recommonmark
+pytest

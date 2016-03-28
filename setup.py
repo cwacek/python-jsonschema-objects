@@ -67,9 +67,12 @@ if __name__ == '__main__':
           long_description=long_description,
           license="MIT",
           author_email='cwacek@gmail.com',
+          packages=find_packages(),
           include_package_data=True,
+          package_data={'python_jsonschema_objects.examples': ["README.md"]},
+          zip_safe=False,
           url='http://python-jsonschema-objects.readthedocs.org/',
-          packages=find_packages(exclude=['*tests*']),
+          setup_requires=["setuptools>=18.0.0"],
           install_requires=install_requires,
           dependency_links=dependency_links,
           cmdclass=versioneer.get_cmdclass()

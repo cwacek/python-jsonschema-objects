@@ -1,5 +1,16 @@
 include requirements.txt
-include README.md
 
 include versioneer.py
 include python_jsonschema_objects/_version.py
+
+include *.py
+include *.txt
+include LICENSE
+include tox.ini
+recursive-include docs *.md
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include test *.json
+recursive-include test *.py
+recursive-include python_jsonschema_objects/examples *.md
