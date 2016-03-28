@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <python_jsonschema_objects - An object wrapper for JSON Schema definitions>
-# Copyright (C) <2014-2014>  Chris Wacek <cwacek@gmail.com
+# Copyright (C) <2014-2016>  Chris Wacek <cwacek@gmail.com
 
 import ast
 import os
 import re
 import sys
 from setuptools import setup, find_packages
+
+
 import versioneer
 
 
