@@ -9,6 +9,8 @@ import sys
 import logging
 logger = logging.getLogger(__name__)
 
+
+
 # Long is no longer a thing in python3.x
 if sys.version_info > (3,):
   long = int
@@ -130,7 +132,8 @@ class ProtocolBase(collections.MutableMapping):
         obj = None
         validation_errors = []
         for klass in valid_types:
-            logger.debug("Attempting to instantiate {0} as {1}".format(
+            logger.debug(util.lazy_format(
+                "Attempting to instantiate {0} as {1}",
                 cls, klass))
             try:
                 obj = klass(**props)
@@ -156,7 +159,7 @@ class ProtocolBase(collections.MutableMapping):
         for prop in props:
 
             try:
-              logger.debug("Setting value for %s' to %s", prop, props[prop])
+              logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
               setattr(self, prop, props[prop])
             except validators.ValidationError as e:
               import sys
@@ -380,9 +383,9 @@ class ClassBuilder(object):
 
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
-        logger.debug("Constructing {0}".format(uri))
+        logger.debug(util.lazy_format("Constructing {0}", uri))
         ret = self._construct(uri, *args, **kw)
-        logger.debug("Constructed {0}".format(ret))
+        logger.debug(util.lazy_format("Constructed {0}", ret))
         return ret
 
     def _construct(self, uri, clsdata, parent=(ProtocolBase,)):
@@ -413,13 +416,13 @@ class ClassBuilder(object):
                     clsdata['type'], (ProtocolBase, LiteralValue)):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
-                logger.debug("Using previously resolved type "
-                              "(with different URI) for %s", uri)
+                logger.debug(util.lazy_format("Using previously resolved type "
+                              "(with different URI) for {0}", uri))
                 self.resolved[uri] = clsdata['type']
             elif uri in self.resolved:
-                logger.debug("Using previously resolved object for %s", uri)
+                logger.debug(util.lazy_format("Using previously resolved object for {0}", uri))
             else:
-                logger.debug("Resolving object for %s", uri)
+                logger.debug(util.lazy_format("Resolving object for {0}", uri))
 
                 with self.resolver.resolving(uri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
@@ -477,7 +480,7 @@ class ClassBuilder(object):
       return cls
 
     def _build_object(self, nm, clsdata, parents):
-        logger.debug("Building object {0}".format(nm))
+        logger.debug(util.lazy_format("Building object {0}", nm))
 
         props = {}
 
@@ -526,7 +529,7 @@ class ClassBuilder(object):
 
             elif 'oneOf' in detail:
                 potential = self.resolve_classes(detail['oneOf'])
-                logger.debug("Designating {0} as oneOf {1}".format(prop, potential))
+                logger.debug(util.lazy_format("Designating {0} as oneOf {1}", prop, potential))
                 desc = detail[
                     'description'] if 'description' in detail else ""
                 props[prop] = make_property(prop,
