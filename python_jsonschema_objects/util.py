@@ -2,6 +2,19 @@ import six
 import copy
 import json
 
+
+class lazy_format(object):
+    __slots__ = ('fmt', 'args', 'kwargs')
+
+    def __init__(self, fmt, *args, **kwargs):
+        self.fmt = fmt
+        self.args = args
+        self.kwargs = kwargs
+
+    def __str__(self):
+        self.fmt.format(*self.args, **self.kwargs)
+
+
 def safe_issubclass(x, y):
     """Safe version of issubclass() that will not throw TypeErrors.
 
