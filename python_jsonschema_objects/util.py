@@ -12,7 +12,7 @@ class lazy_format(object):
         self.kwargs = kwargs
 
     def __str__(self):
-        self.fmt.format(*self.args, **self.kwargs)
+        return self.fmt.format(*self.args, **self.kwargs)
 
 
 def safe_issubclass(x, y):
