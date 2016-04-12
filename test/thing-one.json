@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "id": "thing_one",
+  "title": "thing_one",
+  "description": "The first thing.",
+  "type": "object",
+  "definitions": {
+    "bar": {
+      "description": "a bar",
+      "properties": {
+        "name": {
+          "description": "unique name for bar",
+          "type": "string",
+          "example": "awesome-bar"
+        }
+      },
+      "required": ["name"]
+    },
+    "bar_group": {
+      "description": "a group of bars",
+      "properties": {
+        "title": {
+          "description": "group title",
+          "type": "string"
+        },
+        "bars": {
+          "description": "list of bars",
+          "type": "array",
+          "items": {
+            "$ref": "file:///thing-one.json#/definitions/bar"
+          }
+        }
+      }
+    }
+  }
+}

@@ -55,6 +55,28 @@ def test_arrays_can_have_reffed_items_of_mixed_type():
         ns.Test(list=[100])
 
 
+def test_regression_39():
+    builder = pjs.ObjectBuilder("test/thing-two.json")
+    ns = builder.build_classes()
+
+    for thing in ('BarMessage', 'BarGroup', "Bar", "Header"):
+        assert thing in ns
+
+    x = ns.BarMessage(id="message_id",
+                      title="my bar group",
+                      bars=[{"name": "Freddies Half Shell"}]
+                      )
+
+    x.validate()
+
+    # Now an invalid one 
+    with pytest.raises(pjs.ValidationError):
+        ns.BarMessage(id="message_id",
+                      title="my bar group",
+                      bars=[{"Address": "I should have a name"}]
+                      )
+
+
 def test_loads_markdown_schema_extraction(markdown_examples):
     assert 'Other' in markdown_examples
 
