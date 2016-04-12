@@ -454,7 +454,7 @@ class ClassBuilder(object):
 
                 with self.resolver.resolving(uri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
-                    self.resolved[uri] = self._build_object(
+                    self.resolved[uri] = self.construct(
                         uri,
                         resolved,
                         parent)
