@@ -1,5 +1,6 @@
 import six
 from python_jsonschema_objects import util
+import collections
 
 
 class ValidationError(Exception):
@@ -218,15 +219,30 @@ class ArrayValidator(object):
             elif util.safe_issubclass(typ, classbuilder.ProtocolBase):
                 if not isinstance(elem, typ):
                     try:
-                      val = typ(**util.coerce_for_expansion(elem))
+                        if isinstance(elem, (six.string_types, six.integer_types, float)):
+                            val = typ(elem)
+                        else:
+                            val = typ(**util.coerce_for_expansion(elem))
                     except TypeError as e:
-                      raise ValidationError("'{0}' is not a valid value for '{1}'".format(elem, typ))
+                        raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
+                                              .format(elem, typ, e))
                 else:
                     val = elem
                 val.validate()
                 typed_elems.append(val)
             elif util.safe_issubclass(typ, ArrayValidator):
                 val = typ(elem)
+                val.validate()
+                typed_elems.append(val)
+            elif isinstance(typ, classbuilder.TypeProxy):
+                try:
+                    if isinstance(elem, (six.string_types, six.integer_types, float)):
+                        val = typ(elem)
+                    else:
+                        val = typ(**util.coerce_for_expansion(elem))
+                except TypeError as e:
+                    raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
+                                          .format(elem, typ, e))
                 val.validate()
                 typed_elems.append(val)
 
@@ -257,6 +273,8 @@ class ArrayValidator(object):
                     if not any([isdict, isklass]):
                         raise TypeError(
                             "Item constraint (position {0}) is not a schema".format(i))
+            elif isinstance(item_constraint, classbuilder.TypeProxy):
+                pass
             else:
                 isdict = isinstance(item_constraint, (dict,))
                 isklass = isinstance( item_constraint, type) and util.safe_issubclass(
