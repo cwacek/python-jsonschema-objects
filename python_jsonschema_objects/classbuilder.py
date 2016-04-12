@@ -288,6 +288,34 @@ def MakeLiteral(name, typ, value, **properties):
       return klass(value)
 
 
+class TypeProxy(object):
+
+    def __init__(self, types):
+        self._types = types
+
+    def __call__(self, *a, **kw):
+        validation_errors = []
+        valid_types = self._types
+        for klass in valid_types:
+            logger.debug(util.lazy_format(
+                "Attempting to instantiate {0} as {1}",
+                self.__class__, klass))
+            try:
+                obj = klass(*a, **kw)
+            except TypeError as e:
+                validation_errors.append((klass, e))
+            except validators.ValidationError as e:
+                validation_errors.append((klass, e))
+            else:
+                return obj
+
+        else:  # We got nothing
+            raise validators.ValidationError(
+                "Unable to instantiate any valid types: \n"
+                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+            )
+
+
 class LiteralValue(object):
   """Docstring for LiteralValue """
 
@@ -426,7 +454,7 @@ class ClassBuilder(object):
 
                 with self.resolver.resolving(uri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
-                    self.resolved[uri] = self._build_object(
+                    self.resolved[uri] = self.construct(
                         uri,
                         resolved,
                         parent)
@@ -552,7 +580,19 @@ class ClassBuilder(object):
                         uri = "{0}/{1}_{2}".format(nm,
                                                    prop, "<anonymous_field>")
                         try:
-                            typ = self.construct(uri, detail['items'])
+                            if 'oneOf' in detail['items']:
+                                typ = TypeProxy([
+                                    self.construct(uri + "_%s" % i, item_detail)
+                                    if '$ref' not in item_detail else
+                                    self.construct(util.resolve_ref_uri(
+                                        self.resolver.resolution_scope,
+                                        item_detail['$ref']),
+                                        item_detail)
+
+                                    for i, item_detail in enumerate(detail['items']['oneOf'])]
+                                    )
+                            else:
+                                typ = self.construct(uri, detail['items'])
                             propdata = {'type': 'array',
                                         'validator': validators.ArrayValidator.create(uri, item_constraint=typ,
                                                                                 addl_constraints=detail)}
