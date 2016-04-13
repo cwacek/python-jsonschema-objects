@@ -211,7 +211,7 @@ class ProtocolBase(collections.MutableMapping):
       return len(self._extended_properties) + len(self._properties)
 
     def __getitem__(self, key):
-      return getattr(self, key)
+        return getattr(self, key)
 
     def __setitem__(self, key, val):
       return setattr(self,key, val)
@@ -224,11 +224,13 @@ class ProtocolBase(collections.MutableMapping):
         return delattr(self, key)
 
     def __getattr__(self, name):
-      if name not in self._extended_properties:
-        raise AttributeError("{0} is not a valid property of {1}".format(
-          name, self.__class__.__name__))
+        if name in self.__prop_names__:
+            raise KeyError(name)
+        if name not in self._extended_properties:
+            raise AttributeError("{0} is not a valid property of {1}".format(
+                                 name, self.__class__.__name__))
 
-      return self._extended_properties[name]
+        return self._extended_properties[name]
 
     @classmethod
     def propinfo(cls, propname):
