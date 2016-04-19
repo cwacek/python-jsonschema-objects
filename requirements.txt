@@ -1,7 +1,5 @@
 Markdown==2.4
 inflection==0.2.0
-jsonpatch==1.13
-jsonpointer==1.10
 jsonschema==2.3.0
 pandocfilters==1.2
 six>=1.5.2
