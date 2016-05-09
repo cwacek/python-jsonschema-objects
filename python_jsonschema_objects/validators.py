@@ -1,6 +1,8 @@
 import six
 from python_jsonschema_objects import util
 import collections
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ValidationError(Exception):
@@ -156,7 +158,13 @@ def check_type(param, value, type_data):
 class ArrayValidator(object):
 
     def __init__(self, ary):
-        self.data = ary
+        if isinstance(ary, (list, tuple, collections.Sequence)):
+            self.data = ary
+        elif isinstance(ary, ArrayValidator):
+            self.data = ary.data
+        else:
+            raise TypeError("Invalid value given to array validator: {0}"
+                            .format(ary))
 
     def validate(self):
         converted = self.validate_items()
@@ -261,6 +269,7 @@ class ArrayValidator(object):
         constraints permitted by JSON Schema v4.
         """
         from python_jsonschema_objects import classbuilder
+        klassbuilder = addl_constraints.pop("classbuilder", None)
         props = {}
 
         if item_constraint is not None:
@@ -283,7 +292,29 @@ class ArrayValidator(object):
                 if not any([isdict, isklass]):
                     raise TypeError("Item constraint is not a schema")
 
-                if isdict and item_constraint['type'] == 'array':
+                if isdict and '$ref' in item_constraint:
+                    if klassbuilder is None:
+                        raise TypeError("Cannot resolve {0} without classbuilder"
+                                        .format(item_constraint['$ref']))
+
+                    uri = item_constraint['$ref']
+                    if uri in klassbuilder.resolved:
+                        logger.debug(util.lazy_format(
+                            "Using previously resolved object for {0}", uri))
+                    else:
+                        logger.debug(util.lazy_format("Resolving object for {0}", uri))
+
+                        with klassbuilder.resolver.resolving(uri) as resolved:
+                            # Set incase there is a circular reference in schema definition
+                            klassbuilder.resolved[uri] = None
+                            klassbuilder.resolved[uri] = klassbuilder.construct(
+                                uri,
+                                resolved,
+                                (classbuilder.ProtocolBase,))
+
+                    item_constraint = klassbuilder.resolved[uri]
+
+                elif isdict and item_constraint['type'] == 'array':
                     item_constraint = ArrayValidator.create(name + "#sub",
                                                             item_constraint=item_constraint[
                                                                 'items'],
