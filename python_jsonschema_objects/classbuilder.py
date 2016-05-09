@@ -464,10 +464,14 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif clsdata.get('type') == 'array' and 'items' in clsdata:
-            self.resolved[uri] = self._build_object(
+            clsdata_copy = {}
+            clsdata_copy.update(clsdata)
+            self.resolved[uri] = validators.ArrayValidator.create(
                 uri,
-                clsdata,
-                parent)
+                item_constraint=clsdata_copy.pop('items'),
+                classbuilder=self,
+                **clsdata_copy)
+            return self.resolved[uri]
 
         elif (clsdata.get('type', None) == 'object' or
               clsdata.get('properties', None) is not None or
@@ -700,12 +704,12 @@ def make_property(prop, info, desc=""):
                 type_checks.append(typ)
                 continue
               typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
-              if typ == None:
-                typ = type(None)
+              if typ is None:
+                  typ = type(None)
               if isinstance(typ, (list, tuple)):
-                type_checks.extend(typ)
+                  type_checks.extend(typ)
               else:
-                type_checks.append(typ)
+                  type_checks.append(typ)
 
             for typ in type_checks:
                 if isinstance(val, typ):
@@ -734,6 +738,17 @@ def make_property(prop, info, desc=""):
                         val.validate()
                         ok = True
                         break
+                elif util.safe_issubclass(typ, validators.ArrayValidator):
+                    try:
+                        val = typ(val)
+                    except Exception as e:
+                        errors.append(
+                            "Failed to coerce to '{0}': {1}".format(typ, e))
+                        pass
+                    else:
+                        val.validate()
+                        ok = True
+                        break
 
             if not ok:
                 errstr = "\n".join(errors)
@@ -754,6 +769,12 @@ def make_property(prop, info, desc=""):
                 val = info['type'](**util.coerce_for_expansion(val))
 
             val.validate()
+        elif info['type'] is None:
+            # This is the null value
+            if val is not None:
+                raise validators.ValidationError(
+                    "None is only valid value for null")
+        
         else:
             raise TypeError("Unknown object type: '{0}'".format(info['type']))
 
