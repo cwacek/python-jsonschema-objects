@@ -39,7 +39,7 @@ class ProtocolBase(collections.MutableMapping):
         'boolean': bool,
         'integer': int,
         'number': (float, int, long),
-        'null': None,
+        'null': type(None),
         'string': six.string_types,
         'object': dict
     }
