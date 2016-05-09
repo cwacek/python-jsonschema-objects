@@ -5,6 +5,9 @@ import six
 import pkg_resources
 import python_jsonschema_objects as pjs
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 def test_regression_9():
     schema = {
@@ -19,6 +22,42 @@ def test_regression_9():
     }
     builder = pjs.ObjectBuilder(schema)
     builder.build_classes()
+
+def test_array_regressions():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "test",
+        "type": "object",
+        "properties": {
+                "name": {"type": "string"},
+                "email_aliases": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/foo"}
+                    }
+                }
+        },
+        "definitions": {
+            "foo": {
+                "type": "string"
+            }
+        }
+    }
+    builder = pjs.ObjectBuilder(schema)
+
+    ns = builder.build_classes()
+
+    x = ns.Test.from_json('''{"email_aliases": {
+            "Freddie": ["james", "bond"]
+            }}''')
+    x.validate()
+
+    y = ns.Test(email_aliases={
+        "Freddie": ["james", "bond"]
+    })
+    y.validate()
+
 
 def test_arrays_can_have_reffed_items_of_mixed_type():
     schema = {
