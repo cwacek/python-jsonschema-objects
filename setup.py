@@ -77,5 +77,16 @@ if __name__ == '__main__':
           setup_requires=["setuptools>=18.0.0"],
           install_requires=install_requires,
           dependency_links=dependency_links,
-          cmdclass=versioneer.get_cmdclass()
-    )
+          cmdclass=versioneer.get_cmdclass(),
+          classifiers=[
+              'Programming Language :: Python :: 2',
+              'Programming Language :: Python :: 2.7',
+              'Programming Language :: Python :: 3',
+              'Programming Language :: Python :: 3.5',
+              'Intended Audience :: Developers',
+              'Development Status :: 4 - Beta',
+              'License :: OSI Approved :: MIT License',
+              'Operating System :: OS Independent'
+          ]
+
+          )
