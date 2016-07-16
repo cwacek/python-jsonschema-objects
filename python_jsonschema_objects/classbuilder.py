@@ -145,7 +145,7 @@ class ProtocolBase(collections.MutableMapping):
         else:  # We got nothing
             raise validators.ValidationError(
                 "Unable to instantiate any valid types: \n"
-                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+                "".join("{0}: {1}\n".format(k, e) for k, e in validation_errors)
             )
 
         return obj
@@ -314,7 +314,7 @@ class TypeProxy(object):
         else:  # We got nothing
             raise validators.ValidationError(
                 "Unable to instantiate any valid types: \n"
-                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+                "".join("{0}: {1}\n".format(k, e) for k, e in validation_errors)
             )
 
 
@@ -472,6 +472,18 @@ class ClassBuilder(object):
                 item_constraint=clsdata_copy.pop('items'),
                 classbuilder=self,
                 **clsdata_copy)
+            return self.resolved[uri]
+
+        elif isinstance(clsdata.get('type'), list):
+            types = []
+            for i, item_detail in enumerate(clsdata['type']):
+                subdata = {k: v for k, v in six.iteritems(clsdata) if k != 'type'}
+                subdata['type'] = item_detail
+                types.append(self._build_literal(
+                    uri + "_%s" % i,
+                    subdata))
+
+            self.resolved[uri] = TypeProxy(types)
             return self.resolved[uri]
 
         elif (clsdata.get('type', None) == 'object' or
@@ -770,6 +782,10 @@ def make_property(prop, info, desc=""):
                 val = info['type'](**util.coerce_for_expansion(val))
 
             val.validate()
+
+        elif isinstance(info['type'], TypeProxy):
+            val = info['type'](val)
+
         elif info['type'] is None:
             # This is the null value
             if val is not None:
