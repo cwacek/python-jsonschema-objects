@@ -355,6 +355,9 @@ class LiteralValue(object):
           str(self._value)
       )
 
+  def __str__(self):
+      return str(self._value)
+
   def validate(self):
       info = self.propinfo('__literal__')
 
@@ -364,16 +367,14 @@ class LiteralValue(object):
           if validator is not None:
               validator(paramval, self._value, info)
 
+  def __eq__(self, other):
+      return self._value == other
 
-  def __cmp__(self, other):
-    if isinstance(other, six.integer_types):
-      return cmp(int(self), other)
-    elif isinstance(other, six.string_types):
-      return cmp(str(self), other)
-    elif isinstance(other, float):
-      return cmp(float(self), other)
-    else:
-      return cmp(id(self), id(other))
+  def __hash__(self):
+      return hash(self._value)
+
+  def __lt__(self, other):
+      return self._value < other
 
   def __int__(self):
     return int(self._value)
