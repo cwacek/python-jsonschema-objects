@@ -119,7 +119,7 @@ def check_integer_type(param, value, _):
 def check_number_type(param, value, _):
     if not isinstance(value, (float, int, long)) or isinstance(value, bool):
         raise ValidationError(
-            "{0} is neither an integer, float, or long".format(value))
+            "{0} is neither an integer, float, nor long".format(value))
 
 @type_registry.register(name='null')
 def check_null_type(param, value, _):
