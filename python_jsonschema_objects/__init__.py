@@ -69,7 +69,16 @@ class ObjectBuilder(object):
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
 
-    def build_classes(self,**kw):
+
+    def build_classes(self,strict=False):
+        """
+
+        Args:
+            strict: use this to validate required fields while creating the class
+
+        Returns:
+
+        """
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in iteritems(self.schema.get('definitions', {})):
             uri = util.resolve_ref_uri(
@@ -79,7 +88,7 @@ class ObjectBuilder(object):
 
         nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
         nm = inflection.parameterize(six.text_type(nm), '_')
-
+        kw = {"strict" : strict}
         builder.construct(nm, self.schema,**kw)
 
         return (
