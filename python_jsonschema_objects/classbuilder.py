@@ -165,7 +165,8 @@ class ProtocolBase(collections.MutableMapping):
               import sys
               raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
                   prop, self.__class__.__name__)), sys.exc_info()[2])
-
+        if getattr(self, '__strict__', None):
+            self.validate()
         #if len(props) > 0:
         #    self.validate()
 
@@ -245,9 +246,9 @@ class ProtocolBase(collections.MutableMapping):
 
     def validate(self):
         """ Applies all defined validation to the current
-        state of the object, and raises an error if 
+        state of the object, and raises an error if
         they are not all met.
-        
+
         Raises:
             ValidationError: if validations do not pass
         """
@@ -419,7 +420,7 @@ class ClassBuilder(object):
         logger.debug(util.lazy_format("Constructed {0}", ret))
         return ret
 
-    def _construct(self, uri, clsdata, parent=(ProtocolBase,)):
+    def _construct(self, uri, clsdata, parent=(ProtocolBase,),**kw):
 
         if 'anyOf' in clsdata:
             raise NotImplementedError(
@@ -438,7 +439,7 @@ class ClassBuilder(object):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
-                parents)
+                parents,**kw)
             return self.resolved[uri]
 
         elif '$ref' in clsdata:
@@ -492,7 +493,7 @@ class ClassBuilder(object):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
-                parent)
+                parent,**kw)
             return self.resolved[uri]
         elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean', 'null'):
             self.resolved[uri] = self._build_literal(
@@ -526,7 +527,7 @@ class ClassBuilder(object):
 
       return cls
 
-    def _build_object(self, nm, clsdata, parents):
+    def _build_object(self, nm, clsdata, parents,**kw):
         logger.debug(util.lazy_format("Building object {0}", nm))
 
         props = {}
@@ -692,7 +693,8 @@ class ClassBuilder(object):
                                            .format(nm, invalid_requires))
 
         props['__required__'] = required
-
+        if required and kw.get("strict"):
+            props['__strict__'] = True
         cls = type(str(nm.split('/')[-1]), tuple(parents), props)
 
         return cls
@@ -791,7 +793,7 @@ def make_property(prop, info, desc=""):
             if val is not None:
                 raise validators.ValidationError(
                     "None is only valid value for null")
-        
+
         else:
             raise TypeError("Unknown object type: '{0}'".format(info['type']))
 

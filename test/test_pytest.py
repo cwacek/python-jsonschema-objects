@@ -378,3 +378,25 @@ def test_dictionary_transformation(Person, pdict):
     person = Person(**pdict)
 
     assert person.as_dict() == pdict
+
+def test_strict_mode():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "type": "object",
+        "properties": {
+                "firstName": {"type": "string"},
+                "lastName": {"type":"string"},
+        },
+        "id":"test",
+        "title":"Name Data",
+        "required": ["firstName"]
+    }
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes() # by defualt strict = False
+    NameData = ns.NameData
+    # no strict flag - so should pass even no firstName
+    NameData(lastName="hello")
+    with pytest.raises(pjs.ValidationError):
+        ns = builder.build_classes(strict=True)
+        NameData = ns.NameData
+        NameData(lastName="hello")
