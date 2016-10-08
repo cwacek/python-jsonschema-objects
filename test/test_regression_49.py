@@ -20,7 +20,6 @@ def bad_schema_49():
                         }
                     },
                     'required': ['a'],
-                    'additionalProperties': False
                 },
                 {
                     'type': 'object',

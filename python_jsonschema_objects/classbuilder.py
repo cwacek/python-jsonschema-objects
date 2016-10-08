@@ -305,6 +305,7 @@ class TypeProxy(object):
                 self.__class__, klass))
             try:
                 obj = klass(*a, **kw)
+                obj.validate()
             except TypeError as e:
                 validation_errors.append((klass, e))
             except validators.ValidationError as e:
