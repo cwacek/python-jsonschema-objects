@@ -4,9 +4,20 @@ import collections
 import logging
 logger = logging.getLogger(__name__)
 
+SCHEMA_TYPE_MAPPING = {
+    'array': list,
+    'boolean': bool,
+    'integer': six.integer_types,
+    'number': six.integer_types + (float,),
+    'null': type(None),
+    'string': six.string_types,
+    'object': dict
+}
+
 
 class ValidationError(Exception):
     pass
+
 
 class ValidatorRegistry(object):
 

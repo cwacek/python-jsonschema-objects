@@ -1,5 +1,6 @@
 import python_jsonschema_objects.util as util
 import python_jsonschema_objects.validators as validators
+import python_jsonschema_objects.pattern_properties as pattern_properties
 
 import collections
 import itertools
@@ -8,6 +9,8 @@ import sys
 
 import logging
 logger = logging.getLogger(__name__)
+
+logger.addHandler(logging.NullHandler())
 
 
 
@@ -33,16 +36,6 @@ class ProtocolBase(collections.MutableMapping):
     """
     __propinfo__ = {}
     __required__ = set()
-
-    __SCHEMA_TYPES__ = {
-        'array': list,
-        'boolean': bool,
-        'integer': int,
-        'number': (float, int, long),
-        'null': type(None),
-        'string': six.string_types,
-        'object': dict
-    }
 
     def as_dict(self):
         """ Return a dictionary containing the current values
@@ -182,22 +175,12 @@ class ProtocolBase(collections.MutableMapping):
             prop.fset(self, val)
         else:
             # This is an additional property of some kind
-            typ = getattr(self, '__extensible__', None)
-            if typ is False:
+            try:
+                val = self.__extensible__.instantiate(name, val)
+            except Exception as e:
                 raise validators.ValidationError(
-                    "Attempted to set unknown property '{0}', "
-                    "but 'additionalProperties' is false.".format(name))
-            if typ is True:
-                # There is no type defined, so just make it a basic literal
-                # Pick the type based on the type of the values
-                valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
-                           if t is not None and isinstance(val, t)]
-                valtype = valtype[0]
-                val = MakeLiteral(name, valtype, val)
-            elif isinstance(typ, type) and getattr(typ, 'isLiteralClass', None) is True:
-                val = typ(val)
-            elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
-                val = typ(**util.coerce_for_expansion(val))
+                    "Attempted to set unknown property '{0}': {1} "
+                    .format(name, e))
 
             self._extended_properties[name] = val
 
@@ -282,13 +265,14 @@ class ProtocolBase(collections.MutableMapping):
 
         return True
 
-def MakeLiteral(name, typ, value, **properties):
-      properties.update({'type': typ})
-      klass =  type(str(name), tuple((LiteralValue,)), {
-        '__propinfo__': { '__literal__': properties}
-        })
 
-      return klass(value)
+def MakeLiteral(name, typ, value, **properties):
+    properties.update({'type': typ})
+    klass = type(str(name), tuple((LiteralValue,)), {
+        '__propinfo__': {'__literal__': properties}
+    })
+
+    return klass(value)
 
 
 class TypeProxy(object):
@@ -654,28 +638,10 @@ class ClassBuilder(object):
             # Need a validation to check that it meets one of them
             props['__validation__'] = {'type': klasses}
 
-        props['__extensible__'] = True
-        if 'additionalProperties' in clsdata:
-          addlProp = clsdata['additionalProperties']
-
-          if addlProp is False:
-            props['__extensible__'] = False
-          elif addlProp is True:
-            props['__extensible__'] = True
-          else:
-            if '$ref' in addlProp:
-                refs = self.resolve_classes([addlProp])
-            else:
-                uri = "{0}/{1}_{2}".format(nm,
-                                           "<additionalProperties>", "<anonymous>")
-                self.resolved[uri] = self.construct(
-                    uri,
-                    addlProp,
-                    (ProtocolBase,))
-                refs = [self.resolved[uri]]
-
-            props['__extensible__'] = refs[0]
-
+        props['__extensible__'] = pattern_properties.ExtensibleValidator(
+            nm,
+            clsdata,
+            self)
 
         props['__prop_names__'] = name_translation
 
@@ -718,7 +684,7 @@ def make_property(prop, info, desc=""):
               if not isinstance(typ, dict):
                 type_checks.append(typ)
                 continue
-              typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
+              typ = validators.SCHEMA_TYPE_MAPPING[typ['type']]
               if typ is None:
                   typ = type(None)
               if isinstance(typ, (list, tuple)):
