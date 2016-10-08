@@ -23,6 +23,37 @@ def test_regression_9():
     builder = pjs.ObjectBuilder(schema)
     builder.build_classes()
 
+
+def test_underscore_properties():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "title": "AggregateQuery",
+        "type": "object",
+        "properties": {
+            "group": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    }
+
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes()
+    my_obj_type = ns.Aggregatequery
+    request_object = my_obj_type(
+        group={
+            "_id": {"foo_id": "$foo_id",
+                    "foo_type": "$foo_type"},
+            "foo": {"$sum": 1}, }
+    )
+
+    assert request_object.group._id == {
+        "foo_id": "$foo_id",
+        "foo_type": "$foo_type"
+    }
+
+
+
 def test_array_regressions():
     schema = {
         "$schema": "http://json-schema.org/schema#",
