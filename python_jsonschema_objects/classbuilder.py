@@ -178,7 +178,7 @@ class ProtocolBase(collections.MutableMapping):
             # The property does special validation, so we actually need to
             # run its setter. We get it from the class definition and call
             # it directly. XXX Heinous.
-            prop = self.__class__.__dict__[self.__prop_names__[name]]
+            prop = getattr(self.__class__, self.__prop_names__[name])
             prop.fset(self, val)
         else:
             # This is an additional property of some kind
