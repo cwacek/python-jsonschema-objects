@@ -166,6 +166,20 @@ class ArrayValidator(object):
             raise TypeError("Invalid value given to array validator: {0}"
                             .format(ary))
 
+    @classmethod
+    def from_json(cls, jsonmsg):
+        import json
+        msg = json.loads(jsonmsg)
+        obj = cls(msg)
+        obj.validate()
+        return obj
+
+    @classmethod
+    def serialize(self):
+        self.validate()
+        enc = util.ProtocolJSONEncoder()
+        return enc.encode(self)
+
     def validate(self):
         converted = self.validate_items()
         self.validate_length()
@@ -238,10 +252,12 @@ class ArrayValidator(object):
                     val = elem
                 val.validate()
                 typed_elems.append(val)
+
             elif util.safe_issubclass(typ, ArrayValidator):
                 val = typ(elem)
                 val.validate()
                 typed_elems.append(val)
+
             elif isinstance(typ, classbuilder.TypeProxy):
                 try:
                     if isinstance(elem, (six.string_types, six.integer_types, float)):
@@ -251,8 +267,9 @@ class ArrayValidator(object):
                 except TypeError as e:
                     raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
                                           .format(elem, typ, e))
-                val.validate()
-                typed_elems.append(val)
+                else:
+                    val.validate()
+                    typed_elems.append(val)
 
         return typed_elems
 
@@ -314,11 +331,32 @@ class ArrayValidator(object):
 
                     item_constraint = klassbuilder.resolved[uri]
 
-                elif isdict and item_constraint['type'] == 'array':
+                elif isdict and item_constraint.get('type') == 'array':
+                    # We need to create a sub-array validator.
                     item_constraint = ArrayValidator.create(name + "#sub",
                                                             item_constraint=item_constraint[
                                                                 'items'],
                                                             addl_constraints=item_constraint)
+                elif isdict and 'oneOf' in item_constraint:
+                    # We need to create a TypeProxy validator
+                    uri = "{0}_{1}".format(name, "<anonymous_list_type>")
+                    type_array = []
+                    for i, item_detail in enumerate(item_constraint['oneOf']):
+                        if '$ref' in item_detail:
+                            subtype = klassbuilder.construct(
+                                util.resolve_ref_uri(
+                                    klassbuilder.resolver.resolution_scope,
+                                    item_detail['$ref']),
+                                item_detail)
+                        else:
+                            subtype = klassbuilder.construct(
+                                uri + "_%s" % i, item_detail)
+
+                        type_array.append(subtype)
+
+                    item_constraint = classbuilder.TypeProxy(type_array)
+
+
 
         props['__itemtype__'] = item_constraint
 
