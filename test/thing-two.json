@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "id": "thing_two",
+  "title": "thing_two",
+  "description": "The second thing.",
+  "type": "object",
+  "properties": {
+    "message": {"$ref": "#/definitions/bar_message"}
+  },
+  "definitions": {
+    "header": {
+      "description": "a message header",
+      "properties": {
+        "id": {
+          "description": "message id",
+          "type": "string"
+        }
+      }
+    },
+    "bar_message": {
+      "description": "a bar message",
+      "allOf": [
+        {"$ref": "file:///thing-two.json#/definitions/header"},
+        {"$ref": "file:///thing-one.json#/definitions/bar_group"}
+      ]
+    }
+  }
+}

@@ -1,5 +1,8 @@
 import six
 from python_jsonschema_objects import util
+import collections
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ValidationError(Exception):
@@ -27,52 +30,52 @@ def multipleOf(param, value, _):
     quot, rem = divmod(value, param)
     if rem != 0:
         raise ValidationError(
-            "{0} was not a multiple of {1}".format(value,
+            "{0} is not a multiple of {1}".format(value,
                                                    param))
 
 @registry.register()
 def enum(param, value, _):
     if value not in param:
         raise ValidationError(
-            "{0} was not one of {1}".format(value, param))
+            "{0} is not one of {1}".format(value, param))
 
 
 @registry.register()
 def minimum(param, value, type_data):
     exclusive = type_data.get('exclusiveMinimum')
     if exclusive:
-        if value < param:
+        if value <= param:
             raise ValidationError(
-                "{0} was less than {1}".format(value, param))
-    elif value <= param:
+                "{0} is less than or equal to {1}".format(value, param))
+    elif value < param:
             raise ValidationError(
-                "{0} was less or equal to than {1}".format(value, param))
+                "{0} is less than {1}".format(value, param))
 
 
 @registry.register()
 def maximum(param, value, type_data):
-    exclusive = info.get('exclusiveMaximum')
+    exclusive = type_data.get('exclusiveMaximum')
     if exclusive:
-        if value < param:
+        if value >= param:
             raise ValidationError(
-                "{0} was more than {1}".format(value, param))
-    elif value <= param:
-        raise ValidationError(
-            "{0} was more than or equal to {1}".format(value, param))
+                "{0} is greater than or equal to {1}".format(value, param))
+    elif value > param:
+            raise ValidationError(
+                "{0} is greater than {1}".format(value, param))
 
 
 @registry.register()
 def maxLength(param, value, _):
     if len(value) > param:
         raise ValidationError(
-            "{0} was longer than {1} characters".format(value, param))
+            "{0} is longer than {1} characters".format(value, param))
 
 
 @registry.register()
 def minLength(param, value, _):
     if len(value) < param:
         raise ValidationError(
-            "{0} was fewer than {1} characters".format(value, param))
+            "{0} is fewer than {1} characters".format(value, param))
 
 
 @registry.register()
@@ -81,8 +84,21 @@ def pattern(param, value, _):
     match = re.search(param, value)
     if not match:
         raise ValidationError(
-            "{0} did not match {1}".format(value, param)
+            "{0} does not match {1}".format(value, param)
         )
+
+
+try:
+    from jsonschema import FormatChecker
+except ImportError:
+    pass
+else:
+    @registry.register()
+    def format(param, value, _):
+        if not FormatChecker().conforms(value, param):
+            raise ValidationError(
+                "'{0}' is not formatted as a {1}".format(value, param)
+            )
 
 
 type_registry = ValidatorRegistry()
@@ -95,15 +111,15 @@ def check_boolean_type(param, value, _):
 
 @type_registry.register(name='integer')
 def check_integer_type(param, value, _):
-    if not isinstance(value, int):
+    if not isinstance(value, int) or isinstance(value, bool):
         raise ValidationError(
             "{0} is not an integer".format(value))
 
 @type_registry.register(name='number')
 def check_number_type(param, value, _):
-    if not isinstance(value, (float, int)):
+    if not isinstance(value, six.integer_types + (float,)) or isinstance(value, bool):
         raise ValidationError(
-            "{0} is neither an integer or a float".format(value))
+            "{0} is neither an integer nor a float".format(value))
 
 @type_registry.register(name='null')
 def check_null_type(param, value, _):
@@ -142,7 +158,13 @@ def check_type(param, value, type_data):
 class ArrayValidator(object):
 
     def __init__(self, ary):
-        self.data = ary
+        if isinstance(ary, (list, tuple, collections.Sequence)):
+            self.data = ary
+        elif isinstance(ary, ArrayValidator):
+            self.data = ary.data
+        else:
+            raise TypeError("Invalid value given to array validator: {0}"
+                            .format(ary))
 
     def validate(self):
         converted = self.validate_items()
@@ -157,7 +179,7 @@ class ArrayValidator(object):
             testset = set(self.data)
             if len(testset) != len(self.data):
                 raise ValidationError(
-                    "{0} had duplicate elements, but uniqueness required"
+                    "{0} has duplicate elements, but uniqueness required"
                     .format(self.data))
 
     def validate_length(self):
@@ -205,15 +227,30 @@ class ArrayValidator(object):
             elif util.safe_issubclass(typ, classbuilder.ProtocolBase):
                 if not isinstance(elem, typ):
                     try:
-                      val = typ(**util.coerce_for_expansion(elem))
+                        if isinstance(elem, (six.string_types, six.integer_types, float)):
+                            val = typ(elem)
+                        else:
+                            val = typ(**util.coerce_for_expansion(elem))
                     except TypeError as e:
-                      raise ValidationError("'{0}' was not a valid value for '{1}'".format(elem, typ))
+                        raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
+                                              .format(elem, typ, e))
                 else:
                     val = elem
                 val.validate()
                 typed_elems.append(val)
             elif util.safe_issubclass(typ, ArrayValidator):
                 val = typ(elem)
+                val.validate()
+                typed_elems.append(val)
+            elif isinstance(typ, classbuilder.TypeProxy):
+                try:
+                    if isinstance(elem, (six.string_types, six.integer_types, float)):
+                        val = typ(elem)
+                    else:
+                        val = typ(**util.coerce_for_expansion(elem))
+                except TypeError as e:
+                    raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
+                                          .format(elem, typ, e))
                 val.validate()
                 typed_elems.append(val)
 
@@ -232,6 +269,7 @@ class ArrayValidator(object):
         constraints permitted by JSON Schema v4.
         """
         from python_jsonschema_objects import classbuilder
+        klassbuilder = addl_constraints.pop("classbuilder", None)
         props = {}
 
         if item_constraint is not None:
@@ -243,16 +281,40 @@ class ArrayValidator(object):
 
                     if not any([isdict, isklass]):
                         raise TypeError(
-                            "Item constraint (position {0}) was not a schema".format(i))
+                            "Item constraint (position {0}) is not a schema".format(i))
+            elif isinstance(item_constraint, classbuilder.TypeProxy):
+                pass
             else:
                 isdict = isinstance(item_constraint, (dict,))
                 isklass = isinstance( item_constraint, type) and util.safe_issubclass(
                     item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
 
                 if not any([isdict, isklass]):
-                    raise TypeError("Item constraint was not a schema")
+                    raise TypeError("Item constraint is not a schema")
 
-                if isdict and item_constraint['type'] == 'array':
+                if isdict and '$ref' in item_constraint:
+                    if klassbuilder is None:
+                        raise TypeError("Cannot resolve {0} without classbuilder"
+                                        .format(item_constraint['$ref']))
+
+                    uri = item_constraint['$ref']
+                    if uri in klassbuilder.resolved:
+                        logger.debug(util.lazy_format(
+                            "Using previously resolved object for {0}", uri))
+                    else:
+                        logger.debug(util.lazy_format("Resolving object for {0}", uri))
+
+                        with klassbuilder.resolver.resolving(uri) as resolved:
+                            # Set incase there is a circular reference in schema definition
+                            klassbuilder.resolved[uri] = None
+                            klassbuilder.resolved[uri] = klassbuilder.construct(
+                                uri,
+                                resolved,
+                                (classbuilder.ProtocolBase,))
+
+                    item_constraint = klassbuilder.resolved[uri]
+
+                elif isdict and item_constraint['type'] == 'array':
                     item_constraint = ArrayValidator.create(name + "#sub",
                                                             item_constraint=item_constraint[
                                                                 'items'],

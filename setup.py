@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # <python_jsonschema_objects - An object wrapper for JSON Schema definitions>
-# Copyright (C) <2014-2014>  Chris Wacek <cwacek@gmail.com
+# Copyright (C) <2014-2016>  Chris Wacek <cwacek@gmail.com
 
 import ast
 import os
 import re
 import sys
 from setuptools import setup, find_packages
+
+
+import versioneer
 
 
 def parse_requirements(path):
@@ -60,15 +63,30 @@ if __name__ == '__main__':
         long_description = ''
 
     setup(name='python_jsonschema_objects',
-          version='0.0.15',
+          version=versioneer.get_version(),
           description='An object wrapper for JSON Schema definitions',
           author='Chris Wacek',
           long_description=long_description,
           license="MIT",
           author_email='cwacek@gmail.com',
+          packages=find_packages(),
           include_package_data=True,
-          url='http://github.com/cwacek/python-jsonschema-objects',
-          packages=find_packages(exclude=['*tests*']),
+          package_data={'python_jsonschema_objects.examples': ["README.md"]},
+          zip_safe=False,
+          url='http://python-jsonschema-objects.readthedocs.org/',
+          setup_requires=["setuptools>=18.0.0"],
           install_requires=install_requires,
           dependency_links=dependency_links,
-    )
+          cmdclass=versioneer.get_cmdclass(),
+          classifiers=[
+              'Programming Language :: Python :: 2',
+              'Programming Language :: Python :: 2.7',
+              'Programming Language :: Python :: 3',
+              'Programming Language :: Python :: 3.5',
+              'Intended Audience :: Developers',
+              'Development Status :: 4 - Beta',
+              'License :: OSI Approved :: MIT License',
+              'Operating System :: OS Independent'
+          ]
+
+          )
