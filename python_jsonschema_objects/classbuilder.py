@@ -36,6 +36,7 @@ class ProtocolBase(collections.MutableMapping):
     """
     __propinfo__ = {}
     __required__ = set()
+    __object_attr_list__ = set(["_properties", "_extended_properties"])
 
     def as_dict(self):
         """ Return a dictionary containing the current values
@@ -164,7 +165,7 @@ class ProtocolBase(collections.MutableMapping):
         #    self.validate()
 
     def __setattr__(self, name, val):
-        if name.startswith("_"):
+        if name in self.__object_attr_list__:
             object.__setattr__(self, name, val)
         elif name in self.__propinfo__:
             # If its in __propinfo__, then it actually has a property defined.
