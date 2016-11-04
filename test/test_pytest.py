@@ -400,3 +400,21 @@ def test_strict_mode():
         ns = builder.build_classes(strict=True)
         NameData = ns.NameData
         NameData(lastName="hello")
+
+
+def test_boolean_in_child_object():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "test",
+        "type": "object",
+        "properties": {
+            "data": {
+                "type": "object",
+                "additionalProperties": True
+            }
+        }
+    }
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes()
+
+    ns.Test(data={"my_bool": True})
