@@ -91,7 +91,7 @@ class ExtensibleValidator(object):
         if self._additional_type is True:
 
             valtype = [k for k, t
-                       in six.iteritems(validators.SCHEMA_TYPE_MAPPING)
+                       in validators.SCHEMA_TYPE_MAPPING
                        if t is not None and isinstance(val, t)]
             valtype = valtype[0]
             return cb.MakeLiteral(name, valtype, val)
