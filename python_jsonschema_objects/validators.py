@@ -186,11 +186,13 @@ class ArrayValidator(object):
         obj.validate()
         return obj
 
-    @classmethod
     def serialize(self):
-        self.validate()
+        d = self.validate()
         enc = util.ProtocolJSONEncoder()
-        return enc.encode(self)
+        return enc.encode(d)
+
+    def for_json(self):
+        return self.validate()
 
     def validate(self):
         converted = self.validate_items()
@@ -245,6 +247,7 @@ class ArrayValidator(object):
                     validator = registry(param)
                     if validator is not None:
                         validator(paramval, elem, typ)
+                typed_elems.append(elem)
 
             elif util.safe_issubclass(typ, classbuilder.LiteralValue):
                 val = typ(elem)
@@ -313,6 +316,8 @@ class ArrayValidator(object):
                             "Item constraint (position {0}) is not a schema".format(i))
             elif isinstance(item_constraint, classbuilder.TypeProxy):
                 pass
+            elif util.safe_issubclass(item_constraint, ArrayValidator):
+                pass
             else:
                 isdict = isinstance(item_constraint, (dict,))
                 isklass = isinstance( item_constraint, type) and util.safe_issubclass(
@@ -367,8 +372,6 @@ class ArrayValidator(object):
                         type_array.append(subtype)
 
                     item_constraint = classbuilder.TypeProxy(type_array)
-
-
 
         props['__itemtype__'] = item_constraint
 
