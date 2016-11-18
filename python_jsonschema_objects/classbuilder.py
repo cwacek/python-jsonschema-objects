@@ -1,5 +1,6 @@
 import python_jsonschema_objects.util as util
 import python_jsonschema_objects.validators as validators
+import python_jsonschema_objects.pattern_properties as pattern_properties
 
 import collections
 import itertools
@@ -8,6 +9,8 @@ import sys
 
 import logging
 logger = logging.getLogger(__name__)
+
+logger.addHandler(logging.NullHandler())
 
 
 
@@ -33,16 +36,7 @@ class ProtocolBase(collections.MutableMapping):
     """
     __propinfo__ = {}
     __required__ = set()
-
-    __SCHEMA_TYPES__ = {
-        'array': list,
-        'boolean': bool,
-        'integer': int,
-        'number': (float, int, long),
-        'null': type(None),
-        'string': six.string_types,
-        'object': dict
-    }
+    __object_attr_list__ = set(["_properties", "_extended_properties"])
 
     def as_dict(self):
         """ Return a dictionary containing the current values
@@ -55,8 +49,10 @@ class ProtocolBase(collections.MutableMapping):
         for prop in self:
             propval = getattr(self, prop)
 
-            if isinstance(propval, list):
-                out[prop] = [getattr(x, 'as_dict', lambda :x)() for x in propval]
+            if hasattr(propval, 'for_json'):
+                out[prop] = propval.for_json()
+            elif isinstance(propval, list):
+                out[prop] = [getattr(x, 'for_json', lambda:x)() for x in propval]
             elif isinstance(propval, (ProtocolBase, LiteralValue)):
                 out[prop] = propval.as_dict()
             elif propval is not None:
@@ -145,7 +141,7 @@ class ProtocolBase(collections.MutableMapping):
         else:  # We got nothing
             raise validators.ValidationError(
                 "Unable to instantiate any valid types: \n"
-                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+                "".join("{0}: {1}\n".format(k, e) for k, e in validation_errors)
             )
 
         return obj
@@ -165,38 +161,29 @@ class ProtocolBase(collections.MutableMapping):
               import sys
               raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
                   prop, self.__class__.__name__)), sys.exc_info()[2])
-
+        if getattr(self, '__strict__', None):
+            self.validate()
         #if len(props) > 0:
         #    self.validate()
 
     def __setattr__(self, name, val):
-        if name.startswith("_"):
+        if name in self.__object_attr_list__:
             object.__setattr__(self, name, val)
         elif name in self.__propinfo__:
             # If its in __propinfo__, then it actually has a property defined.
             # The property does special validation, so we actually need to
             # run its setter. We get it from the class definition and call
             # it directly. XXX Heinous.
-            prop = self.__class__.__dict__[self.__prop_names__[name]]
+            prop = getattr(self.__class__, self.__prop_names__[name])
             prop.fset(self, val)
         else:
             # This is an additional property of some kind
-            typ = getattr(self, '__extensible__', None)
-            if typ is False:
+            try:
+                val = self.__extensible__.instantiate(name, val)
+            except Exception as e:
                 raise validators.ValidationError(
-                    "Attempted to set unknown property '{0}', "
-                    "but 'additionalProperties' is false.".format(name))
-            if typ is True:
-                # There is no type defined, so just make it a basic literal
-                # Pick the type based on the type of the values
-                valtype = [k for k, t in six.iteritems(self.__SCHEMA_TYPES__)
-                           if t is not None and isinstance(val, t)]
-                valtype = valtype[0]
-                val = MakeLiteral(name, valtype, val)
-            elif isinstance(typ, type) and getattr(typ, 'isLiteralClass', None) is True:
-                val = typ(val)
-            elif isinstance(typ, type) and util.safe_issubclass(typ, ProtocolBase):
-                val = typ(**util.coerce_for_expansion(val))
+                    "Attempted to set unknown property '{0}': {1} "
+                    .format(name, e))
 
             self._extended_properties[name] = val
 
@@ -245,17 +232,17 @@ class ProtocolBase(collections.MutableMapping):
 
     def validate(self):
         """ Applies all defined validation to the current
-        state of the object, and raises an error if 
+        state of the object, and raises an error if
         they are not all met.
-        
+
         Raises:
             ValidationError: if validations do not pass
         """
 
         propname = lambda x: self.__prop_names__[x]
         missing = [x for x in self.__required__
-                   if propname(x) not in self._properties
-                   or self._properties[propname(x)] is None]
+                   if propname(x) not in self._properties or
+                   self._properties[propname(x)] is None]
 
         if len(missing) > 0:
             raise validators.ValidationError(
@@ -281,13 +268,14 @@ class ProtocolBase(collections.MutableMapping):
 
         return True
 
-def MakeLiteral(name, typ, value, **properties):
-      properties.update({'type': typ})
-      klass =  type(str(name), tuple((LiteralValue,)), {
-        '__propinfo__': { '__literal__': properties}
-        })
 
-      return klass(value)
+def MakeLiteral(name, typ, value, **properties):
+    properties.update({'type': typ})
+    klass = type(str(name), tuple((LiteralValue,)), {
+        '__propinfo__': {'__literal__': properties}
+    })
+
+    return klass(value)
 
 
 class TypeProxy(object):
@@ -304,6 +292,7 @@ class TypeProxy(object):
                 self.__class__, klass))
             try:
                 obj = klass(*a, **kw)
+                obj.validate()
             except TypeError as e:
                 validation_errors.append((klass, e))
             except validators.ValidationError as e:
@@ -314,7 +303,7 @@ class TypeProxy(object):
         else:  # We got nothing
             raise validators.ValidationError(
                 "Unable to instantiate any valid types: \n"
-                "\n".join("{0}: {1}".format(k, e) for k, e in validation_errors)
+                "".join("{0}: {1}\n".format(k, e) for k, e in validation_errors)
             )
 
 
@@ -355,6 +344,9 @@ class LiteralValue(object):
           str(self._value)
       )
 
+  def __str__(self):
+      return str(self._value)
+
   def validate(self):
       info = self.propinfo('__literal__')
 
@@ -364,16 +356,14 @@ class LiteralValue(object):
           if validator is not None:
               validator(paramval, self._value, info)
 
+  def __eq__(self, other):
+      return self._value == other
 
-  def __cmp__(self, other):
-    if isinstance(other, six.integer_types):
-      return cmp(int(self), other)
-    elif isinstance(other, six.string_types):
-      return cmp(str(self), other)
-    elif isinstance(other, float):
-      return cmp(float(self), other)
-    else:
-      return cmp(id(self), id(other))
+  def __hash__(self):
+      return hash(self._value)
+
+  def __lt__(self, other):
+      return self._value < other
 
   def __int__(self):
     return int(self._value)
@@ -418,7 +408,7 @@ class ClassBuilder(object):
         logger.debug(util.lazy_format("Constructed {0}", ret))
         return ret
 
-    def _construct(self, uri, clsdata, parent=(ProtocolBase,)):
+    def _construct(self, uri, clsdata, parent=(ProtocolBase,),**kw):
 
         if 'anyOf' in clsdata:
             raise NotImplementedError(
@@ -437,7 +427,7 @@ class ClassBuilder(object):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
-                parents)
+                parents,**kw)
             return self.resolved[uri]
 
         elif '$ref' in clsdata:
@@ -473,13 +463,25 @@ class ClassBuilder(object):
                 **clsdata_copy)
             return self.resolved[uri]
 
+        elif isinstance(clsdata.get('type'), list):
+            types = []
+            for i, item_detail in enumerate(clsdata['type']):
+                subdata = {k: v for k, v in six.iteritems(clsdata) if k != 'type'}
+                subdata['type'] = item_detail
+                types.append(self._build_literal(
+                    uri + "_%s" % i,
+                    subdata))
+
+            self.resolved[uri] = TypeProxy(types)
+            return self.resolved[uri]
+
         elif (clsdata.get('type', None) == 'object' or
               clsdata.get('properties', None) is not None or
               clsdata.get('additionalProperties', False)):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
-                parent)
+                parent,**kw)
             return self.resolved[uri]
         elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean', 'null'):
             self.resolved[uri] = self._build_literal(
@@ -513,7 +515,7 @@ class ClassBuilder(object):
 
       return cls
 
-    def _build_object(self, nm, clsdata, parents):
+    def _build_object(self, nm, clsdata, parents,**kw):
         logger.debug(util.lazy_format("Building object {0}", nm))
 
         props = {}
@@ -640,28 +642,10 @@ class ClassBuilder(object):
             # Need a validation to check that it meets one of them
             props['__validation__'] = {'type': klasses}
 
-        props['__extensible__'] = True
-        if 'additionalProperties' in clsdata:
-          addlProp = clsdata['additionalProperties']
-
-          if addlProp is False:
-            props['__extensible__'] = False
-          elif addlProp is True:
-            props['__extensible__'] = True
-          else:
-            if '$ref' in addlProp:
-                refs = self.resolve_classes([addlProp])
-            else:
-                uri = "{0}/{1}_{2}".format(nm,
-                                           "<additionalProperties>", "<anonymous>")
-                self.resolved[uri] = self.construct(
-                    uri,
-                    addlProp,
-                    (ProtocolBase,))
-                refs = [self.resolved[uri]]
-
-            props['__extensible__'] = refs[0]
-
+        props['__extensible__'] = pattern_properties.ExtensibleValidator(
+            nm,
+            clsdata,
+            self)
 
         props['__prop_names__'] = name_translation
 
@@ -679,7 +663,8 @@ class ClassBuilder(object):
                                            .format(nm, invalid_requires))
 
         props['__required__'] = required
-
+        if required and kw.get("strict"):
+            props['__strict__'] = True
         cls = type(str(nm.split('/')[-1]), tuple(parents), props)
 
         return cls
@@ -703,7 +688,9 @@ def make_property(prop, info, desc=""):
               if not isinstance(typ, dict):
                 type_checks.append(typ)
                 continue
-              typ = ProtocolBase.__SCHEMA_TYPES__[typ['type']]
+              typ = next(t
+                         for n, t in validators.SCHEMA_TYPE_MAPPING
+                         if typ['type'] == t)
               if typ is None:
                   typ = type(None)
               if isinstance(typ, (list, tuple)):
@@ -759,6 +746,11 @@ def make_property(prop, info, desc=""):
             instance = info['validator'](val)
             val = instance.validate()
 
+        elif util.safe_issubclass(info['type'], validators.ArrayValidator):
+            # An array type may have already been converted into an ArrayValidator
+            instance = info['type'](val)
+            val = instance.validate()
+
         elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):
                 validator = info['type'](val)
@@ -769,12 +761,16 @@ def make_property(prop, info, desc=""):
                 val = info['type'](**util.coerce_for_expansion(val))
 
             val.validate()
+
+        elif isinstance(info['type'], TypeProxy):
+            val = info['type'](val)
+
         elif info['type'] is None:
             # This is the null value
             if val is not None:
                 raise validators.ValidationError(
                     "None is only valid value for null")
-        
+
         else:
             raise TypeError("Unknown object type: '{0}'".format(info['type']))
 

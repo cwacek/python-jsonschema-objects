@@ -2,11 +2,28 @@ import pytest
 
 import json
 import six
-import pkg_resources
+import jsonschema
 import python_jsonschema_objects as pjs
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
+
+def test_schema_validation():
+    """ Test that the ObjectBuilder validates the schema itself.
+    """
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "test",
+        "type": "object",
+        "properties": {
+                "name": "string",
+                "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
+        },
+        "required": ["email"]
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        pjs.ObjectBuilder(schema)
 
 
 def test_regression_9():
@@ -16,12 +33,43 @@ def test_regression_9():
         "type": "object",
         "properties": {
                 "name": {"type": "string"},
-                "email": {"oneOf": ["string", "integer"]},
+                "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
         },
         "required": ["email"]
     }
     builder = pjs.ObjectBuilder(schema)
     builder.build_classes()
+
+
+def test_underscore_properties():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "title": "AggregateQuery",
+        "type": "object",
+        "properties": {
+            "group": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    }
+
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes()
+    my_obj_type = ns.Aggregatequery
+    request_object = my_obj_type(
+        group={
+            "_id": {"foo_id": "$foo_id",
+                    "foo_type": "$foo_type"},
+            "foo": {"$sum": 1}, }
+    )
+
+    assert request_object.group._id == {
+        "foo_id": "$foo_id",
+        "foo_type": "$foo_type"
+    }
+
+
 
 def test_array_regressions():
     schema = {
@@ -378,3 +426,43 @@ def test_dictionary_transformation(Person, pdict):
     person = Person(**pdict)
 
     assert person.as_dict() == pdict
+
+def test_strict_mode():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "type": "object",
+        "properties": {
+                "firstName": {"type": "string"},
+                "lastName": {"type":"string"},
+        },
+        "id":"test",
+        "title":"Name Data",
+        "required": ["firstName"]
+    }
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes() # by defualt strict = False
+    NameData = ns.NameData
+    # no strict flag - so should pass even no firstName
+    NameData(lastName="hello")
+    with pytest.raises(pjs.ValidationError):
+        ns = builder.build_classes(strict=True)
+        NameData = ns.NameData
+        NameData(lastName="hello")
+
+
+def test_boolean_in_child_object():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "test",
+        "type": "object",
+        "properties": {
+            "data": {
+                "type": "object",
+                "additionalProperties": True
+            }
+        }
+    }
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes()
+
+    ns.Test(data={"my_bool": True})

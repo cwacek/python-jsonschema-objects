@@ -43,16 +43,26 @@ class ObjectBuilder(object):
             }
         )
 
+        meta_validator = Draft4Validator(Draft4Validator.META_SCHEMA)
+        meta_validator.validate(self.schema)
         self.validator = Draft4Validator(self.schema,
                                          resolver=self.resolver)
 
+
         self._classes = None
+        self._resolved = None
 
     @property
     def classes(self):
         if self._classes is None:
           self._classes = self.build_classes()
         return self._classes
+
+    def get_class(self, uri):
+        if self._resolved is None:
+          self._classes = self.build_classes()
+        return self._resolved.get(uri, None)
+
 
     def memory_resolver(self, uri):
         return self.mem_resolved[uri[7:]]
@@ -69,7 +79,16 @@ class ObjectBuilder(object):
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
 
-    def build_classes(self):
+
+    def build_classes(self,strict=False):
+        """
+
+        Args:
+            strict: use this to validate required fields while creating the class
+
+        Returns:
+
+        """
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in iteritems(self.schema.get('definitions', {})):
             uri = util.resolve_ref_uri(
@@ -80,7 +99,9 @@ class ObjectBuilder(object):
         nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
         nm = inflection.parameterize(six.text_type(nm), '_')
 
-        builder.construct(nm, self.schema)
+        kw = {"strict" : strict}
+        builder.construct(nm, self.schema,**kw)
+        self._resolved = builder.resolved
 
         return (
             util.Namespace.from_mapping(dict(
