@@ -744,6 +744,11 @@ def make_property(prop, info, desc=""):
             instance = info['validator'](val)
             val = instance.validate()
 
+        elif util.safe_issubclass(info['type'], validators.ArrayValidator):
+            # An array type may have already been converted into an ArrayValidator
+            instance = info['type'](val)
+            val = instance.validate()
+
         elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):
                 validator = info['type'](val)

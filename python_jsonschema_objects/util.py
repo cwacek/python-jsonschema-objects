@@ -44,9 +44,12 @@ class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         from python_jsonschema_objects import classbuilder
+        from python_jsonschema_objects import validators
 
         if isinstance(obj, classbuilder.LiteralValue):
             return obj._value
+        if isinstance(obj, validators.ArrayValidator):
+            return obj.for_json()
         if isinstance(obj, classbuilder.ProtocolBase):
             props = {}
             for raw, trans in six.iteritems(obj.__prop_names__):
