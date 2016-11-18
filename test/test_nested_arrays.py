@@ -45,3 +45,4 @@ def test_nested_array_regression(nested_arrays, instance):
 
     assert q.serialize() == '{"foo": [[42, 44]]}'
 
+    assert q.as_dict() == {"foo": [[42, 44]]}
