@@ -43,8 +43,11 @@ class ObjectBuilder(object):
             }
         )
 
+        meta_validator = Draft4Validator(Draft4Validator.META_SCHEMA)
+        meta_validator.validate(self.schema)
         self.validator = Draft4Validator(self.schema,
                                          resolver=self.resolver)
+
 
         self._classes = None
         self._resolved = None

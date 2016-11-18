@@ -2,11 +2,28 @@ import pytest
 
 import json
 import six
-import pkg_resources
+import jsonschema
 import python_jsonschema_objects as pjs
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
+
+def test_schema_validation():
+    """ Test that the ObjectBuilder validates the schema itself.
+    """
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "test",
+        "type": "object",
+        "properties": {
+                "name": "string",
+                "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
+        },
+        "required": ["email"]
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        pjs.ObjectBuilder(schema)
 
 
 def test_regression_9():
@@ -16,7 +33,7 @@ def test_regression_9():
         "type": "object",
         "properties": {
                 "name": {"type": "string"},
-                "email": {"oneOf": ["string", "integer"]},
+                "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
         },
         "required": ["email"]
     }

@@ -12,7 +12,6 @@ def test_class():
                 "id": "claimed",
                 "type": ["string", "integer", "null"],
                 "description": "Robots Only. The human agent that has claimed this robot.",
-                "required": False
                 },
             }
         }
