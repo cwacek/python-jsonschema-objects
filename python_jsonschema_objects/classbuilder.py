@@ -49,8 +49,10 @@ class ProtocolBase(collections.MutableMapping):
         for prop in self:
             propval = getattr(self, prop)
 
-            if isinstance(propval, list):
-                out[prop] = [getattr(x, 'as_dict', lambda :x)() for x in propval]
+            if hasattr(propval, 'for_json'):
+                out[prop] = propval.for_json()
+            elif isinstance(propval, list):
+                out[prop] = [getattr(x, 'for_json', lambda:x)() for x in propval]
             elif isinstance(propval, (ProtocolBase, LiteralValue)):
                 out[prop] = propval.as_dict()
             elif propval is not None:
