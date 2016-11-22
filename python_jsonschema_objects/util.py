@@ -44,11 +44,11 @@ class ProtocolJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         from python_jsonschema_objects import classbuilder
-        from python_jsonschema_objects import validators
+        from python_jsonschema_objects import wrapper_types
 
         if isinstance(obj, classbuilder.LiteralValue):
             return obj._value
-        if isinstance(obj, validators.ArrayValidator):
+        if isinstance(obj, wrapper_types.ArrayWrapper):
             return obj.for_json()
         if isinstance(obj, classbuilder.ProtocolBase):
             props = {}
