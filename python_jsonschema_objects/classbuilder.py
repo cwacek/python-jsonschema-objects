@@ -437,6 +437,8 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif '$ref' in clsdata:
+            ref_uri = clsdata['$ref']
+            logger.debug(util.lazy_format("Resolving object for {0} ($ref: {1})", uri, ref_uri))
 
             if 'type' in clsdata and util.safe_issubclass(
                     clsdata['type'], (ProtocolBase, LiteralValue)):
@@ -446,11 +448,11 @@ class ClassBuilder(object):
                               "(with different URI) for {0}", uri))
                 self.resolved[uri] = clsdata['type']
             elif uri in self.resolved:
-                logger.debug(util.lazy_format("Using previously resolved object for {0}", uri))
+                logger.debug(util.lazy_format("Using previously resolved object for {0}", ref_uri))
             else:
-                logger.debug(util.lazy_format("Resolving object for {0}", uri))
+                logger.debug(util.lazy_format("Resolving object for {0}", ref_uri))
 
-                with self.resolver.resolving(uri) as resolved:
+                with self.resolver.resolving(ref_uri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
                     self.resolved[uri] = self.construct(
                         uri,
