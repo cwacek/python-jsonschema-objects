@@ -3,6 +3,7 @@ from jsonschema import Draft4Validator
 from jsonschema.compat import iteritems
 import json
 import codecs
+import copy
 import os.path
 import inflection
 import six
@@ -51,6 +52,17 @@ class ObjectBuilder(object):
 
         self._classes = None
         self._resolved = None
+
+    @property
+    def schema(self):
+        try:
+            return copy.deepcopy(self._schema)
+        except AttributeError:
+            raise ValidationError("No schema provided")
+
+    @schema.setter
+    def schema(self, val):
+        setattr(self, '_schema', val)
 
     @property
     def classes(self):

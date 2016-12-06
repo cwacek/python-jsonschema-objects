@@ -536,6 +536,7 @@ class ClassBuilder(object):
         name_translation = {}
 
         for prop, detail in properties.items():
+            logger.debug(util.lazy_format("Handling property {0}.{1}",nm, prop))
             properties[prop]['raw_name'] = prop
             name_translation[prop] = prop.replace('@', '')
             prop = name_translation[prop]
@@ -556,6 +557,9 @@ class ClassBuilder(object):
             elif 'type' not in detail and '$ref' in detail:
                 ref = detail['$ref']
                 uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
+                logger.debug(util.lazy_format("Resolving reference {0} for {1}.{2}",
+                    ref, nm, prop
+                    ))
                 if uri not in self.resolved:
                     with self.resolver.resolving(ref) as resolved:
                         self.resolved[uri] = self.construct(
