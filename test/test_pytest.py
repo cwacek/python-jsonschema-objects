@@ -41,6 +41,34 @@ def test_regression_9():
     builder.build_classes()
 
 
+def test_build_classes_is_idempotent():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "title": "test",
+        "type": "object",
+        "properties": {
+            "name": {"$ref": "#/definitions/foo"},
+            "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
+        },
+        "required": ["email"],
+        "definitions": {
+            "reffed": {
+                "type": "string"
+                },
+            "foo": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/reffed"
+                }
+            }
+        }
+    }
+    builder = pjs.ObjectBuilder(schema)
+    builder.build_classes()
+    builder.build_classes()
+
+
+
 def test_underscore_properties():
     schema = {
         "$schema": "http://json-schema.org/schema#",
