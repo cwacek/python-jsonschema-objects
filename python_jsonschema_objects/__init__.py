@@ -39,6 +39,7 @@ class ObjectBuilder(object):
         self.resolver = jsonschema.RefResolver.from_schema(
             self.schema,
             handlers={
+                '': self.relative_file_with_empty_prefix_resolver,
                 'file': self.relative_file_resolver,
                 'memory': self.memory_resolver
             }
@@ -81,6 +82,12 @@ class ObjectBuilder(object):
 
     def relative_file_resolver(self, uri):
         path = os.path.join(self.basedir, uri[8:])
+        with codecs.open(path, 'r', 'utf-8') as fin:
+            result = json.loads(fin.read())
+        return result
+
+    def relative_file_with_empty_prefix_resolver(self, uri):
+        path = os.path.join(self.basedir, uri)
         with codecs.open(path, 'r', 'utf-8') as fin:
             result = json.loads(fin.read())
         return result
