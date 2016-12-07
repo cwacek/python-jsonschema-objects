@@ -29,7 +29,7 @@ class ObjectBuilder(object):
         if isinstance(schema_uri, six.string_types):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
-            with open(uri) as fin:
+            with codecs.open(uri, 'r', 'utf-8') as fin:
                 self.schema = json.loads(fin.read())
         else:
             self.schema = schema_uri
