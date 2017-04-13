@@ -67,6 +67,9 @@ class ProtocolBase(collections.MutableMapping):
         return self.as_dict()
 
     def __eq__(self, other):
+        if not isinstance(other, ProtocolBase):
+            return False
+          
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
