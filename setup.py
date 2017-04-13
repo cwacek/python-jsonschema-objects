@@ -75,7 +75,12 @@ if __name__ == '__main__':
           zip_safe=False,
           url='http://python-jsonschema-objects.readthedocs.org/',
           setup_requires=["setuptools>=18.0.0"],
-          install_requires=install_requires,
+          install_requires=[
+              "inflection~=0.2",
+              "Markdown==2.4",
+              "jsonschema~=2.3",
+              "six>=1.5.2"
+          ],
           dependency_links=dependency_links,
           cmdclass=versioneer.get_cmdclass(),
           classifiers=[
