@@ -352,6 +352,13 @@ class ClassBuilder(object):
             raise NotImplementedError(
                 "anyOf is not supported as bare property")
 
+        elif 'oneOf' in clsdata:
+            self.resolved[uri] = self._build_object(
+                uri,
+                clsdata,
+                parent, **kw)
+            return self.resolved[uri]
+
         elif 'allOf' in clsdata:
             potential_parents = self.resolve_classes(clsdata['allOf'])
             parents = []
