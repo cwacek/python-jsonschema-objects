@@ -37,6 +37,11 @@ def test_arrays_of_strings_compare_to_strings(test_instance):
     assert test
 
 
+def test_arrays_can_be_extended(test_instance):
+    test_instance.arrayProp.extend(["...", "maybe", "not"])
+    test = test_instance.arrayProp == ['these', 'are', 'problematic', "...", "maybe", "not"]
+    assert test
+
 def test_array_elements_compare_to_types(test_instance):
     elem = test_instance.arrayProp[0]
     test = elem == 'these'

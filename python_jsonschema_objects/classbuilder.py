@@ -8,6 +8,9 @@ import six
 import sys
 
 import logging
+
+import python_jsonschema_objects.wrapper_types
+
 logger = logging.getLogger(__name__)
 
 logger.addHandler(logging.NullHandler())
@@ -64,6 +67,9 @@ class ProtocolBase(collections.MutableMapping):
         return self.as_dict()
 
     def __eq__(self, other):
+        if not isinstance(other, ProtocolBase):
+            return False
+          
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
@@ -153,7 +159,6 @@ class ProtocolBase(collections.MutableMapping):
                                      six.moves.xrange(len(self.__prop_names__))]))
 
         for prop in props:
-
             try:
               logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
               setattr(self, prop, props[prop])
@@ -318,7 +323,11 @@ class LiteralValue(object):
       :value: @todo
 
       """
-      self._value = value
+      if isinstance(value, LiteralValue):
+          self._value = value._value
+      else:
+          self._value = value
+
       self.validate()
 
   def as_dict(self):
@@ -456,7 +465,7 @@ class ClassBuilder(object):
         elif clsdata.get('type') == 'array' and 'items' in clsdata:
             clsdata_copy = {}
             clsdata_copy.update(clsdata)
-            self.resolved[uri] = validators.ArrayValidator.create(
+            self.resolved[uri] = python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
                 uri,
                 item_constraint=clsdata_copy.pop('items'),
                 classbuilder=self,
@@ -530,6 +539,7 @@ class ClassBuilder(object):
         name_translation = {}
 
         for prop, detail in properties.items():
+            logger.debug(util.lazy_format("Handling property {0}.{1}",nm, prop))
             properties[prop]['raw_name'] = prop
             name_translation[prop] = prop.replace('@', '')
             prop = name_translation[prop]
@@ -550,6 +560,9 @@ class ClassBuilder(object):
             elif 'type' not in detail and '$ref' in detail:
                 ref = detail['$ref']
                 uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
+                logger.debug(util.lazy_format("Resolving reference {0} for {1}.{2}",
+                    ref, nm, prop
+                    ))
                 if uri not in self.resolved:
                     with self.resolver.resolving(ref) as resolved:
                         self.resolved[uri] = self.construct(
@@ -581,7 +594,7 @@ class ClassBuilder(object):
                         typ = self.construct(uri, detail['items'])
                         propdata = {
                             'type': 'array',
-                            'validator': validators.ArrayValidator.create(
+                            'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
                                 uri,
                                 item_constraint=typ)}
                     else:
@@ -602,14 +615,14 @@ class ClassBuilder(object):
                             else:
                                 typ = self.construct(uri, detail['items'])
                             propdata = {'type': 'array',
-                                        'validator': validators.ArrayValidator.create(uri, item_constraint=typ,
-                                                                                addl_constraints=detail)}
+                                        'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri, item_constraint=typ,
+                                                                                                                 addl_constraints=detail)}
                         except NotImplementedError:
                             typ = detail['items']
                             propdata = {'type': 'array',
-                                        'validator': validators.ArrayValidator.create(uri,
-                                                                                item_constraint=typ,
-                                                                                addl_constraints=detail)}
+                                        'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri,
+                                                                                                                 item_constraint=typ,
+                                                                                                                 addl_constraints=detail)}
 
                     props[prop] = make_property(prop,
                                                 propdata,
@@ -725,7 +738,7 @@ def make_property(prop, info, desc=""):
                         val.validate()
                         ok = True
                         break
-                elif util.safe_issubclass(typ, validators.ArrayValidator):
+                elif util.safe_issubclass(typ, python_jsonschema_objects.wrapper_types.ArrayWrapper):
                     try:
                         val = typ(val)
                     except Exception as e:
@@ -743,13 +756,14 @@ def make_property(prop, info, desc=""):
                     "Object must be one of {0}: \n{1}".format(info['type'], errstr))
 
         elif info['type'] == 'array':
-            instance = info['validator'](val)
-            val = instance.validate()
+            val = info['validator'](val)
+            val.validate()
 
-        elif util.safe_issubclass(info['type'], validators.ArrayValidator):
+        elif util.safe_issubclass(info['type'],
+                                  python_jsonschema_objects.wrapper_types.ArrayWrapper):
             # An array type may have already been converted into an ArrayValidator
-            instance = info['type'](val)
-            val = instance.validate()
+            val = info['type'](val)
+            val.validate()
 
         elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):

@@ -6,6 +6,9 @@ import python_jsonschema_objects.util as util
 import collections
 
 import logging
+
+import python_jsonschema_objects.wrapper_types
+
 logger = logging.getLogger(__name__)
 
 PatternDef = collections.namedtuple('PatternDef', 'pattern schema_type')
@@ -70,7 +73,7 @@ class ExtensibleValidator(object):
         if util.safe_issubclass(typ, cb.ProtocolBase):
             return typ(**util.coerce_for_expansion(val))
 
-        if util.safe_issubclass(typ, validators.ArrayValidator):
+        if util.safe_issubclass(typ, python_jsonschema_objects.wrapper_types.ArrayWrapper):
             return typ(val)
 
         raise validators.ValidationError(

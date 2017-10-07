@@ -3,6 +3,7 @@ from jsonschema import Draft4Validator
 from jsonschema.compat import iteritems
 import json
 import codecs
+import copy
 import os.path
 import inflection
 import six
@@ -28,7 +29,7 @@ class ObjectBuilder(object):
         if isinstance(schema_uri, six.string_types):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
-            with open(uri) as fin:
+            with codecs.open(uri, 'r', 'utf-8') as fin:
                 self.schema = json.loads(fin.read())
         else:
             self.schema = schema_uri
@@ -51,6 +52,17 @@ class ObjectBuilder(object):
 
         self._classes = None
         self._resolved = None
+
+    @property
+    def schema(self):
+        try:
+            return copy.deepcopy(self._schema)
+        except AttributeError:
+            raise ValidationError("No schema provided")
+
+    @schema.setter
+    def schema(self, val):
+        setattr(self, '_schema', val)
 
     @property
     def classes(self):

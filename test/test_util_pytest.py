@@ -1,7 +1,8 @@
 
 import pytest
 
-from python_jsonschema_objects.validators import ValidationError, ArrayValidator
+from python_jsonschema_objects.validators import ValidationError
+from python_jsonschema_objects.wrapper_types import ArrayWrapper
 
 
 @pytest.mark.parametrize('kwargs', [
@@ -11,16 +12,16 @@ from python_jsonschema_objects.validators import ValidationError, ArrayValidator
         {'type': 'string'}, {'type': 'string'}]}
 ])
 def test_ArrayValidator_initializer(kwargs):
-    assert ArrayValidator.create('hello', **kwargs)
+    assert ArrayWrapper.create('hello', **kwargs)
 
 
 def test_ArrayValidator_throws_error_if_not_classes_or_dicts():
     with pytest.raises(TypeError):
-        ArrayValidator.create('hello', item_constraint=['winner'])
+        ArrayWrapper.create('hello', item_constraint=['winner'])
 
 
 def test_validate_basic_array_types():
-      validator = ArrayValidator.create(
+      validator = ArrayWrapper.create(
           'test',
           item_constraint={'type': 'number'}
       )
@@ -35,7 +36,7 @@ def test_validate_basic_array_types():
 
 
 def test_validate_basic_tuple__types():
-      validator = ArrayValidator.create(
+      validator = ArrayWrapper.create(
           'test',
           item_constraint=[{'type': 'number'}, {'type': 'number'}]
       )
@@ -50,7 +51,7 @@ def test_validate_basic_tuple__types():
 
 
 def test_validate_arrays_with_object_types(Person):
-    validator = ArrayValidator.create(
+    validator = ArrayWrapper.create(
         'test',
         item_constraint=Person
     )
@@ -65,7 +66,7 @@ def test_validate_arrays_with_object_types(Person):
 
 def test_validate_arrays_with_mixed_types(Person):
 
-    validator = ArrayValidator.create(
+    validator = ArrayWrapper.create(
         'test',
         item_constraint=[Person, {'type': 'number'}]
     )
@@ -80,7 +81,7 @@ def test_validate_arrays_with_mixed_types(Person):
 
 def test_validate_arrays_nested():
 
-    validator = ArrayValidator.create(
+    validator = ArrayWrapper.create(
         'test',
         item_constraint={'type': 'array', 'items': {'type': 'integer'}}
     )
@@ -98,7 +99,7 @@ def test_validate_arrays_nested():
 
 
 def test_validate_arrays_length():
-    validator = ArrayValidator.create(
+    validator = ArrayWrapper.create(
         'test',
         minItems=1,
         maxItems=3
@@ -123,7 +124,7 @@ def test_validate_arrays_length():
 
 
 def test_validate_arrays_uniqueness():
-    validator = ArrayValidator.create(
+    validator = ArrayWrapper.create(
         'test',
         uniqueItems=True
     )
