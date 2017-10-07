@@ -275,6 +275,12 @@ class ArrayWrapper(collections.MutableSequence):
 
                     item_constraint = classbuilder.TypeProxy(type_array)
 
+                elif isdict and item_constraint.get('type') == 'object':
+                    """ We need to create a ProtocolBase object for this anonymous definition"""
+                    uri = "{0}_{1}".format(name, "<anonymous_list_type>")
+                    item_constraint = klassbuilder.construct(
+                        uri, item_constraint)
+
         props['__itemtype__'] = item_constraint
 
         props.update(addl_constraints)
