@@ -69,7 +69,7 @@ class ProtocolBase(collections.MutableMapping):
     def __eq__(self, other):
         if not isinstance(other, ProtocolBase):
             return False
-          
+
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
@@ -440,7 +440,7 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif '$ref' in clsdata:
-
+            uri = clsdata['$ref']
             if 'type' in clsdata and util.safe_issubclass(
                     clsdata['type'], (ProtocolBase, LiteralValue)):
                 # It's possible that this reference was already resolved, in which
