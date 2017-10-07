@@ -64,9 +64,8 @@ def test_build_classes_is_idempotent():
         }
     }
     builder = pjs.ObjectBuilder(schema)
+    x = builder.build_classes()
     builder.build_classes()
-    builder.build_classes()
-
 
 
 def test_underscore_properties():
