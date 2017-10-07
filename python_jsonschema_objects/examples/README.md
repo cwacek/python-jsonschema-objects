@@ -174,6 +174,60 @@ schemas are unique.
 }
 ```
 
+## Generating Multiple Top Level Objects
+
+Sometimes what you really want to do is define a couple
+of different objects in a schema, and then be able to use
+them flexibly.
+
+Any object built as a reference can be obtained from the top
+level namespace. Thus, to obtain multiple top level classes,
+define them separately in a definitions structure, then simply
+make the top level schema refer to each of them as a `oneOf`.
+
+The schema and code example below show how this works.
+
+``` schema
+{
+    "title": "MultipleObjects",
+    "id": "foo",
+    "type": "object",
+    "oneOf":[
+            {"$ref": "#/definitions/ErrorResponse"},
+            {"$ref": "#/definitions/VersionGetResponse"}
+            ],
+    "definitions": {
+        "ErrorResponse": {
+            "title": "Error Response",
+            "id": "Error Response",
+            "type": "object",
+            "properties": {
+                "message": {"type": "string"},
+                "status": {"type": "integer"}
+            },
+            "required": ["message", "status"]
+        },
+        "VersionGetResponse": {
+            "title": "Version Get Response",
+            "type": "object",
+            "properties": {
+                "local": {"type": "boolean"},
+                "version": {"type": "string"}
+            },
+            "required": ["version"]
+        }
+    }
+}
+```
+
+``` python
+>>> builder = pjs.ObjectBuilder('multiple_objects.json')
+>>> classes = builder.build_classes()
+>>> print(dir(classes))
+[u'ErrorResponse', 'Local', 'Message', u'Multipleobjects',
+'Status', 'Version', u'VersionGetResponse']
+```
+
 ## Installation
 
     pip install python_jsonschema_objects
