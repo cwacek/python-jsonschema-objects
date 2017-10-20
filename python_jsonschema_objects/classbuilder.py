@@ -380,9 +380,6 @@ class LiteralValue(object):
   def __float__(self):
     return float(self._value)
 
-  def __str__(self):
-    return str(self._value)
-
 
 class ClassBuilder(object):
 
