@@ -493,3 +493,27 @@ def test_boolean_in_child_object():
     ns = builder.build_classes()
 
     ns.Test(data={"my_bool": True})
+
+
+
+@pytest.mark.parametrize('default', [
+    '{"type": "boolean", "default": false}',
+    '{"type": "string", "default": "Hello"}',
+    '{"type": "integer", "default": 500}'
+])
+def test_default_values(default):
+    default = json.loads(default)
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "id": "test",
+        "type": "object",
+        "properties": {
+            "sample": default
+        }
+    }
+
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes()
+
+    x = ns.Test()
+    assert x.sample == default['default']
