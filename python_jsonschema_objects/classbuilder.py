@@ -15,11 +15,10 @@ logger = logging.getLogger(__name__)
 
 logger.addHandler(logging.NullHandler())
 
-
-
 # Long is no longer a thing in python3.x
 if sys.version_info > (3,):
-  long = int
+    long = int
+
 
 class ProtocolBase(collections.MutableMapping):
     """ An instance of a class generated from the provided
@@ -56,7 +55,7 @@ class ProtocolBase(collections.MutableMapping):
             if hasattr(propval, 'for_json'):
                 out[prop] = propval.for_json()
             elif isinstance(propval, list):
-                out[prop] = [getattr(x, 'for_json', lambda:x)() for x in propval]
+                out[prop] = [getattr(x, 'for_json', lambda: x)() for x in propval]
             elif isinstance(propval, (ProtocolBase, LiteralValue)):
                 out[prop] = propval.as_dict()
             elif propval is not None:
@@ -74,14 +73,14 @@ class ProtocolBase(collections.MutableMapping):
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
-        inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
+        inverter = dict((v, k) for k, v in six.iteritems(self.__prop_names__))
         props = ["%s" % (inverter.get(k, k),) for k, v in
                  itertools.chain(six.iteritems(self._properties),
                                  six.iteritems(self._extended_properties))]
         return "<%s attributes: %s>" % (self.__class__.__name__, ", ".join(props))
 
     def __repr__(self):
-        inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
+        inverter = dict((v, k) for k, v in six.iteritems(self.__prop_names__))
         props = ["%s=%s" % (inverter.get(k, k), str(v)) for k, v in
                  itertools.chain(six.iteritems(self._properties),
                                  six.iteritems(self._extended_properties))]
@@ -168,12 +167,12 @@ class ProtocolBase(collections.MutableMapping):
 
         for prop in props:
             try:
-              logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
-              setattr(self, prop, props[prop])
+                logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
+                setattr(self, prop, props[prop])
             except validators.ValidationError as e:
-              import sys
-              raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
-                  prop, self.__class__.__name__)), sys.exc_info()[2])
+                import sys
+                raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
+                    prop, self.__class__.__name__)), sys.exc_info()[2])
 
         if getattr(self, '__strict__', None):
             self.validate()
@@ -195,25 +194,25 @@ class ProtocolBase(collections.MutableMapping):
             except Exception as e:
                 raise validators.ValidationError(
                     "Attempted to set unknown property '{0}': {1} "
-                    .format(name, e))
+                        .format(name, e))
 
             self._extended_properties[name] = val
 
     """ Implement collections.MutableMapping methods """
 
     def __iter__(self):
-      import itertools
-      return itertools.chain(six.iterkeys(self._extended_properties),
-                             six.iterkeys(self._properties))
+        import itertools
+        return itertools.chain(six.iterkeys(self._extended_properties),
+                               six.iterkeys(self._properties))
 
     def __len__(self):
-      return len(self._extended_properties) + len(self._properties)
+        return len(self._extended_properties) + len(self._properties)
 
     def __getitem__(self, key):
         return getattr(self, key)
 
     def __setitem__(self, key, val):
-      return setattr(self,key, val)
+        return setattr(self, key, val)
 
     def __delitem__(self, key):
         if key in self._extended_properties:
@@ -227,7 +226,7 @@ class ProtocolBase(collections.MutableMapping):
             raise KeyError(name)
         if name not in self._extended_properties:
             raise AttributeError("{0} is not a valid property of {1}".format(
-                                 name, self.__class__.__name__))
+                name, self.__class__.__name__))
 
         return self._extended_properties[name]
 
@@ -259,7 +258,7 @@ class ProtocolBase(collections.MutableMapping):
         if len(missing) > 0:
             raise validators.ValidationError(
                 "'{0}' are required attributes for {1}"
-                            .format(missing, self.__class__.__name__))
+                    .format(missing, self.__class__.__name__))
 
         for prop, val in six.iteritems(self._properties):
             if val is None:
@@ -271,7 +270,7 @@ class ProtocolBase(collections.MutableMapping):
                 val.validate()
             elif isinstance(val, list):
                 for subval in val:
-                  subval.validate()
+                    subval.validate()
             else:
                 # This object is of the wrong type, but just try setting it
                 # The property setter will enforce its correctness
@@ -294,7 +293,6 @@ def MakeLiteral(name, typ, value, **properties):
 
 
 class TypeProxy(object):
-
     def __init__(self, types):
         self._types = types
 
@@ -323,83 +321,82 @@ class TypeProxy(object):
 
 
 class LiteralValue(object):
-  """Docstring for LiteralValue """
+    """Docstring for LiteralValue """
 
-  isLiteralClass = True
+    isLiteralClass = True
 
-  def __init__(self, value, typ=None):
-      """@todo: to be defined
+    def __init__(self, value, typ=None):
+        """@todo: to be defined
 
-      :value: @todo
+        :value: @todo
 
-      """
-      if isinstance(value, LiteralValue):
-          self._value = value._value
-      else:
-          self._value = value
+        """
+        if isinstance(value, LiteralValue):
+            self._value = value._value
+        else:
+            self._value = value
 
-      if self._value is None and self.default() is not None:
-          self._value = self.default()
+        if self._value is None and self.default() is not None:
+            self._value = self.default()
 
-      self.validate()
+        self.validate()
 
-  def as_dict(self):
-      return self.for_json()
+    def as_dict(self):
+        return self.for_json()
 
-  def for_json(self):
-      return self._value
+    def for_json(self):
+        return self._value
 
-  @classmethod
-  def default(cls):
-      return cls.__propinfo__.get('__default__')
+    @classmethod
+    def default(cls):
+        return cls.__propinfo__.get('__default__')
 
-  @classmethod
-  def propinfo(cls, propname):
-      if propname not in cls.__propinfo__:
-          return {}
-      return cls.__propinfo__[propname]
+    @classmethod
+    def propinfo(cls, propname):
+        if propname not in cls.__propinfo__:
+            return {}
+        return cls.__propinfo__[propname]
 
-  def serialize(self):
-      self.validate()
-      enc = util.ProtocolJSONEncoder()
-      return enc.encode(self)
+    def serialize(self):
+        self.validate()
+        enc = util.ProtocolJSONEncoder()
+        return enc.encode(self)
 
-  def __repr__(self):
-      return "<%s %s>" % (
-          self.__class__.__name__,
-          str(self._value)
-      )
+    def __repr__(self):
+        return "<%s %s>" % (
+            self.__class__.__name__,
+            str(self._value)
+        )
 
-  def __str__(self):
-      return str(self._value)
+    def __str__(self):
+        return str(self._value)
 
-  def validate(self):
-      info = self.propinfo('__literal__')
+    def validate(self):
+        info = self.propinfo('__literal__')
 
-      # this duplicates logic in validators.ArrayValidator.check_items; unify it.
-      for param, paramval in sorted(six.iteritems(info), key=lambda x: x[0].lower() != 'type'):
-          validator = validators.registry(param)
-          if validator is not None:
-              validator(paramval, self._value, info)
+        # this duplicates logic in validators.ArrayValidator.check_items; unify it.
+        for param, paramval in sorted(six.iteritems(info), key=lambda x: x[0].lower() != 'type'):
+            validator = validators.registry(param)
+            if validator is not None:
+                validator(paramval, self._value, info)
 
-  def __eq__(self, other):
-      return self._value == other
+    def __eq__(self, other):
+        return self._value == other
 
-  def __hash__(self):
-      return hash(self._value)
+    def __hash__(self):
+        return hash(self._value)
 
-  def __lt__(self, other):
-      return self._value < other
+    def __lt__(self, other):
+        return self._value < other
 
-  def __int__(self):
-    return int(self._value)
+    def __int__(self):
+        return int(self._value)
 
-  def __float__(self):
-    return float(self._value)
+    def __float__(self):
+        return float(self._value)
 
 
 class ClassBuilder(object):
-
     def __init__(self, resolver):
         self.resolver = resolver
         self.resolved = {}
@@ -450,18 +447,11 @@ class ClassBuilder(object):
 
         return ret
 
-    def _construct(self, uri, clsdata, parent=(ProtocolBase,),**kw):
+    def _construct(self, uri, clsdata, parent=(ProtocolBase,), **kw):
 
         if 'anyOf' in clsdata:
             raise NotImplementedError(
                 "anyOf is not supported as bare property")
-
-        elif 'oneOf' in clsdata:
-            self.resolved[uri] = self._build_object(
-                uri,
-                clsdata,
-                parent, **kw)
-            return self.resolved[uri]
 
         elif 'allOf' in clsdata:
             potential_parents = self.resolve_classes(clsdata['allOf'])
@@ -476,7 +466,7 @@ class ClassBuilder(object):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
-                parents,**kw)
+                parents, **kw)
             return self.resolved[uri]
 
         elif '$ref' in clsdata:
@@ -486,7 +476,7 @@ class ClassBuilder(object):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
                 logger.debug(util.lazy_format("Using previously resolved type "
-                              "(with different URI) for {0}", uri))
+                                              "(with different URI) for {0}", uri))
                 self.resolved[uri] = clsdata['type']
             elif uri in self.resolved:
                 logger.debug(util.lazy_format("Using previously resolved object for {0}", uri))
@@ -494,7 +484,7 @@ class ClassBuilder(object):
                 logger.debug(util.lazy_format("Resolving object for {0}", uri))
 
                 with self.resolver.resolving(uri) as resolved:
-                    self.resolved[uri] = None # Set incase there is a circular reference in schema definition
+                    self.resolved[uri] = None  # Set incase there is a circular reference in schema definition
                     self.resolved[uri] = self.construct(
                         uri,
                         resolved,
@@ -525,12 +515,12 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif (clsdata.get('type', None) == 'object' or
-              clsdata.get('properties', None) is not None or
-              clsdata.get('additionalProperties', False)):
+                      clsdata.get('properties', None) is not None or
+                  clsdata.get('additionalProperties', False)):
             self.resolved[uri] = self._build_object(
                 uri,
                 clsdata,
-                parent,**kw)
+                parent, **kw)
             return self.resolved[uri]
         elif clsdata.get('type') in ('integer', 'number', 'string', 'boolean', 'null'):
             self.resolved[uri] = self._build_literal(
@@ -551,22 +541,22 @@ class ClassBuilder(object):
                 "no type and no reference".format(clsdata))
 
     def _build_literal(self, nm, clsdata):
-      """@todo: Docstring for _build_literal
+        """@todo: Docstring for _build_literal
 
-      :nm: @todo
-      :clsdata: @todo
-      :returns: @todo
+        :nm: @todo
+        :clsdata: @todo
+        :returns: @todo
 
-      """
-      cls = type(str(nm), tuple((LiteralValue,)), {
-        '__propinfo__': {
-            '__literal__': clsdata,
-            '__default__': clsdata.get('default')}
+        """
+        cls = type(str(nm), tuple((LiteralValue,)), {
+            '__propinfo__': {
+                '__literal__': clsdata,
+                '__default__': clsdata.get('default')}
         })
 
-      return cls
+        return cls
 
-    def _build_object(self, nm, clsdata, parents,**kw):
+    def _build_object(self, nm, clsdata, parents, **kw):
         logger.debug(util.lazy_format("Building object {0}", nm))
 
         if nm not in self.during_process:  # marking during process
@@ -585,7 +575,7 @@ class ClassBuilder(object):
         name_translation = {}
 
         for prop, detail in properties.items():
-            logger.debug(util.lazy_format("Handling property {0}.{1}",nm, prop))
+            logger.debug(util.lazy_format("Handling property {0}.{1}", nm, prop))
             properties[prop]['raw_name'] = prop
             name_translation[prop] = prop.replace('@', '')
             prop = name_translation[prop]
@@ -602,16 +592,16 @@ class ClassBuilder(object):
                     (ProtocolBase,))
 
                 props[prop] = make_property(prop,
-                    {'type': self.resolved[uri]},
-                      self.resolved[uri].__doc__)
+                                            {'type': self.resolved[uri]},
+                                            self.resolved[uri].__doc__)
                 properties[prop]['type'] = self.resolved[uri]
 
             elif 'type' not in detail and '$ref' in detail:
                 ref = detail['$ref']
                 uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
                 logger.debug(util.lazy_format("Resolving reference {0} for {1}.{2}",
-                    ref, nm, prop
-                    ))
+                                              ref, nm, prop
+                                              ))
                 if uri not in self.resolved:
                     # if $ref is during process, we save it for later
                     if uri in self.during_process:
@@ -665,11 +655,12 @@ class ClassBuilder(object):
                                         item_detail)
 
                                     for i, item_detail in enumerate(detail['items']['oneOf'])]
-                                    )
+                                )
                             else:
                                 typ = self.construct(uri, detail['items'])
                             propdata = {'type': 'array',
-                                        'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri, item_constraint=typ,
+                                        'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri,
+                                                                                                                 item_constraint=typ,
                                                                                                                  addl_constraints=detail)}
                         except NotImplementedError:
                             typ = detail['items']
@@ -725,9 +716,9 @@ class ClassBuilder(object):
 
         invalid_requires = [req for req in required if req not in props['__propinfo__']]
         if len(invalid_requires) > 0:
-          raise validators.ValidationError("Schema Definition Error: {0} schema requires "
-                                           "'{1}', but properties are not defined"
-                                           .format(nm, invalid_requires))
+            raise validators.ValidationError("Schema Definition Error: {0} schema requires "
+                                             "'{1}', but properties are not defined"
+                                             .format(nm, invalid_requires))
 
         props['__required__'] = required
         props['__has_default__'] = defaults
@@ -740,7 +731,6 @@ class ClassBuilder(object):
 
 
 def make_property(prop, info, desc=""):
-
     def getprop(self):
         try:
             return self._properties[prop]
@@ -754,18 +744,18 @@ def make_property(prop, info, desc=""):
             type_checks = []
 
             for typ in info['type']:
-              if not isinstance(typ, dict):
-                type_checks.append(typ)
-                continue
-              typ = next(t
-                         for n, t in validators.SCHEMA_TYPE_MAPPING
-                         if typ['type'] == t)
-              if typ is None:
-                  typ = type(None)
-              if isinstance(typ, (list, tuple)):
-                  type_checks.extend(typ)
-              else:
-                  type_checks.append(typ)
+                if not isinstance(typ, dict):
+                    type_checks.append(typ)
+                    continue
+                typ = next(t
+                           for n, t in validators.SCHEMA_TYPE_MAPPING
+                           if typ['type'] == t)
+                if typ is None:
+                    typ = type(None)
+                if isinstance(typ, (list, tuple)):
+                    type_checks.extend(typ)
+                else:
+                    type_checks.append(typ)
 
             for typ in type_checks:
                 if isinstance(val, typ):
