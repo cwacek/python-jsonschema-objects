@@ -608,7 +608,10 @@ class ClassBuilder(object):
                 if uri not in self.resolved:
                     # if $ref is during process, we save it for later
                     if uri in self.during_process:
-                        self.pending.append({'props': props, 'prop': prop, 'properties': properties, 'uri': uri})
+                        self.pending.append({'props': props,
+                                             'prop': prop,
+                                             'properties': properties,
+                                             'uri': uri})
                         continue
 
                     with self.resolver.resolving(ref) as resolved:
