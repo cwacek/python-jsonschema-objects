@@ -70,7 +70,6 @@ class ProtocolBase(collections.MutableMapping):
     def __eq__(self, other):
         if not isinstance(other, ProtocolBase):
             return False
-
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
@@ -213,7 +212,7 @@ class ProtocolBase(collections.MutableMapping):
         return getattr(self, key)
 
     def __setitem__(self, key, val):
-      return setattr(self, key, val)
+      return setattr(self,key, val)
 
     def __delitem__(self, key):
         if key in self._extended_properties:
@@ -328,20 +327,20 @@ class LiteralValue(object):
   isLiteralClass = True
 
   def __init__(self, value, typ=None):
-    """@todo: to be defined
+      """@todo: to be defined
 
-    :value: @todo
+      :value: @todo
 
-    """
-    if isinstance(value, LiteralValue):
-        self._value = value._value
-    else:
-        self._value = value
+      """
+      if isinstance(value, LiteralValue):
+          self._value = value._value
+      else:
+          self._value = value
 
-    if self._value is None and self.default() is not None:
-        self._value = self.default()
+      if self._value is None and self.default() is not None:
+          self._value = self.default()
 
-    self.validate()
+      self.validate()
 
   def as_dict(self):
       return self.for_json()
@@ -392,10 +391,10 @@ class LiteralValue(object):
       return self._value < other
 
   def __int__(self):
-      return int(self._value)
+    return int(self._value)
 
   def __float__(self):
-      return float(self._value)
+    return float(self._value)
 
 
 class ClassBuilder(object):
@@ -426,7 +425,7 @@ class ClassBuilder(object):
 
         return pp
 
-    def construct(self, uri, *args,**kw):
+    def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
         logger.debug(util.lazy_format("Constructing {0}", uri))
         ret = self._construct(uri, *args, **kw)
@@ -450,7 +449,7 @@ class ClassBuilder(object):
 
         return ret
 
-    def _construct(self, uri, clsdata, parent=(ProtocolBase,), **kw):
+    def _construct(self, uri, clsdata, parent=(ProtocolBase,),**kw):
 
         if 'anyOf' in clsdata:
             raise NotImplementedError(
@@ -552,9 +551,9 @@ class ClassBuilder(object):
 
       """
       cls = type(str(nm), tuple((LiteralValue,)), {
-          '__propinfo__': {
-              '__literal__': clsdata,
-              '__default__': clsdata.get('default')}
+        '__propinfo__': {
+            '__literal__': clsdata,
+            '__default__': clsdata.get('default')}
       })
 
       return cls
