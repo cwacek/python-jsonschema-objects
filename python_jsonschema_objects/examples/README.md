@@ -137,14 +137,40 @@ TypeError: unsupported operand type(s) for /: 'str' and 'int'
 
 ```
 
-## Resolving Directly from Memory
+## Supported Operators
+
+### $ref
+
+The `$ref` operator is supported in nearly all locations, and
+dispatches the actual reference resolution to the
+`jsonschema.RefResolver`.
+
+This example shows using the memory URI (described in more detail
+below) to create a wrapper object that is just a string literal.
+
+``` schema
+{
+    "title": "Just a Reference",
+    "$ref": "memory:Address"
+}
+```
+
+```python
+>>> builder = pjs.ObjectBuilder(examples['Just a Reference'], resolved=examples)
+>>> ns = builder.build_classes()
+>>> ns.JustAReference('Hello')
+<Literal<str> Hello>
+
+```
+
+#### The "memory:" URI
 
 The ObjectBuilder can be passed a dictionary specifying
 'memory' schemas when instantiated. This will allow it to
 resolve references where the referenced schemas are retrieved
 out of band and provided at instantiation.
 
-For instance:
+For instance, given the following schemas:
 
 ``` schema
 {
@@ -172,7 +198,33 @@ For instance:
 }
 ```
 
-Generated wrappers can also properly deserialize data
+The ObjectBuilder can be used to build the "Other" object by
+passing in a definition for "Address".
+
+``` python
+>>> builder = pjs.ObjectBuilder(examples['Other'], resolved={"Address": {"type":"string"}})
+>>> builder.validate({"MyAddress": '1234'})
+>>> ns = builder.build_classes()
+>>> thing = ns.Other()
+>>> thing
+<other MyAddress=None>
+>>> thing.MyAddress = "Franklin Square"
+>>> thing
+<other MyAddress=Franklin Square>
+>>> thing.MyAddress = 423  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValidationError: 432 is not a string
+
+```
+
+#### Circular References
+
+Circular references are not currently supported.
+
+### oneOf
+
+Generated wrappers can properly deserialize data
 representing 'oneOf' relationships, so long as the candidate
 schemas are unique.
 

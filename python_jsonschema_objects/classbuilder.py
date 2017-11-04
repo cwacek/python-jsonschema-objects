@@ -380,12 +380,19 @@ class ClassBuilder(object):
             elif uri in self.resolved:
                 logger.debug(util.lazy_format("Using previously resolved object for {0}", uri))
             else:
-                logger.debug(util.lazy_format("Resolving object for {0}", uri))
+                ref = clsdata['$ref']
+                refuri = util.resolve_ref_uri(
+                    self.resolver.resolution_scope, ref)
+                logger.debug(
+                    util.lazy_format(
+                        "Resolving direct reference object for {0}: {1}",
+                        uri,
+                        refuri))
 
-                with self.resolver.resolving(uri) as resolved:
+                with self.resolver.resolving(refuri) as resolved:
                     self.resolved[uri] = None # Set incase there is a circular reference in schema definition
                     self.resolved[uri] = self.construct(
-                        uri,
+                        refuri,
                         resolved,
                         parent)
 
