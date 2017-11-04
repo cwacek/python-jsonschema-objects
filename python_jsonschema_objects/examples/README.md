@@ -55,7 +55,7 @@ here that the schema above has been loaded in a variable called
 
 ``` python
 >>> import python_jsonschema_objects as pjs
->>> builder = pjs.ObjectBuilder(schema)
+>>> builder = pjs.ObjectBuilder(examples['Example Schema'])
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName="Bond")
@@ -101,7 +101,26 @@ with validation, directly from an input JSON schema. These
 classes can seamlessly encode back and forth to JSON valid
 according to the schema.
 
-## Other Features
+## Fully Functional Literals
+
+Literal values are wrapped when constructed to support validation
+and other schema-related operations. However, you can still use
+them just as you would other literals.
+
+``` python
+>>> import python_jsonschema_objects as pjs
+>>> builder = pjs.ObjectBuilder(schema)
+>>> ns = builder.build_classes()
+>>> Person = ns.ExampleSchema
+>>> james = Person(firstName="James", lastName="Bond")
+>>> james.lastName
+u'Bond'
+>>> james.lastName += "ing"
+>>> james
+<example_schema lastName=Bonding age=None firstName=James>
+```
+
+## Resolving Directly from Memory
 
 The ObjectBuilder can be passed a dictionary specifying
 'memory' schemas when instantiated. This will allow it to
