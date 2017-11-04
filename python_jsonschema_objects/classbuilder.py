@@ -70,6 +70,7 @@ class ProtocolBase(collections.MutableMapping):
     def __eq__(self, other):
         if not isinstance(other, ProtocolBase):
             return False
+
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
@@ -554,7 +555,7 @@ class ClassBuilder(object):
         '__propinfo__': {
             '__literal__': clsdata,
             '__default__': clsdata.get('default')}
-      })
+        })
 
       return cls
 
