@@ -1,0 +1,9 @@
+engines:
+  pep8:
+    enabled: true
+    checks:
+      E128:
+        enabled: false
+exclude_paths:
+  - versioneer.py
+

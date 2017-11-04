@@ -55,29 +55,36 @@ here that the schema above has been loaded in a variable called
 
 ``` python
 >>> import python_jsonschema_objects as pjs
->>> builder = pjs.ObjectBuilder(schema)
+>>> builder = pjs.ObjectBuilder(examples['Example Schema'])
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName="Bond")
 >>> james.lastName
-u'Bond'
+<Literal<str> Bond>
+>>> james.lastName == "Bond"
+True
 >>> james
-<example_schema lastName=Bond age=None firstName=James>
+<example_schema address=None age=None deceased=None dogs=None firstName=James gender=None lastName=Bond>
+
 ```
 
 Validations will also be applied as the object is manipulated.
 
 ``` python
->>> james.age = -2
-python_jsonschema_objects.validators.ValidationError: -2 was less
-or equal to than 0
+>>> james.age = -2  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValidationError: -2 is less than 0
+
 ```
 
-The object can be serialized out to JSON:
+The object can be serialized out to JSON. Options are passed
+through to the standard library JSONEncoder object.
 
 ``` python
->>> james.serialize()
-'{"lastName": "Bond", "age": null, "firstName": "James"}'
+>>> james.serialize(sort_keys=True)
+'{"firstName": "James", "lastName": "Bond"}'
+
 ```
 
 ## Why
@@ -101,7 +108,36 @@ with validation, directly from an input JSON schema. These
 classes can seamlessly encode back and forth to JSON valid
 according to the schema.
 
-## Other Features
+## Fully Functional Literals
+
+Literal values are wrapped when constructed to support validation
+and other schema-related operations. However, you can still use
+them just as you would other literals.
+
+``` python
+>>> import python_jsonschema_objects as pjs
+>>> builder = pjs.ObjectBuilder(examples['Example Schema'])
+>>> ns = builder.build_classes()
+>>> Person = ns.ExampleSchema
+>>> james = Person(firstName="James", lastName="Bond")
+>>> str(james.lastName)
+'Bond'
+>>> james.lastName += "ing"
+>>> str(james.lastName)
+'Bonding'
+>>> james.age = 4
+>>> james.age - 1
+3
+>>> 3 + james.age
+7
+>>> james.lastName / 4
+Traceback (most recent call last):
+    ...
+TypeError: unsupported operand type(s) for /: 'str' and 'int'
+
+```
+
+## Resolving Directly from Memory
 
 The ObjectBuilder can be passed a dictionary specifying
 'memory' schemas when instantiated. This will allow it to
@@ -221,11 +257,11 @@ The schema and code example below show how this works.
 ```
 
 ``` python
->>> builder = pjs.ObjectBuilder('multiple_objects.json')
+>>> builder = pjs.ObjectBuilder(examples["MultipleObjects"])
 >>> classes = builder.build_classes()
->>> print(dir(classes))
-[u'ErrorResponse', 'Local', 'Message', u'Multipleobjects',
-'Status', 'Version', u'VersionGetResponse']
+>>> [str(x) for x in dir(classes)]
+['ErrorResponse', 'Local', 'Message', 'Multipleobjects', 'Status', 'Version', 'VersionGetResponse']
+
 ```
 
 ## Installation

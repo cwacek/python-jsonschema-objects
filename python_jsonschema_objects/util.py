@@ -124,6 +124,7 @@ from collections import Mapping, Sequence
 class _Dummy:
     pass
 CLASS_ATTRS = dir(_Dummy)
+NEWCLASS_ATTRS = dir(object)
 del _Dummy
 
 

@@ -3,6 +3,8 @@ import six
 import re
 import python_jsonschema_objects.validators as validators
 import python_jsonschema_objects.util as util
+from python_jsonschema_objects.literals import MakeLiteral
+
 import collections
 
 import logging
@@ -97,7 +99,7 @@ class ExtensibleValidator(object):
                        in validators.SCHEMA_TYPE_MAPPING
                        if t is not None and isinstance(val, t)]
             valtype = valtype[0]
-            return cb.MakeLiteral(name, valtype, val)
+            return MakeLiteral(name, valtype, val)
 
         elif isinstance(self._additional_type, type):
             return self._make_type(self._additional_type, val)
