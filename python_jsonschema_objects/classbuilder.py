@@ -39,6 +39,7 @@ class ProtocolBase(collections.MutableMapping):
     """
     __propinfo__ = {}
     __required__ = set()
+    __has_default__ = set()
     __object_attr_list__ = set(["_properties", "_extended_properties"])
 
     def as_dict(self):
@@ -158,6 +159,13 @@ class ProtocolBase(collections.MutableMapping):
                                     [None for x in
                                      six.moves.xrange(len(self.__prop_names__))]))
 
+        # To support defaults, we have to actually execute the constructors
+        # but only for the ones that have defaults set.
+        for name in self.__has_default__:
+            if name not in props:
+                logger.debug(util.lazy_format("Initializing '{0}' ", name))
+                setattr(self, name, None)
+
         for prop in props:
             try:
               logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
@@ -166,10 +174,9 @@ class ProtocolBase(collections.MutableMapping):
               import sys
               raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
                   prop, self.__class__.__name__)), sys.exc_info()[2])
+
         if getattr(self, '__strict__', None):
             self.validate()
-        #if len(props) > 0:
-        #    self.validate()
 
     def __setattr__(self, name, val):
         if name in self.__object_attr_list__:
@@ -277,7 +284,10 @@ class ProtocolBase(collections.MutableMapping):
 def MakeLiteral(name, typ, value, **properties):
     properties.update({'type': typ})
     klass = type(str(name), tuple((LiteralValue,)), {
-        '__propinfo__': {'__literal__': properties}
+        '__propinfo__': {
+            '__literal__': properties,
+            '__default__': properties.get('default')
+        }
     })
 
     return klass(value)
@@ -328,6 +338,9 @@ class LiteralValue(object):
       else:
           self._value = value
 
+      if self._value is None and self.default() is not None:
+          self._value = self.default()
+
       self.validate()
 
   def as_dict(self):
@@ -335,6 +348,10 @@ class LiteralValue(object):
 
   def for_json(self):
       return self._value
+
+  @classmethod
+  def default(cls):
+      return cls.__propinfo__.get('__default__')
 
   @classmethod
   def propinfo(cls, propname):
@@ -379,9 +396,6 @@ class LiteralValue(object):
 
   def __float__(self):
     return float(self._value)
-
-  def __str__(self):
-    return str(self._value)
 
 
 class ClassBuilder(object):
@@ -526,7 +540,9 @@ class ClassBuilder(object):
 
       """
       cls = type(str(nm), tuple((LiteralValue,)), {
-        '__propinfo__': { '__literal__': clsdata}
+        '__propinfo__': {
+            '__literal__': clsdata,
+            '__default__': clsdata.get('default')}
         })
 
       return cls
@@ -535,6 +551,7 @@ class ClassBuilder(object):
         logger.debug(util.lazy_format("Building object {0}", nm))
 
         props = {}
+        defaults = set()
 
         properties = {}
         for p in parents:
@@ -550,6 +567,9 @@ class ClassBuilder(object):
             properties[prop]['raw_name'] = prop
             name_translation[prop] = prop.replace('@', '')
             prop = name_translation[prop]
+
+            if detail.get('default', None) is not None:
+                defaults.add(prop)
 
             if detail.get('type', None) == 'object':
                 uri = "{0}/{1}_{2}".format(nm,
@@ -683,6 +703,7 @@ class ClassBuilder(object):
                                            .format(nm, invalid_requires))
 
         props['__required__'] = required
+        props['__has_default__'] = defaults
         if required and kw.get("strict"):
             props['__strict__'] = True
         cls = type(str(nm.split('/')[-1]), tuple(parents), props)
@@ -775,7 +796,10 @@ def make_property(prop, info, desc=""):
         elif getattr(info['type'], 'isLiteralClass', False) is True:
             if not isinstance(val, info['type']):
                 validator = info['type'](val)
-            validator.validate()
+                validator.validate()
+                if validator._value is not None:
+                    # This allows setting of default Literal values
+                    val = validator
 
         elif util.safe_issubclass(info['type'], ProtocolBase):
             if not isinstance(val, info['type']):
