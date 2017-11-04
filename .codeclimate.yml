@@ -4,3 +4,6 @@ engines:
     checks:
       E128:
         enabled: false
+exclude_paths:
+  - versioneer.py
+
