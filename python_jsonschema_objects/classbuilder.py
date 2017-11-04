@@ -71,7 +71,7 @@ class ProtocolBase(collections.MutableMapping):
     def __eq__(self, other):
         if not isinstance(other, ProtocolBase):
             return False
-          
+
         return self.as_dict() == other.as_dict()
 
     def __str__(self):
@@ -318,6 +318,8 @@ class ClassBuilder(object):
     def __init__(self, resolver):
         self.resolver = resolver
         self.resolved = {}
+        self.during_process = []
+        self.pending = []
 
     def resolve_classes(self, iterable):
         pp = []
@@ -344,6 +346,23 @@ class ClassBuilder(object):
         logger.debug(util.lazy_format("Constructing {0}", uri))
         ret = self._construct(uri, *args, **kw)
         logger.debug(util.lazy_format("Constructed {0}", ret))
+
+        # processing pending items
+        for pending_item in self.pending:
+            uri = pending_item['uri']
+            if uri not in self.resolved:
+                continue
+
+            props = pending_item['props']
+            prop = pending_item['prop']
+            properties = pending_item['properties']
+
+            props[prop] = make_property(prop,
+                                        {'type': self.resolved[uri]},
+                                        self.resolved[uri].__doc__)
+            properties[prop]['$ref'] = uri
+            properties[prop]['type'] = self.resolved[uri]
+
         return ret
 
     def _construct(self, uri, clsdata, parent=(ProtocolBase,),**kw):
@@ -472,6 +491,9 @@ class ClassBuilder(object):
     def _build_object(self, nm, clsdata, parents,**kw):
         logger.debug(util.lazy_format("Building object {0}", nm))
 
+        if nm not in self.during_process:  # marking during process
+            self.during_process.append(nm)
+
         props = {}
         defaults = set()
 
@@ -513,6 +535,11 @@ class ClassBuilder(object):
                     ref, nm, prop
                     ))
                 if uri not in self.resolved:
+                    # if $ref is during process, we save it for later
+                    if uri in self.during_process:
+                        self.pending.append({'props': props, 'prop': prop, 'properties': properties, 'uri': uri})
+                        continue
+
                     with self.resolver.resolving(ref) as resolved:
                         self.resolved[uri] = self.construct(
                             uri,
@@ -629,6 +656,7 @@ class ClassBuilder(object):
         if required and kw.get("strict"):
             props['__strict__'] = True
         cls = type(str(nm.split('/')[-1]), tuple(parents), props)
+        self.during_process.remove(nm)
 
         return cls
 
