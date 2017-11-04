@@ -58,31 +58,32 @@ here that the schema above has been loaded in a variable called
 >>> builder = pjs.ObjectBuilder(examples['Example Schema'])
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
->>> james = Person(firstName="James", lastName=u"Bond")
+>>> james = Person(firstName="James", lastName="Bond")
 >>> james.lastName
-<Literal<unicode> Bond>
+<Literal<str> Bond>
 >>> james.lastName == "Bond"
 True
 >>> james
-<example_schema firstName=James lastName=Bond age=None address=None gender=None dogs=None deceased=None>
+<example_schema address=None age=None deceased=None dogs=None firstName=James gender=None lastName=Bond>
 
 ```
 
 Validations will also be applied as the object is manipulated.
 
 ``` python
->>> james.age = -2
+>>> james.age = -2  # doctest: +IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
     ...
 ValidationError: -2 is less than 0
 
 ```
 
-The object can be serialized out to JSON:
+The object can be serialized out to JSON. Options are passed
+through to the standard library JSONEncoder object.
 
 ``` python
->>> james.serialize()
-'{"lastName": "Bond", "firstName": "James"}'
+>>> james.serialize(sort_keys=True)
+'{"firstName": "James", "lastName": "Bond"}'
 
 ```
 
@@ -258,8 +259,8 @@ The schema and code example below show how this works.
 ``` python
 >>> builder = pjs.ObjectBuilder(examples["MultipleObjects"])
 >>> classes = builder.build_classes()
->>> print(dir(classes))
-[u'ErrorResponse', 'Local', 'Message', u'Multipleobjects', 'Status', 'Version', u'VersionGetResponse']
+>>> [str(x) for x in dir(classes)]
+['ErrorResponse', 'Local', 'Message', 'Multipleobjects', 'Status', 'Version', 'VersionGetResponse']
 
 ```
 

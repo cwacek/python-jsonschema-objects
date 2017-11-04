@@ -76,16 +76,16 @@ class ProtocolBase(collections.MutableMapping):
 
     def __str__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
-        props = ["%s" % (inverter.get(k, k),) for k, v in
+        props = sorted(["%s" % (inverter.get(k, k),) for k, v in
                  itertools.chain(six.iteritems(self._properties),
-                                 six.iteritems(self._extended_properties))]
+                                 six.iteritems(self._extended_properties))])
         return "<%s attributes: %s>" % (self.__class__.__name__, ", ".join(props))
 
     def __repr__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
-        props = ["%s=%s" % (inverter.get(k, k), str(v)) for k, v in
+        props = sorted(["%s=%s" % (inverter.get(k, k), str(v)) for k, v in
                  itertools.chain(six.iteritems(self._properties),
-                                 six.iteritems(self._extended_properties))]
+                                 six.iteritems(self._extended_properties))])
         return "<%s %s>" % (
             self.__class__.__name__,
             " ".join(props)
@@ -238,9 +238,9 @@ class ProtocolBase(collections.MutableMapping):
             return {}
         return cls.__propinfo__[propname]
 
-    def serialize(self):
+    def serialize(self, **opts):
         self.validate()
-        enc = util.ProtocolJSONEncoder()
+        enc = util.ProtocolJSONEncoder(**opts)
         return enc.encode(self)
 
     def validate(self):
