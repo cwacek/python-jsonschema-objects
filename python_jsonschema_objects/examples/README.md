@@ -198,6 +198,7 @@ For instance, given the following schemas:
 }
 ```
 
+<<<<<<< HEAD
 The ObjectBuilder can be used to build the "Other" object by
 passing in a definition for "Address".
 
@@ -220,7 +221,44 @@ ValidationError: 432 is not a string
 
 #### Circular References
 
-Circular references are not currently supported.
+Circular references are not a good idea, but they're supported
+anyway via lazy loading (as much as humanly possible).
+
+```schema
+{
+    "title": "Circular References",
+    "id": "foo",
+    "type": "object",
+    "oneOf":[
+            {"$ref": "#/definitions/A"},
+            {"$ref": "#/definitions/B"}
+    ],
+    "definitions": {
+        "A": {
+            "type": "object",
+            "properties": {
+                "message": {"type": "string"},
+                "reference": {"$ref": "#/definitions/B"}
+            },
+            "required": ["message"]
+        },
+        "B": {
+            "type": "object",
+            "properties": {
+                "author": {"type": "string"},
+                "reference": {"$ref": "#/definitions/A"}
+            },
+            "required": ["author"]
+        }
+    }
+}
+```
+
+```
+>>> builder = pjs.ObjectBuilder(examples['Circular References'])
+>>> klasses = builder.build_classes()
+
+```
 
 ### oneOf
 
