@@ -13,6 +13,10 @@ def markdown_examples():
         examples = {json.loads(v)['title']: json.loads(v) for v in examples['schema']}
         return examples
 
+@pytest.fixture(autouse=True)
+def inject_examples(doctest_namespace, markdown_examples):
+    doctest_namespace['examples'] = markdown_examples
+
 
 @pytest.fixture
 def Person(markdown_examples):
