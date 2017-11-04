@@ -381,7 +381,8 @@ class ClassBuilder(object):
                 logger.debug(util.lazy_format("Using previously resolved object for {0}", uri))
             else:
                 ref = clsdata['$ref']
-                refuri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
+                refuri = util.resolve_ref_uri(
+                    self.resolver.resolution_scope, ref)
                 logger.debug(
                     util.lazy_format(
                         "Resolving direct reference object for {0}: {1}",
