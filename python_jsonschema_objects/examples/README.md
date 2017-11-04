@@ -58,26 +58,30 @@ here that the schema above has been loaded in a variable called
 >>> builder = pjs.ObjectBuilder(examples['Example Schema'])
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
->>> james = Person(firstName="James", lastName="Bond")
+>>> james = Person(firstName="James", lastName=u"Bond")
 >>> james.lastName
-u'Bond'
+Bond
 >>> james
-<example_schema lastName=Bond age=None firstName=James>
+<example_schema firstName=James lastName=Bond age=None address=None gender=None dogs=None deceased=None>
+
 ```
 
 Validations will also be applied as the object is manipulated.
 
 ``` python
 >>> james.age = -2
-python_jsonschema_objects.validators.ValidationError: -2 was less
-or equal to than 0
+Traceback (most recent call last):
+    ...
+ValidationError: -2 is less than 0
+
 ```
 
 The object can be serialized out to JSON:
 
 ``` python
 >>> james.serialize()
-'{"lastName": "Bond", "age": null, "firstName": "James"}'
+'{"lastName": "Bond", "firstName": "James"}'
+
 ```
 
 ## Why
@@ -109,15 +113,22 @@ them just as you would other literals.
 
 ``` python
 >>> import python_jsonschema_objects as pjs
->>> builder = pjs.ObjectBuilder(schema)
+>>> builder = pjs.ObjectBuilder(examples['Example Schema'])
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName="Bond")
 >>> james.lastName
-u'Bond'
+Bond
 >>> james.lastName += "ing"
->>> james
-<example_schema lastName=Bonding age=None firstName=James>
+>>> james.lastName
+Bonding
+>>> james.age = 4
+>>> james.age - 1
+3
+
+>>> 3 + james.age
+7
+
 ```
 
 ## Resolving Directly from Memory

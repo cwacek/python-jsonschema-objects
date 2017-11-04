@@ -1,6 +1,7 @@
 import python_jsonschema_objects.util as util
 import python_jsonschema_objects.validators as validators
 import python_jsonschema_objects.pattern_properties as pattern_properties
+from python_jsonschema_objects.literals import LiteralValue
 
 import collections
 import itertools
@@ -16,10 +17,10 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-
 # Long is no longer a thing in python3.x
 if sys.version_info > (3,):
   long = int
+
 
 class ProtocolBase(collections.MutableMapping):
     """ An instance of a class generated from the provided

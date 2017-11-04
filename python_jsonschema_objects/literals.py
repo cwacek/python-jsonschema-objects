@@ -1,3 +1,11 @@
+from python_jsonschema_objects import util
+from python_jsonschema_objects import validators
+import functools
+import logging
+import six
+import operator
+
+
 def MakeLiteral(name, typ, value, **properties):
     properties.update({'type': typ})
     klass = type(str(name), tuple((LiteralValue,)), {
@@ -8,6 +16,7 @@ def MakeLiteral(name, typ, value, **properties):
     })
 
     return klass(value)
+
 
 class LiteralValue(object):
   """Docstring for LiteralValue """
@@ -52,19 +61,19 @@ class LiteralValue(object):
       return enc.encode(self)
 
   def __repr__(self):
-      return "<%s %s>" % (
-          self.__class__.__name__,
-          str(self._value)
-      )
+      return str(self)
 
   def __str__(self):
+      if isinstance(self._value, six.string_types):
+        return self._value
       return str(self._value)
 
   def validate(self):
       info = self.propinfo('__literal__')
 
-      # this duplicates logic in validators.ArrayValidator.check_items; unify it.
-      for param, paramval in sorted(six.iteritems(info), key=lambda x: x[0].lower() != 'type'):
+      # TODO: this duplicates logic in validators.ArrayValidator.check_items; unify it.
+      for param, paramval in sorted(six.iteritems(info),
+                                    key=lambda x: x[0].lower() != 'type'):
           validator = validators.registry(param)
           if validator is not None:
               validator(paramval, self._value, info)
@@ -83,3 +92,52 @@ class LiteralValue(object):
 
   def __float__(self):
     return float(self._value)
+
+
+EXCLUDED_OPERATORS = set(
+    util.CLASS_ATTRS +
+    util.NEWCLASS_ATTRS +
+    ["__name__",
+     "__setattr__",
+     "__getattr__",
+     "__dict__",
+     "__matmul__",
+     "__imatmul__",
+     ]
+)
+
+
+def dispatch_to_value(fn):
+  def wrapper(self, other):
+    return fn(self._value, other)
+    pass
+  return wrapper
+
+
+""" This attaches all the literal operators to LiteralValue
+ except for the reverse ones."""
+for op in dir(operator):
+    if op.startswith("__") and op not in EXCLUDED_OPERATORS:
+      opfn = getattr(operator, op)
+      setattr(LiteralValue, op, dispatch_to_value(opfn))
+
+
+""" We also have to patch the reverse operators,
+which aren't conveniently defined anywhere """
+LiteralValue.__radd__ = lambda self, other: other + self._value
+LiteralValue.__rsub__ = lambda self, other: other - self._value
+LiteralValue.__rmul__ = lambda self, other: other * self._value
+LiteralValue.__rtruediv__ = lambda self, other: other / self._value
+LiteralValue.__rfloordiv__ = lambda self, other: other // self._value
+LiteralValue.__rmod__ = lambda self, other: other % self._value
+LiteralValue.__rdivmod__ = lambda self, other: divmod(other, self._value)
+LiteralValue.__rpow__ = lambda self, other, modulo=None: pow(
+    other, self._value, modulo)
+LiteralValue.__rlshift__ = lambda self, other: other << self._value
+LiteralValue.__rrshift__ = lambda self, other: other >> self._value
+LiteralValue.__rand__ = lambda self, other: other & self._value
+LiteralValue.__rxor__ = lambda self, other: other ^ self._value
+LiteralValue.__ror__ = lambda self, other: other | self._value
+
+
+
