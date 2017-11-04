@@ -60,7 +60,9 @@ here that the schema above has been loaded in a variable called
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName=u"Bond")
 >>> james.lastName
-Bond
+<Literal<unicode> Bond>
+>>> james.lastName == "Bond"
+True
 >>> james
 <example_schema firstName=James lastName=Bond age=None address=None gender=None dogs=None deceased=None>
 
@@ -117,17 +119,20 @@ them just as you would other literals.
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName="Bond")
->>> james.lastName
-Bond
+>>> str(james.lastName)
+'Bond'
 >>> james.lastName += "ing"
->>> james.lastName
-Bonding
+>>> str(james.lastName)
+'Bonding'
 >>> james.age = 4
 >>> james.age - 1
 3
-
 >>> 3 + james.age
 7
+>>> james.lastName / 4
+Traceback (most recent call last):
+    ...
+TypeError: unsupported operand type(s) for /: 'str' and 'int'
 
 ```
 
@@ -251,11 +256,11 @@ The schema and code example below show how this works.
 ```
 
 ``` python
->>> builder = pjs.ObjectBuilder('multiple_objects.json')
+>>> builder = pjs.ObjectBuilder(examples["MultipleObjects"])
 >>> classes = builder.build_classes()
 >>> print(dir(classes))
-[u'ErrorResponse', 'Local', 'Message', u'Multipleobjects',
-'Status', 'Version', u'VersionGetResponse']
+[u'ErrorResponse', 'Local', 'Message', u'Multipleobjects', 'Status', 'Version', u'VersionGetResponse']
+
 ```
 
 ## Installation

@@ -48,7 +48,7 @@ def test_array_elements_compare_to_types(test_instance):
     assert test
 
 def test_repr_shows_property_values(test_instance):
-    expected = "<example/arrayProp_<anonymous_field> these>"
+    expected = "<Literal<str> these>"
     assert repr(test_instance.arrayProp[0]) == expected
 
 def test_str_shows_just_strings(test_instance):

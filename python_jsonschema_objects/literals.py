@@ -61,7 +61,10 @@ class LiteralValue(object):
       return enc.encode(self)
 
   def __repr__(self):
-      return str(self)
+      return "<Literal<%s> %s>" % (
+          self._value.__class__.__name__,
+          str(self._value)
+      )
 
   def __str__(self):
       if isinstance(self._value, six.string_types):
