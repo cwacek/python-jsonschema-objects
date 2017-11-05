@@ -64,7 +64,7 @@ here that the schema above has been loaded in a variable called
 >>> james.lastName == "Bond"
 True
 >>> james
-<example_schema address=None age=None deceased=None dogs=None firstName=James gender=None lastName=Bond>
+<example_schema address=None age=None deceased=None dogs=None firstName=<Literal<str> James> gender=None lastName=<Literal<str> Bond>>
 
 ```
 
@@ -198,7 +198,6 @@ For instance, given the following schemas:
 }
 ```
 
-<<<<<<< HEAD
 The ObjectBuilder can be used to build the "Other" object by
 passing in a definition for "Address".
 
@@ -211,7 +210,7 @@ passing in a definition for "Address".
 <other MyAddress=None>
 >>> thing.MyAddress = "Franklin Square"
 >>> thing
-<other MyAddress=Franklin Square>
+<other MyAddress=<Literal<str> Franklin Square>>
 >>> thing.MyAddress = 423  # doctest: +IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
     ...
@@ -223,6 +222,9 @@ ValidationError: 432 is not a string
 
 Circular references are not a good idea, but they're supported
 anyway via lazy loading (as much as humanly possible).
+
+Given the crazy schema below, we can actually generate these
+classes.
 
 ```schema
 {
@@ -254,9 +256,22 @@ anyway via lazy loading (as much as humanly possible).
 }
 ```
 
+We can instantiate objects that refer to eachother.
+
 ```
 >>> builder = pjs.ObjectBuilder(examples['Circular References'])
 >>> klasses = builder.build_classes()
+>>> a = klasses.A()
+>>> b = klasses.B()
+>>> a.message= 'foo'
+>>> a.reference = b
+Traceback (most recent call last):
+    ...
+ValidationError: '[u'author']' are required attributes for B
+>>> b.author = "James Dean"
+>>> a.reference = b
+>>> a
+<A message=<Literal<str> foo> reference=<B author=<Literal<str> James Dean> reference=None>>
 
 ```
 
