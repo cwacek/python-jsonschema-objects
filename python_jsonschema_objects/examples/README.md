@@ -264,7 +264,7 @@ We can instantiate objects that refer to eachother.
 >>> a = klasses.A()
 >>> b = klasses.B()
 >>> a.message= 'foo'
->>> a.reference = b  # doctest: +IGNORE_EXCEPTION_DETAIL
+>>> a.reference = b  # doctest: +IGNORE_EXCEPTION_DETAIL 
 Traceback (most recent call last):
     ...
 ValidationError: '[u'author']' are required attributes for B

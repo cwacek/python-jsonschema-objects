@@ -204,13 +204,16 @@ class ProtocolBase(collections.MutableMapping):
 
         for prop in props:
             try:
-              logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
-              if props[prop] is not None:
-                  setattr(self, prop, props[prop])
+                logger.debug(util.lazy_format(
+                    "Setting value for '{0}' to {1}", prop, props[prop]))
+                if props[prop] is not None:
+                    setattr(self, prop, props[prop])
             except validators.ValidationError as e:
-              import sys
-              raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
-                  prop, self.__class__.__name__)), sys.exc_info()[2])
+                import sys
+                raise six.reraise(
+                    type(e),
+                    type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(
+                        prop, self.__class__.__name__)), sys.exc_info()[2])
 
         if getattr(self, '__strict__', None):
             self.validate()
@@ -397,8 +400,9 @@ class ClassBuilder(object):
                 continue
 
             if pending_item.uri not in self.resolved:
-                raise ValueError("{0} refers to {1}, but {0} has not been resolved"
-                                 .format(pending_item.uri, pending_item.refuri))
+                raise ValueError(
+                    "{0} refers to {1}, but {0} has not been resolved"
+                    .format(pending_item.uri, pending_item.refuri))
 
             target_class = self.resolved[pending_item.uri]
             pending_item.apply(target_class, self.resolved)
@@ -565,24 +569,30 @@ class ClassBuilder(object):
                     (ProtocolBase,))
 
                 props[prop] = make_property(prop,
-                    {'type': self.resolved[uri]},
-                      self.resolved[uri].__doc__)
+                                            {'type': self.resolved[uri]},
+                                            self.resolved[uri].__doc__)
                 properties[prop]['type'] = self.resolved[uri]
 
             elif 'type' not in detail and '$ref' in detail:
                 ref = detail['$ref']
                 uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
-                logger.debug(util.lazy_format("Resolving reference {0} for {1}.{2}",
+                logger.debug(util.lazy_format(
+                    "Resolving reference {0} for {1}.{2}",
                     ref, nm, prop
-                    ))
+                ))
                 if uri not in self.resolved:
                     """
-                    if $ref is under construction, then we're staring at a circular reference.
-                    We save the information required to construct the property for later.
+                    if $ref is under construction, then we're staring at a
+                    circular reference.  We save the information required to
+                    construct the property for later.
                     """
                     if uri in self.under_construction:
                         self.pending.add(
-                            UnresolvedProperty(uri=nm, property_name=prop, refuri=uri)
+                            UnresolvedProperty(
+                                uri=nm,
+                                property_name=prop,
+                                refuri=uri
+                            )
                         )
                         continue
 
