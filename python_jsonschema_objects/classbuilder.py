@@ -205,7 +205,8 @@ class ProtocolBase(collections.MutableMapping):
         for prop in props:
             try:
               logger.debug(util.lazy_format("Setting value for '{0}' to {1}", prop, props[prop]))
-              setattr(self, prop, props[prop])
+              if props[prop] is not None:
+                  setattr(self, prop, props[prop])
             except validators.ValidationError as e:
               import sys
               raise six.reraise(type(e), type(e)(str(e) + " \nwhile setting '{0}' in {1}".format(

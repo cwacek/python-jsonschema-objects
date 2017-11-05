@@ -248,7 +248,7 @@ classes.
             "type": "object",
             "properties": {
                 "author": {"type": "string"},
-                "reference": {"$ref": "#/definitions/A"}
+                "oreference": {"$ref": "#/definitions/A"}
             },
             "required": ["author"]
         }
@@ -264,14 +264,14 @@ We can instantiate objects that refer to eachother.
 >>> a = klasses.A()
 >>> b = klasses.B()
 >>> a.message= 'foo'
->>> a.reference = b
+>>> a.reference = b  # doctest: +IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
     ...
 ValidationError: '[u'author']' are required attributes for B
 >>> b.author = "James Dean"
 >>> a.reference = b
 >>> a
-<A message=<Literal<str> foo> reference=<B author=<Literal<str> James Dean> reference=None>>
+<A message=<Literal<str> foo> reference=<B author=<Literal<str> James Dean> oreference=None>>
 
 ```
 
