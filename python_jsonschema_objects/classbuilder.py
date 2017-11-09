@@ -386,7 +386,11 @@ class ClassBuilder(object):
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
         logger.debug(util.lazy_format("Constructing {0}", uri))
-        ret = self._construct(uri, *args, **kw)
+        if 'override' not in kw or kw['override'] is False and uri in self.resolved:
+            logger.debug(util.lazy_format("Using existing {0}", uri))
+            return self.resolved[uri]
+        else:
+            ret = self._construct(uri, *args, **kw)
         logger.debug(util.lazy_format("Constructed {0}", ret))
 
         # processing pending items
