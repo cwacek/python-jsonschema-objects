@@ -460,7 +460,7 @@ class ClassBuilder(object):
                         refuri))
 
                 with self.resolver.resolving(refuri) as resolved:
-                    self.resolved[uri] = None # Set incase there is a circular reference in schema definition
+                    # self.resolved[uri] = None # Set incase there is a circular reference in schema definition
                     self.resolved[uri] = self.construct(
                         refuri,
                         resolved,
