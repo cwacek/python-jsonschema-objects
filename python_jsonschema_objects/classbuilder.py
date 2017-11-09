@@ -386,7 +386,7 @@ class ClassBuilder(object):
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
         logger.debug(util.lazy_format("Constructing {0}", uri))
-        if 'override' not in kw or kw['override'] is False and uri in self.resolved:
+        if ('override' not in kw or kw['override'] is False) and uri in self.resolved:
             logger.debug(util.lazy_format("Using existing {0}", uri))
             return self.resolved[uri]
         else:
