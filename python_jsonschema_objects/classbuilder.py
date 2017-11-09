@@ -357,7 +357,7 @@ class ClassBuilder(object):
     def __init__(self, resolver):
         self.resolver = resolver
         self.resolved = {}
-        self.under_construction = set()
+        self.under_construction = list()
         """ Tracks a list of properties that need to
         be resolved because they weren't able to be
         resolved at the time."""
@@ -537,7 +537,7 @@ class ClassBuilder(object):
 
         # To support circular references, we tag objects that we're
         # currently building as "under construction"
-        self.under_construction.add(nm)
+        self.under_construction.append(nm)
 
         props = {}
         defaults = set()
