@@ -386,7 +386,8 @@ class ClassBuilder(object):
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
         logger.debug(util.lazy_format("Constructing {0}", uri))
-        if ('override' not in kw or kw['override'] is False) and uri in self.resolved:
+        if ('override' not in kw or kw['override'] is False) \
+                and uri in self.resolved:
             logger.debug(util.lazy_format("Using existing {0}", uri))
             return self.resolved[uri]
         else:
@@ -464,7 +465,6 @@ class ClassBuilder(object):
                         refuri))
 
                 with self.resolver.resolving(refuri) as resolved:
-                    # self.resolved[uri] = None # Set incase there is a circular reference in schema definition
                     self.resolved[uri] = self.construct(
                         refuri,
                         resolved,
