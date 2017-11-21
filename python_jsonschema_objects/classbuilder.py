@@ -737,7 +737,7 @@ def make_property(prop, info, desc=""):
                 continue
               typ = next(t
                          for n, t in validators.SCHEMA_TYPE_MAPPING
-                         if typ['type'] == t)
+                         if typ['type'] == n)
               if typ is None:
                   typ = type(None)
               if isinstance(typ, (list, tuple)):
