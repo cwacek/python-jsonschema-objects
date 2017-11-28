@@ -357,7 +357,7 @@ class ClassBuilder(object):
     def __init__(self, resolver):
         self.resolver = resolver
         self.resolved = {}
-        self.under_construction = set()
+        self.under_construction = list()
         """ Tracks a list of properties that need to
         be resolved because they weren't able to be
         resolved at the time."""
@@ -386,7 +386,12 @@ class ClassBuilder(object):
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
         logger.debug(util.lazy_format("Constructing {0}", uri))
-        ret = self._construct(uri, *args, **kw)
+        if ('override' not in kw or kw['override'] is False) \
+                and uri in self.resolved:
+            logger.debug(util.lazy_format("Using existing {0}", uri))
+            return self.resolved[uri]
+        else:
+            ret = self._construct(uri, *args, **kw)
         logger.debug(util.lazy_format("Constructed {0}", ret))
 
         # processing pending items
@@ -460,7 +465,6 @@ class ClassBuilder(object):
                         refuri))
 
                 with self.resolver.resolving(refuri) as resolved:
-                    self.resolved[uri] = None # Set incase there is a circular reference in schema definition
                     self.resolved[uri] = self.construct(
                         refuri,
                         resolved,
@@ -537,7 +541,7 @@ class ClassBuilder(object):
 
         # To support circular references, we tag objects that we're
         # currently building as "under construction"
-        self.under_construction.add(nm)
+        self.under_construction.append(nm)
 
         props = {}
         defaults = set()
