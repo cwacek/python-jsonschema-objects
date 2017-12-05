@@ -292,9 +292,23 @@ class ProtocolBase(collections.MutableMapping):
         """
 
         propname = lambda x: self.__prop_names__[x]
-        missing = [x for x in self.__required__
-                   if propname(x) not in self._properties or
-                   self._properties[propname(x)] is None]
+        missing = []
+        for x in self.__required__:
+
+            # Allow the null type
+            propinfo = self.propinfo(propname(x))
+            nulltype = False
+            if 'type' in propinfo:
+                nulltype = propinfo['type'] == 'null'
+            elif 'oneOf' in propinfo:
+                for o in propinfo['oneOf']:
+                    if 'type' in o and o['type'] == 'null':
+                        nulltype = True
+                        break
+
+            if (propname(x) not in self._properties and nulltype) or \
+                    (self._properties[propname(x)] is None and not nulltype):
+                missing.append(x)
 
         if len(missing) > 0:
             raise validators.ValidationError(
