@@ -321,7 +321,7 @@ class ProtocolBase(collections.MutableMapping):
         """
         Returns a list of properties which are required and missing.
 
-        Properties are excluded from this list of they are allowed to be the null type.
+        Properties are excluded from this list if they are allowed to be null.
 
         :return: list of missing properties.
         """
@@ -332,17 +332,17 @@ class ProtocolBase(collections.MutableMapping):
 
             # Allow the null type
             propinfo = self.propinfo(propname(x))
-            null_type_permitted = False
+            null_type = False
             if 'type' in propinfo:
-                null_type_permitted = propinfo['type'] == 'null'
+                null_type = propinfo['type'] == 'null'
             elif 'oneOf' in propinfo:
                 for o in propinfo['oneOf']:
                     if 'type' in o and o['type'] == 'null':
-                        null_type_permitted = True
+                        null_type = True
                         break
 
-            if (propname(x) not in self._properties and null_type_permitted) or \
-                    (self._properties[propname(x)] is None and not null_type_permitted):
+            if (propname(x) not in self._properties and null_type) or \
+                    (self._properties[propname(x)] is None and not null_type):
                 missing.append(x)
 
         return missing
