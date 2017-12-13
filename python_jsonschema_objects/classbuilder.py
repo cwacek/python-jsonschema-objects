@@ -291,24 +291,7 @@ class ProtocolBase(collections.MutableMapping):
             ValidationError: if validations do not pass
         """
 
-        propname = lambda x: self.__prop_names__[x]
-        missing = []
-        for x in self.__required__:
-
-            # Allow the null type
-            propinfo = self.propinfo(propname(x))
-            nulltype = False
-            if 'type' in propinfo:
-                nulltype = propinfo['type'] == 'null'
-            elif 'oneOf' in propinfo:
-                for o in propinfo['oneOf']:
-                    if 'type' in o and o['type'] == 'null':
-                        nulltype = True
-                        break
-
-            if (propname(x) not in self._properties and nulltype) or \
-                    (self._properties[propname(x)] is None and not nulltype):
-                missing.append(x)
+        missing = self.missing_property_names()
 
         if len(missing) > 0:
             raise validators.ValidationError(
@@ -333,6 +316,36 @@ class ProtocolBase(collections.MutableMapping):
                 setattr(self, prop, val)
 
         return True
+
+    def missing_property_names(self):
+        """
+        Returns a list of properties which are required and missing.
+
+        Properties are excluded from this list of they are allowed to be the null type.
+
+        :return: list of missing properties.
+        """
+
+        propname = lambda x: self.__prop_names__[x]
+        missing = []
+        for x in self.__required__:
+
+            # Allow the null type
+            propinfo = self.propinfo(propname(x))
+            null_type_permitted = False
+            if 'type' in propinfo:
+                null_type_permitted = propinfo['type'] == 'null'
+            elif 'oneOf' in propinfo:
+                for o in propinfo['oneOf']:
+                    if 'type' in o and o['type'] == 'null':
+                        null_type_permitted = True
+                        break
+
+            if (propname(x) not in self._properties and null_type_permitted) or \
+                    (self._properties[propname(x)] is None and not null_type_permitted):
+                missing.append(x)
+
+        return missing
 
 
 class TypeProxy(object):
