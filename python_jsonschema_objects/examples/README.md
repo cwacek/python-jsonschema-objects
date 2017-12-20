@@ -256,7 +256,7 @@ classes.
 }
 ```
 
-We can instantiate objects that refer to eachother.
+We can instantiate objects that refer to each other.
 
 ```
 >>> builder = pjs.ObjectBuilder(examples['Circular References'])
