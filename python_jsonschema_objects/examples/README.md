@@ -7,7 +7,7 @@ binding to JSON schemas for use in python.
 
 For example, given the following schema:
 
-```json
+``` schema
 {
     "title": "Example Schema",
     "type": "object",
