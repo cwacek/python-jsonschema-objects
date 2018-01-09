@@ -7,7 +7,7 @@ binding to JSON schemas for use in python.
 
 For example, given the following schema:
 
-``` schema
+```json
 {
     "title": "Example Schema",
     "type": "object",
@@ -51,7 +51,7 @@ For example, given the following schema:
 
 jsonschema-objects can generate a class based binding. Assume
 here that the schema above has been loaded in a variable called
-`schema`:
+`examples`:
 
 ``` python
 >>> import python_jsonschema_objects as pjs
