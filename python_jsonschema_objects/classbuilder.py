@@ -22,41 +22,6 @@ if sys.version_info > (3,):
   long = int
 
 
-class UnresolvedProperty(
-        collections.namedtuple('UnresolvedProperty',
-                               'uri, property_name, refuri')):
-    """ Represents the information needed to attach a property
-    to a class.
-
-    Args:
-        uri: (str) The URI of the class with the property
-        property_name: (str) the name of the unresolved property
-        refuri: (str) the URI of the object that should represent
-            this property
-    """
-
-    def apply(self, klass, resolve_map={}):
-        """ Attach this property to the provided class
-
-        Args:
-            klass: (ProtocolBase) The class wrapper to which this
-                property should be attached.
-            resolve_map: (dict) A map of URIs to resolved ProtocolBase
-                objects.
-        """
-        assert util.safe_issubclass(klass, ProtocolBase)
-
-        resolved_property = make_property(self.property_name,
-                                          {'type': resolve_map[self.refuri]},
-                                          resolve_map[self.refuri].__doc__)
-
-        setattr(klass, self.property_name, resolved_property)
-        klass.__propinfo__[self.property_name] = {
-            "$ref": self.refuri,
-            "type": resolve_map[self.refuri]
-        }
-
-
 class ProtocolBase(collections.MutableMapping):
     """ An instance of a class generated from the provided
     schema. All properties will be validated according to
@@ -348,6 +313,31 @@ class ProtocolBase(collections.MutableMapping):
         return missing
 
 
+class TypeRef(object):
+
+    def __init__(self, ref_uri, resolved):
+        self._resolved = resolved
+        self._ref_uri = ref_uri
+        self._class = None
+        self.__doc__ = 'Reference to {}'.format(ref_uri)
+
+    @property
+    def ref_class(self):
+        if self._class is None:
+            self._class = self._resolved.get(self._ref_uri)
+        return self._class
+
+    def __call__(self, *args, **kwargs):
+        cls = self.ref_class
+        return cls(*args, **kwargs)
+
+    def __str__(self):
+        return self.__doc__
+
+    def __repr__(self):
+        return '<{}>'.format(self.__doc__)
+
+
 class TypeProxy(object):
 
     def __init__(self, types):
@@ -384,11 +374,7 @@ class ClassBuilder(object):
     def __init__(self, resolver):
         self.resolver = resolver
         self.resolved = {}
-        self.under_construction = list()
-        """ Tracks a list of properties that need to
-        be resolved because they weren't able to be
-        resolved at the time."""
-        self.pending = set()
+        self.under_construction = set()
 
     def resolve_classes(self, iterable):
         pp = []
@@ -420,24 +406,6 @@ class ClassBuilder(object):
         else:
             ret = self._construct(uri, *args, **kw)
         logger.debug(util.lazy_format("Constructed {0}", ret))
-
-        # processing pending items
-        for pending_item in self.pending:
-            logger.debug(util.lazy_format(
-                "Atttempting to resolve property "
-                "{0.property_name} for {0.uri}",
-                pending_item))
-
-            if pending_item.refuri not in self.resolved:
-                continue
-
-            if pending_item.uri not in self.resolved:
-                raise ValueError(
-                    "{0} refers to {1}, but {0} has not been resolved"
-                    .format(pending_item.uri, pending_item.refuri))
-
-            target_class = self.resolved[pending_item.uri]
-            pending_item.apply(target_class, self.resolved)
 
         return ret
 
@@ -485,17 +453,25 @@ class ClassBuilder(object):
                 ref = clsdata['$ref']
                 refuri = util.resolve_ref_uri(
                     self.resolver.resolution_scope, ref)
-                logger.debug(
-                    util.lazy_format(
-                        "Resolving direct reference object for {0}: {1}",
-                        uri,
-                        refuri))
+                if refuri in self.under_construction:
+                    logger.debug(
+                            util.lazy_format(
+                                    "Resolving cyclic reference from {0} to {1}.",
+                                    uri,
+                                    refuri))
+                    return TypeRef(refuri, self.resolved)
+                else:
+                    logger.debug(
+                            util.lazy_format(
+                                    "Resolving direct reference object for {0}: {1}",
+                                    uri,
+                                    refuri))
 
-                with self.resolver.resolving(refuri) as resolved:
-                    self.resolved[uri] = self.construct(
-                        refuri,
-                        resolved,
-                        parent)
+                    with self.resolver.resolving(refuri) as resolved:
+                        self.resolved[uri] = self.construct(
+                                refuri,
+                                resolved,
+                                parent)
 
             return self.resolved[uri]
 
@@ -568,7 +544,7 @@ class ClassBuilder(object):
 
         # To support circular references, we tag objects that we're
         # currently building as "under construction"
-        self.under_construction.append(nm)
+        self.under_construction.add(nm)
 
         props = {}
         defaults = set()
@@ -611,33 +587,16 @@ class ClassBuilder(object):
                     "Resolving reference {0} for {1}.{2}",
                     ref, nm, prop
                 ))
-                if uri not in self.resolved:
-                    """
-                    if $ref is under construction, then we're staring at a
-                    circular reference.  We save the information required to
-                    construct the property for later.
-                    """
-                    if uri in self.under_construction:
-                        self.pending.add(
-                            UnresolvedProperty(
-                                uri=nm,
-                                property_name=prop,
-                                refuri=uri
-                            )
-                        )
-                        continue
-
-                    with self.resolver.resolving(ref) as resolved:
-                        self.resolved[uri] = self.construct(
-                            uri,
-                            resolved,
-                            (ProtocolBase,))
+                if uri in self.resolved:
+                    typ = self.resolved[uri]
+                else:
+                    typ = self.construct(uri, detail, (ProtocolBase,))
 
                 props[prop] = make_property(prop,
-                                            {'type': self.resolved[uri]},
-                                            self.resolved[uri].__doc__)
+                                            {'type': typ},
+                                            typ.__doc__)
                 properties[prop]['$ref'] = uri
-                properties[prop]['type'] = self.resolved[uri]
+                properties[prop]['type'] = typ
 
             elif 'oneOf' in detail:
                 potential = self.resolve_classes(detail['oneOf'])
@@ -698,9 +657,8 @@ class ClassBuilder(object):
                         typs.append(typ)
 
                     props[prop] = make_property(prop,
-                                                {'type': 'tuple',
-                                                 'items': typ},
-                                                typ.__doc__)
+                                                {'type': typs},
+                                                )
 
             else:
                 desc = detail[

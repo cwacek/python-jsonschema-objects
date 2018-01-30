@@ -175,7 +175,7 @@ class ArrayWrapper(collections.MutableSequence):
                 val.validate()
                 typed_elems.append(val)
 
-            elif isinstance(typ, classbuilder.TypeProxy):
+            elif isinstance(typ, (classbuilder.TypeProxy, classbuilder.TypeRef)):
                 try:
                     if isinstance(elem, (six.string_types, six.integer_types, float)):
                         val = typ(elem)
@@ -216,7 +216,7 @@ class ArrayWrapper(collections.MutableSequence):
                     if not any([isdict, isklass]):
                         raise TypeError(
                             "Item constraint (position {0}) is not a schema".format(i))
-            elif isinstance(item_constraint, classbuilder.TypeProxy):
+            elif isinstance(item_constraint, (classbuilder.TypeProxy, classbuilder.TypeRef)):
                 pass
             elif util.safe_issubclass(item_constraint, ArrayWrapper):
                 pass
