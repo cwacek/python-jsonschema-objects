@@ -811,6 +811,12 @@ def make_property(prop, info, desc=""):
         elif isinstance(info['type'], TypeProxy):
             val = info['type'](val)
 
+        elif isinstance(info['type'], TypeRef):
+            if not isinstance(val, info['type'].ref_class):
+                val = info['type'](**val)
+
+            val.validate()
+
         elif info['type'] is None:
             # This is the null value
             if val is not None:
