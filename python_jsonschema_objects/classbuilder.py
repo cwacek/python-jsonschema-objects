@@ -299,10 +299,11 @@ class ProtocolBase(collections.MutableMapping):
             propinfo = self.propinfo(propname(x))
             null_type = False
             if 'type' in propinfo:
-                null_type = propinfo['type'] == 'null'
+                type_info = propinfo['type']
+                null_type = type_info == 'null' or 'null' in type_info
             elif 'oneOf' in propinfo:
                 for o in propinfo['oneOf']:
-                    if 'type' in o and o['type'] == 'null':
+                    if 'type' in o and o['type'] == 'null' or 'null' in o['type']:
                         null_type = True
                         break
 
