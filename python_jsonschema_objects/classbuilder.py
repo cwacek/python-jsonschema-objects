@@ -300,10 +300,15 @@ class ProtocolBase(collections.MutableMapping):
             null_type = False
             if 'type' in propinfo:
                 type_info = propinfo['type']
-                null_type = type_info == 'null' or 'null' in type_info
+                null_type = (type_info == 'null'
+                             or isinstance(type_info, (list, tuple))
+                             and 'null' in type_info)
             elif 'oneOf' in propinfo:
                 for o in propinfo['oneOf']:
-                    if 'type' in o and o['type'] == 'null' or 'null' in o['type']:
+                    type_info = o.get('type')
+                    if type_info and type_info == 'null' \
+                            or isinstance(type_info, (list, tuple)) \
+                            and 'null' in type_info:
                         null_type = True
                         break
 
