@@ -199,8 +199,9 @@ class ProtocolBase(collections.MutableMapping):
         # but only for the ones that have defaults set.
         for name in self.__has_default__:
             if name not in props:
-                logger.debug(util.lazy_format("Initializing '{0}' ", name))
-                setattr(self, name, None)
+                default_value = self.__propinfo__[name]['default']
+                logger.debug(util.lazy_format("Initializing '{0}' to '{1}'", name, default_value))
+                setattr(self, name, default_value)
 
         for prop in props:
             try:
