@@ -96,6 +96,11 @@ class LiteralValue(object):
   def __float__(self):
     return float(self._value)
 
+  def __bool__(self):
+      return bool(self._value)
+
+  __nonzero__ = __bool__
+
 
 EXCLUDED_OPERATORS = set(
     util.CLASS_ATTRS +
