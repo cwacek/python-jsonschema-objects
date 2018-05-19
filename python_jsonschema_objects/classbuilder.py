@@ -696,7 +696,7 @@ class ClassBuilder(object):
                     typs = []
                     for i, elem in enumerate(detail['items']):
                         uri = "{0}/{1}/<anonymous_{2}>".format(nm, prop, i)
-                        typ = self.construct(uri, detail['items'])
+                        typ = self.construct(uri, elem)
                         typs.append(typ)
 
                     props[prop] = make_property(prop,
