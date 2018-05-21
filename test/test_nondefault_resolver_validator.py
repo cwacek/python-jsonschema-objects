@@ -19,5 +19,5 @@ def test_non_default_resolver_validator(markdown_examples):
                                 validatorClass=Draft3Validator,
                                 resolved=markdown_examples)
     klasses = builder.build_classes()
-    a = klasses.Other(MyAddress="where I leave")
-    assert a.MyAddress == "where I leave"
+    a = klasses.Other(MyAddress="where I live")
+    assert a.MyAddress == "where I live"
