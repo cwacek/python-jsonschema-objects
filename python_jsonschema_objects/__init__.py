@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 import python_jsonschema_objects.classbuilder as classbuilder
 import python_jsonschema_objects.literals as literals
-from python_jsonschema_objects.validators import ValidationError
 import python_jsonschema_objects.util as pjo_util
 import python_jsonschema_objects.markdown_support
+from python_jsonschema_objects.validators import ValidationError
 
 __all__ = ['ObjectBuilder', 'markdown_support', 'ValidationError']
 
@@ -116,7 +116,7 @@ class ObjectBuilder(object):
         builder.construct(nm, self.schema,**kw)
         self._resolved = builder.resolved
 
-        return (util.Namespace.from_mapping(
+        return (pjo_util.Namespace.from_mapping(
             dict(
                 (inflection.camelize(uri.split('/')[-1]), klass)
                 for uri, klass in six.iteritems(builder.resolved)

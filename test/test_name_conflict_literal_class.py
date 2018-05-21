@@ -28,7 +28,8 @@ def test_name_conflict_literal_class():
     builder = pjo.ObjectBuilder(schema)
     klasses = builder.build_classes()
     p = klasses.Path
-    # without correction, returned class is #/definitions/Path/path which is a literal
+    # without correction, returned class is 
+    # #/definitions/Path/path which is a literal
     assert util.safe_issubclass(p, ProtocolBase)
 
 
