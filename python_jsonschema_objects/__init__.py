@@ -22,8 +22,11 @@ __all__ = ['ObjectBuilder', 'markdown_support', 'ValidationError']
 FILE = __file__
 
 class ObjectBuilder(object):
-
-    def __init__(self, schema_uri, resolved={},resolver=None,validatorClass=None):
+    def __init__(self,
+                 schema_uri,
+                 resolved={},
+                 resolver=None,
+                 validatorClass=None):
         self.mem_resolved = resolved
 
         if isinstance(schema_uri, six.string_types):
@@ -36,18 +39,17 @@ class ObjectBuilder(object):
             uri = os.path.normpath(FILE)
             self.basedir = os.path.dirname(uri)
 
-        self.resolver = resolver or jsonschema.RefResolver.from_schema(self.schema)
+        self.resolver = resolver or jsonschema.RefResolver.from_schema(
+            self.schema)
         self.resolver.handlers.update({
-                'file': self.relative_file_resolver,
-                'memory': self.memory_resolver
-            })
+            'file': self.relative_file_resolver,
+            'memory': self.memory_resolver
+        })
 
         validatorClass = validatorClass or Draft4Validator
         meta_validator = validatorClass(Draft4Validator.META_SCHEMA)
         meta_validator.validate(self.schema)
-        self.validator = validatorClass(self.schema,
-                                         resolver=self.resolver)
-
+        self.validator = validatorClass(self.schema, resolver=self.resolver)
 
         self._classes = None
         self._resolved = None
