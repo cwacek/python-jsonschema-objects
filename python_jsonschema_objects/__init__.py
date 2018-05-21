@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 import python_jsonschema_objects.classbuilder as classbuilder
+import python_jsonschema_objects.literals as literals
 from python_jsonschema_objects.validators import ValidationError
 import python_jsonschema_objects.util
 import python_jsonschema_objects.markdown_support
@@ -119,7 +120,9 @@ class ObjectBuilder(object):
             util.Namespace.from_mapping(dict(
                 (inflection.camelize(uri.split('/')[-1]),
                  klass) for uri,
-                klass in six.iteritems(builder.resolved)))
+                klass in six.iteritems(builder.resolved)
+                if not util.safe_issubclass(klass, literals.LiteralValue)
+                ))
         )
 
 
