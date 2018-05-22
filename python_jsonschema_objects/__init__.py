@@ -105,7 +105,7 @@ class ObjectBuilder(object):
         kw = {"strict": strict}
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in iteritems(self.schema.get('definitions', {})):
-            uri = util.resolve_ref_uri(
+            uri = pjo_util.resolve_ref_uri(
                 self.resolver.resolution_scope,
                 "#/definitions/" + nm)
             builder.construct(uri, defn, **kw)
