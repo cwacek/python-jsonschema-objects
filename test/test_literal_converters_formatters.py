@@ -4,14 +4,12 @@ import python_jsonschema_objects as pjo
 
 def test_converters():
     schema = {
-        'type': 'object',
-        'title': 'BooleanConversion',
-        'properties': {
-            'answer': {
-                'type': 'boolean'
-            }
+      'type': 'object',
+      'title': 'BooleanConversion',
+      'properties': {
+          'answer': {'type': 'boolean'}
         }
-    }
+      }
     builder = pjo.ObjectBuilder(schema)
     klasses = builder.build_classes()
     bc = klasses.Booleanconversion()
@@ -27,19 +25,13 @@ def test_converters():
 
 def test_formatters():
     schema = {
-        'type': 'object',
-        'title': 'FloatFormatter',
-        'properties': {
-            'new_format': {
-                'type': 'number',
-                'format': '{:.2%}'
-            },
-            'old_format': {
-                'type': 'number',
-                'format': '%.2f'
-            }
+      'type': 'object',
+      'title': 'FloatFormatter',
+      'properties': {
+          'new_format': {'type': 'number', 'format': '{:.2%}'},
+          'old_format': {'type': 'number', 'format': '%.2f'}
         }
-    }
+      }
     builder = pjo.ObjectBuilder(schema)
     klasses = builder.build_classes()
     ff = klasses.Floatformatter()

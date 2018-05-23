@@ -8,131 +8,137 @@ import operator
 
 def MakeLiteral(name, typ, value, **properties):
     properties.update({'type': typ})
-    klass = type(
-        str(name), tuple((LiteralValue, )), {
-            '__propinfo__': {
-                '__literal__': properties,
-                '__default__': properties.get('default')
-            }
-        })
+    klass = type(str(name), tuple((LiteralValue,)), {
+        '__propinfo__': {
+            '__literal__': properties,
+            '__default__': properties.get('default')
+        }
+    })
 
     return klass(value)
 
 
 class LiteralValue(object):
-    """Docstring for LiteralValue """
+  """Docstring for LiteralValue """
 
-    isLiteralClass = True
+  isLiteralClass = True
 
-    def __init__(self, value, typ=None):
-        """@todo: to be defined
+  def __init__(self, value, typ=None):
+      """@todo: to be defined
 
       :value: @todo
 
       """
 
-        if isinstance(value, LiteralValue):
-            self._value = value._value
-        else:
-            self._value = value
+      if isinstance(value, LiteralValue):
+          self._value = value._value
+      else:
+          self._value = value
 
-        if self._value is None and self.default() is not None:
-            self._value = self.default()
+      if self._value is None and self.default() is not None:
+          self._value = self.default()
 
-        self.validate()
+      self.validate()
 
-    def as_dict(self):
-        return self.for_json()
+  def as_dict(self):
+      return self.for_json()
 
-    def for_json(self):
-        return self._format()
+  def for_json(self):
+      return self._format()
 
-    @classmethod
-    def default(cls):
-        return cls.__propinfo__.get('__default__')
+  @classmethod
+  def default(cls):
+      return cls.__propinfo__.get('__default__')
 
-    @classmethod
-    def propinfo(cls, propname):
-        if propname not in cls.__propinfo__:
-            return {}
-        return cls.__propinfo__[propname]
+  @classmethod
+  def propinfo(cls, propname):
+      if propname not in cls.__propinfo__:
+          return {}
+      return cls.__propinfo__[propname]
 
-    def serialize(self):
-        self.validate()
-        enc = util.ProtocolJSONEncoder()
-        return enc.encode(self)
+  def serialize(self):
+      self.validate()
+      enc = util.ProtocolJSONEncoder()
+      return enc.encode(self)
 
-    def __repr__(self):
-        return "<Literal<%s> %s>" % (self._value.__class__.__name__, str(self))
+  def __repr__(self):
+      return "<Literal<%s> %s>" % (
+          self._value.__class__.__name__,
+          str(self)
+      )
 
-    def _format(self):
-        info = self.propinfo('__literal__')
-        formatter = validators.formatter_registry(info['type'])
-        return formatter(self, self._value, info) if formatter else self._value
+  def _format(self):
+      info = self.propinfo('__literal__')
+      formatter  = validators.formatter_registry(info['type'])
+      return formatter(self, self._value, info) if formatter else self._value
 
-    def __str__(self):
-        value = self._format()
-        if isinstance(value, six.string_types):
-            return value
-        return str(value)
+  def __str__(self):
+      value = self._format()
+      if isinstance(value, six.string_types):
+        return value
+      return str(value)
 
-    def validate(self):
-        info = self.propinfo('__literal__')
-        converter = validators.converter_registry(info['type'])
-        if converter:
-            self._value = converter(self, self._value, info)
-        # TODO: this duplicates logic in validators.ArrayValidator.check_items; unify it.
-        for param, paramval in sorted(
-                six.iteritems(info), key=lambda x: x[0].lower() != 'type'):
-            validator = validators.registry(param)
-            if validator is not None:
-                validator(paramval, self._value, info)
+  def validate(self):
+      info = self.propinfo('__literal__')
+      converter  = validators.converter_registry(info['type'])
+      if converter:
+          self._value = converter(self, self._value, info)
+      # TODO: this duplicates logic in validators.ArrayValidator.check_items; unify it.
+      for param, paramval in sorted(six.iteritems(info),
+                                    key=lambda x: x[0].lower() != 'type'):
+          validator = validators.registry(param)
+          if validator is not None:
+              validator(paramval, self._value, info)
 
-    def __eq__(self, other):
-        return self._value == other
+  def __eq__(self, other):
+      return self._value == other
 
-    def __hash__(self):
-        return hash(self._value)
+  def __hash__(self):
+      return hash(self._value)
 
-    def __lt__(self, other):
-        return self._value < other
+  def __lt__(self, other):
+      return self._value < other
 
-    def __int__(self):
-        return int(self._value)
+  def __int__(self):
+    return int(self._value)
 
-    def __float__(self):
-        return float(self._value)
+  def __float__(self):
+    return float(self._value)
 
-    def __bool__(self):
-        return bool(self._value)
+  def __bool__(self):
+      return bool(self._value)
 
-    __nonzero__ = __bool__
+  __nonzero__ = __bool__
 
 
-EXCLUDED_OPERATORS = set(util.CLASS_ATTRS + util.NEWCLASS_ATTRS + [
-    "__name__",
-    "__setattr__",
-    "__getattr__",
-    "__dict__",
-    "__matmul__",
-    "__imatmul__",
-])
+EXCLUDED_OPERATORS = set(
+    util.CLASS_ATTRS +
+    util.NEWCLASS_ATTRS +
+    ["__name__",
+     "__setattr__",
+     "__getattr__",
+     "__dict__",
+     "__matmul__",
+     "__imatmul__",
+     ]
+)
 
 
 def dispatch_to_value(fn):
-    def wrapper(self, other):
-        return fn(self._value, other)
-        pass
-
-    return wrapper
+  def wrapper(self, other):
+    return fn(self._value, other)
+    pass
+  return wrapper
 
 
 """ This attaches all the literal operators to LiteralValue
  except for the reverse ones."""
 for op in dir(operator):
     if op.startswith("__") and op not in EXCLUDED_OPERATORS:
-        opfn = getattr(operator, op)
-        setattr(LiteralValue, op, dispatch_to_value(opfn))
+      opfn = getattr(operator, op)
+      setattr(LiteralValue, op, dispatch_to_value(opfn))
+
+
 """ We also have to patch the reverse operators,
 which aren't conveniently defined anywhere """
 LiteralValue.__radd__ = lambda self, other: other + self._value
@@ -149,3 +155,6 @@ LiteralValue.__rrshift__ = lambda self, other: other >> self._value
 LiteralValue.__rand__ = lambda self, other: other & self._value
 LiteralValue.__rxor__ = lambda self, other: other ^ self._value
 LiteralValue.__ror__ = lambda self, other: other | self._value
+
+
+
