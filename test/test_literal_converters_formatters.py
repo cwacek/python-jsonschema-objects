@@ -1,5 +1,33 @@
 import pytest  # noqa
+import six
 import python_jsonschema_objects as pjo
+from python_jsonschema_objects.validators import converter_registry
+from python_jsonschema_objects.validators import formatter_registry
+
+
+@converter_registry.register(name='boolean')
+def convert_boolean(param, value, _):
+    if isinstance(value, six.string_types):
+        vl = value.lower()
+        if vl in ['true', 'yes', 'ok']:
+            return True
+        if vl in ['false', 'no', 'wrong']:
+            return False
+    return value
+
+
+@formatter_registry.register(name='number')
+def format_number(param, value, details):
+    if 'format' in details:
+        frmt = details['format']
+        try:
+            if '{' in frmt:
+                return frmt.format(value)
+            if '%' in frmt:
+                return frmt % value
+        except ValueError as er:
+            pass
+    return value
 
 
 def test_converters():
@@ -41,7 +69,6 @@ def test_formatters():
     assert str(ff.old_format) == '0.39'
     serialized = ff.serialize()
     assert serialized == '{"old_format": 0.385, "new_format": 0.236}'
-    print serialized
 
 
 if __name__ == '__main__':
