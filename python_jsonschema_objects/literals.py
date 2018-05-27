@@ -69,7 +69,6 @@ class LiteralValue(object):
 
   def _format(self):
       info = self.propinfo('__literal__')
-      type_ = 'enum' if 'enum' in info else info.get('type','string')
       formatter  = validators.formatter_registry(info.get('type','string'))
       return formatter(self, self._value, info) if formatter else self._value
 
