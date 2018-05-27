@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "python-jsonschema-objects", "python-jsonschema-objects.pyproj", "{E8F3126E-76CB-4756-96FE-3007ED310942}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "python-ngoschema", "..\python-ngoschema\python-ngoschema.pyproj", "{FCCB9CE5-6624-4A8F-9A9B-98BF064ABE33}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "jsonschema", "..\jsonschema\jsonschema\jsonschema.pyproj", "{2178C59C-D01C-4924-9C38-135B5B953D83}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "NgoModel", "..\..\code\python-ngomodel\NgoModel.pyproj", "{8D08BE40-F0A5-11E7-AF81-A0AFBDC34D2F}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "NgoProject", "..\..\code\python-ngoproject\NgoProject.pyproj", "{99F4B970-EFB9-11E7-A30C-A0AFBDC34D2F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E8F3126E-76CB-4756-96FE-3007ED310942}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8F3126E-76CB-4756-96FE-3007ED310942}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCCB9CE5-6624-4A8F-9A9B-98BF064ABE33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCCB9CE5-6624-4A8F-9A9B-98BF064ABE33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2178C59C-D01C-4924-9C38-135B5B953D83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2178C59C-D01C-4924-9C38-135B5B953D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D08BE40-F0A5-11E7-AF81-A0AFBDC34D2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D08BE40-F0A5-11E7-AF81-A0AFBDC34D2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99F4B970-EFB9-11E7-A30C-A0AFBDC34D2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99F4B970-EFB9-11E7-A30C-A0AFBDC34D2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {23A4313E-6908-4A2E-809D-C04962D60D23}
+	EndGlobalSection
+EndGlobal

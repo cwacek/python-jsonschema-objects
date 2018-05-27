@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{e8f3126e-76cb-4756-96fe-3007ed310942}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>test\test_literal_converters_formatters.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="development.txt" />
+    <Content Include="requirements.txt" />
+    <Content Include="test\resources\query.json" />
+    <Content Include="test\resources\schema.json" />
+    <Content Include="test\thing-one.json" />
+    <Content Include="test\thing-two.json" />
+    <Content Include="tox.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="conftest.py" />
+    <Compile Include="docs\conf.py" />
+    <Compile Include="python_jsonschema_objects\classbuilder.py" />
+    <Compile Include="python_jsonschema_objects\examples\__init__.py" />
+    <Compile Include="python_jsonschema_objects\literals.py" />
+    <Compile Include="python_jsonschema_objects\markdown_support.py" />
+    <Compile Include="python_jsonschema_objects\pattern_properties.py" />
+    <Compile Include="python_jsonschema_objects\util.py" />
+    <Compile Include="python_jsonschema_objects\validators.py" />
+    <Compile Include="python_jsonschema_objects\wrapper_types.py" />
+    <Compile Include="python_jsonschema_objects\_version.py" />
+    <Compile Include="python_jsonschema_objects\__init__.py" />
+    <Compile Include="register.py" />
+    <Compile Include="setup.py" />
+    <Compile Include="test\test_literal_converters_formatters.py" />
+    <Compile Include="test\test_nondefault_resolver_validator.py" />
+    <Compile Include="test\test_circular_references.py" />
+    <Compile Include="test\test_nested_arrays.py" />
+    <Compile Include="test\test_name_conflict_literal_class.py" />
+    <Compile Include="test\test_pattern_properties.py" />
+    <Compile Include="test\test_pytest.py" />
+    <Compile Include="test\test_regression_114.py" />
+    <Compile Include="test\test_regression_17.py" />
+    <Compile Include="test\test_regression_49.py" />
+    <Compile Include="test\test_regression_8.py" />
+    <Compile Include="test\test_regression_87.py" />
+    <Compile Include="test\test_regression_88.py" />
+    <Compile Include="test\test_regression_89.py" />
+    <Compile Include="test\test_regression_90.py" />
+    <Compile Include="test\test_util_pytest.py" />
+    <Compile Include="versioneer.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="docs" />
+    <Folder Include="python_jsonschema_objects" />
+    <Folder Include="python_jsonschema_objects\examples" />
+    <Folder Include="test" />
+    <Folder Include="test\resources" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

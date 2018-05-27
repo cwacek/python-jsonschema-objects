@@ -29,13 +29,20 @@ def format_number(param, value, details):
             pass
     return value
 
+@converter_registry.register(name='enum')
+def convert_enum(param, value, details):
+    if isinstance(value, six.integer_types) and 'enum' in details:
+        if (value-1) < len(details['enum']):
+            return details['enum'][value-1]
+    return value
 
 def test_converters():
     schema = {
       'type': 'object',
       'title': 'BooleanConversion',
       'properties': {
-          'answer': {'type': 'boolean'}
+          'answer': {'type': 'boolean'},
+          'choice': {'enum': ['A', 'B', 'C'] }
         }
       }
     builder = pjo.ObjectBuilder(schema)
@@ -47,6 +54,10 @@ def test_converters():
     assert bc.answer == False
     bc.answer = True
     assert bc.answer == True
+    bc.choice = 'A'
+    assert bc.choice == 'A'
+    bc.choice = 2
+    assert bc.choice == 'B'
     with pytest.raises(pjo.ValidationError):
         bc.answer = "string not handled in boolean converter"
 

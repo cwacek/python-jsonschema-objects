@@ -69,7 +69,7 @@ class LiteralValue(object):
 
   def _format(self):
       info = self.propinfo('__literal__')
-      formatter  = validators.formatter_registry(info['type'])
+      formatter  = validators.formatter_registry(info.get('type','string'))
       return formatter(self, self._value, info) if formatter else self._value
 
   def __str__(self):
@@ -80,7 +80,8 @@ class LiteralValue(object):
 
   def validate(self):
       info = self.propinfo('__literal__')
-      converter  = validators.converter_registry(info['type'])
+      type_ = 'enum' if 'enum' in info else info.get('type','string')
+      converter  = validators.converter_registry(type_)
       if converter:
           self._value = converter(self, self._value, info)
       # TODO: this duplicates logic in validators.ArrayValidator.check_items; unify it.
