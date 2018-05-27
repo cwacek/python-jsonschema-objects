@@ -84,7 +84,7 @@ def propmerge(into, data_from):
 
             elif subprop == 'type':
                 def is_object(val):
-                    return (val == 'object') or hasattr(val,'__propinfo__')
+                    return (val == 'object') or hasattr(val, '__propinfo__')
                 if spval != new_sp[subprop]:
                     if (is_object(spval) and is_object(new_sp[subprop])):
                         # not sure what other tests should be done there
