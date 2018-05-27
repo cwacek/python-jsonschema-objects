@@ -83,8 +83,14 @@ def propmerge(into, data_from):
                 new_sp[subprop] = set(spval) & set(new_sp[subprop])
 
             elif subprop == 'type':
+                def is_object(val):
+                    return (val == 'object') or hasattr(val,'__propinfo__')
                 if spval != new_sp[subprop]:
-                    raise TypeError("Type cannot conflict in allOf'")
+                    if (is_object(spval) and is_object(new_sp[subprop])):
+                        # not sure what other tests should be done there
+                        pass
+                    else:
+                        raise TypeError("Type cannot conflict in allOf'")
 
             elif subprop in ('minLength', 'minimum'):
                 new_sp[subprop] = (new_sp[subprop] if
