@@ -559,7 +559,8 @@ class ClassBuilder(object):
 
         properties = {}
         for p in parents:
-            properties = util.propmerge(properties, p.__propinfo__)
+            properties = pjo_util.propmerge(properties,
+                                            getattr(p, '__propinfo__', {}))
 
         if 'properties' in clsdata:
             properties = util.propmerge(properties, clsdata['properties'])
