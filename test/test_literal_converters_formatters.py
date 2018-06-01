@@ -79,7 +79,7 @@ def test_formatters():
     assert str(ff.new_format) == '23.60%'
     assert str(ff.old_format) == '0.39'
     serialized = ff.serialize()
-    assert serialized == '{"old_format": 0.385, "new_format": 0.236}'
+    assert serialized == '{"new_format": 0.236, "old_format": 0.385}'
 
 
 if __name__ == '__main__':

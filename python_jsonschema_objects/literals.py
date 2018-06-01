@@ -38,6 +38,13 @@ class LiteralValue(object):
       if self._value is None and self.default() is not None:
           self._value = self.default()
 
+      if validators.converter_registry.registry:
+          info = self.propinfo('__literal__')
+          type_ = 'enum' if 'enum' in info else info.get('type','string')
+          converter  = validators.converter_registry(type_)
+          if converter:
+              self._value = converter(self, self._value, info)
+
       self.validate()
 
   def as_dict(self):
@@ -68,9 +75,12 @@ class LiteralValue(object):
       )
 
   def _format(self):
-      info = self.propinfo('__literal__')
-      formatter  = validators.formatter_registry(info.get('type','string'))
-      return formatter(self, self._value, info) if formatter else self._value
+      if validators.formatter_registry.registry:
+          info = self.propinfo('__literal__')
+          formatter  = validators.formatter_registry(info.get('type','string'))
+          return formatter(self, self._value, info) if formatter else self._value
+      else:
+          return self._value
 
   def __str__(self):
       value = self._format()
@@ -80,10 +90,6 @@ class LiteralValue(object):
 
   def validate(self):
       info = self.propinfo('__literal__')
-      type_ = 'enum' if 'enum' in info else info.get('type','string')
-      converter  = validators.converter_registry(type_)
-      if converter:
-          self._value = converter(self, self._value, info)
       # TODO: this duplicates logic in validators.ArrayValidator.check_items; unify it.
       for param, paramval in sorted(six.iteritems(info),
                                     key=lambda x: x[0].lower() != 'type'):
