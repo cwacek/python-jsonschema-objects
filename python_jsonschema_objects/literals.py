@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from python_jsonschema_objects import util
 from python_jsonschema_objects import validators
 import functools
 import logging
 import six
+import sys
 import operator
 
 
@@ -63,12 +66,26 @@ class LiteralValue(object):
   def __repr__(self):
       return "<Literal<%s> %s>" % (
           self._value.__class__.__name__,
-          str(self._value)
+          str(self)
       )
 
+  #def __str__(self):
+  #    if isinstance(self._value, six.string_types):
+  #        return self._value
+  #    return str(self._value)
+
+  def __unicode__(self):
+      if isinstance(self._value, six.string_types):
+          return util.get_unicode(self._value)
+      return str(self._value)
+  
   def __str__(self):
       if isinstance(self._value, six.string_types):
-        return self._value
+          if six.PY2:
+              return util.get_unicode(self._value).encode(
+                  sys.getdefaultencoding(), 'ignore')
+          else:
+              return util.get_unicode(self._value)
       return str(self._value)
 
   def validate(self):

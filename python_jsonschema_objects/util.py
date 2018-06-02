@@ -222,3 +222,10 @@ def as_namespace(obj, names=None):
 
     # default
     return Namespace.from_object(obj, names)
+
+
+def get_unicode(strOrUnicode, encoding='utf-8'):
+    import sys
+    if isinstance(strOrUnicode, six.text_type):
+        return strOrUnicode
+    return six.text_type(strOrUnicode, encoding, errors='ignore')
