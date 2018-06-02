@@ -76,22 +76,12 @@ class ProtocolBase(collections.MutableMapping):
 
         return self.as_dict() == other.as_dict()
 
-    #def __str__(self):
-    #    inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
-    #    props = sorted(["%s" % (inverter.get(k, k),) for k, v in
-    #             itertools.chain(six.iteritems(self._properties),
-    #                             six.iteritems(self._extended_properties))])
-    #    return "<%s attributes: %s>" % (self.__class__.__name__, ", ".join(props))
-
-    def __unicode__(self):
+    def __str__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
         props = sorted(["%s" % (inverter.get(k, k),) for k, v in
                  itertools.chain(six.iteritems(self._properties),
                                  six.iteritems(self._extended_properties))])
         return "<%s attributes: %s>" % (self.__class__.__name__, ", ".join(props))
-    
-    def __str__(self):
-        return six.text_type(self).encode('utf-8')
 
     def __repr__(self):
         inverter = dict((v, k) for k,v in six.iteritems(self.__prop_names__))
