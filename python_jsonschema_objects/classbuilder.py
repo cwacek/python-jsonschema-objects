@@ -273,7 +273,8 @@ class ProtocolBase(collections.MutableMapping):
                 val.validate()
             elif getattr(val, 'isLiteralClass', None) is True:
                 val.validate()
-            elif isinstance(val, list):
+            elif isinstance(val, python_jsonschema_objects.
+                            wrapper_types.ArrayWrapper):
                 for subval in val:
                   subval.validate()
             else:
