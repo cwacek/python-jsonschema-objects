@@ -69,11 +69,6 @@ class LiteralValue(object):
           str(self)
       )
 
-  #def __str__(self):
-  #    if isinstance(self._value, six.string_types):
-  #        return self._value
-  #    return str(self._value)
-
   def __unicode__(self):
       if isinstance(self._value, six.string_types):
           return util.get_unicode(self._value)
