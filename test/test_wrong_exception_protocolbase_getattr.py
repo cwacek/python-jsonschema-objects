@@ -27,8 +27,10 @@ def test_wrong_exception_protocolbase_getattr(base_schema):
     to declare it as an object of additional properties.
     When trying to use it as dict, for instance testing if a key is inside
     the dictionary, methods like __contains__ in the ProtocolBase expect
-    getattr to raise a KeyError. For additional properties, the error raised
-    is AttributeError, breaking the expected behaviour.
+    __getitem__ to raise a KeyError. getitem calls __getattr__ without any 
+    exception handling, which raises an AttributeError (necessary for proper
+    behaviour of getattr, for instance).
+    Solution found is to handle AttributeError in getitem and to raise KeyError
     """
     builder = pjo.ObjectBuilder(base_schema)
     ns = builder.build_classes()
@@ -37,6 +39,7 @@ def test_wrong_exception_protocolbase_getattr(base_schema):
     t.validate()
     assert 'a' in t.dictLike
     assert not 'c' in t.dictLike
+    assert getattr(t,'not_present',None) == None
 
 if __name__ == '__main__':
     test_wrong_exception_protocolbase_getattr(base_schema()) 
