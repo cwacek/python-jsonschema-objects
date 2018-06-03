@@ -21,7 +21,7 @@ def base_schema():
     }
 
 
-def test_wrong_exception_protocolbase_getattr(base_schema):
+def test_wrong_exception_protocolbase_getitem(base_schema):
     """
     to declare a dict like object in json-schema, we are supposed
     to declare it as an object of additional properties.
@@ -42,4 +42,4 @@ def test_wrong_exception_protocolbase_getattr(base_schema):
     assert getattr(t,'not_present',None) == None
 
 if __name__ == '__main__':
-    test_wrong_exception_protocolbase_getattr(base_schema()) 
+    test_wrong_exception_protocolbase_getitem(base_schema()) 
