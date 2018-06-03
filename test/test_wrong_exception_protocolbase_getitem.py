@@ -13,7 +13,7 @@ def base_schema():
           "dictLike": {
             "additionalProperties": {
               "type": "integer"
-            }, 
+            },
             "type": "object"
           }
         }
@@ -37,7 +37,7 @@ def test_wrong_exception_protocolbase_getitem(base_schema):
     t = ns.Example(dictLike={'a': 0, 'b': 1})
     t.validate()
     assert 'a' in t.dictLike
-    assert not 'c' in t.dictLike
+    assert 'c' not in t.dictLike
     assert getattr(t, 'not_present', None) is None
 
 
