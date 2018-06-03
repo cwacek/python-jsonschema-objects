@@ -233,6 +233,7 @@ class ProtocolBase(collections.MutableMapping):
         if name in self.__prop_names__:
             raise KeyError(name)
         if name not in self._extended_properties:
+            #raise KeyError(name)
             raise AttributeError("{0} is not a valid property of {1}".format(
                                  name, self.__class__.__name__))
 
