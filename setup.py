@@ -77,7 +77,7 @@ if __name__ == '__main__':
           setup_requires=["setuptools>=18.0.0"],
           install_requires=[
               "inflection~=0.2",
-              "Markdown==2.4",
+              "Markdown~=2.4",
               "jsonschema~=2.3",
               "six>=1.5.2"
           ],
