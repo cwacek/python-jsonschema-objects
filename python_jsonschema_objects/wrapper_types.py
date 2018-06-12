@@ -124,7 +124,7 @@ class ArrayWrapper(collections.MutableSequence):
         if getattr(self, 'maxItems', None) is not None:
             if len(self.data) > self.maxItems:
                 raise ValidationError(
-                    "{1} has too few elements. Wanted {0}."
+                    "{1} has too many elements. Wanted {0}."
                     .format(self.maxItems, self.data))
 
     def validate_items(self):
