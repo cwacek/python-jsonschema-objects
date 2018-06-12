@@ -3,6 +3,7 @@ import python_jsonschema_objects.validators as validators
 import python_jsonschema_objects.pattern_properties as pattern_properties
 from python_jsonschema_objects.literals import LiteralValue
 
+import copy
 import collections
 import itertools
 import six
@@ -164,7 +165,9 @@ class ProtocolBase(collections.MutableMapping):
         # but only for the ones that have defaults set.
         for name in self.__has_default__:
             if name not in props:
-                default_value = self.__propinfo__[name]['default']
+                default_value = copy.deepcopy(
+                    self.__propinfo__[name]['default']
+                )
                 logger.debug(util.lazy_format("Initializing '{0}' to '{1}'",
                                               name, default_value))
                 setattr(self, name, default_value)
