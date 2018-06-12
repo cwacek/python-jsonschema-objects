@@ -369,6 +369,43 @@ The schema and code example below show how this works.
 
 ```
 
+``` schema
+{
+    "title": "Inner Named Objects",
+    "id": "foo",
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/exampleitem"
+    },
+    "definitions": {
+        "exampleitem": {
+            "title": "exampleitem",
+            "type": "object",
+            "properties": {
+                "name": {
+                "type": "string"
+                }
+            }
+
+        }
+    }
+}
+```
+
+``` python
+>>> builder = pjs.ObjectBuilder(examples["Inner Named Objects"])
+>>> classes = builder.build_classes()
+>>> 'Exampleitem' in dir(classes)
+True
+>>> x = classes.InnerNamedObjects()
+>>> x.append({"name": "myname"})
+>>> x.append("foo")  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValidationError
+
+```
+
 ## Installation
 
     pip install python_jsonschema_objects
