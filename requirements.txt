@@ -1,4 +1,4 @@
-Markdown==2.4
+Markdown~=2.4
 inflection==0.2.0
 jsonschema>=2.4.0
 pandocfilters>=1.2
