@@ -68,8 +68,9 @@ class ProtocolJSONEncoder(json.JSONEncoder):
 def propmerge(into, data_from):
     """ Merge JSON schema requirements into a dictionary """
     newprops = copy.deepcopy(into)
+    data_from_copy = copy.deepcopy(data_from)
 
-    for prop, propval in six.iteritems(data_from):
+    for prop, propval in six.iteritems(data_from_copy):
         if prop not in newprops:
             newprops[prop] = propval
             continue
