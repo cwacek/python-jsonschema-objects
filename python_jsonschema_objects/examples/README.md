@@ -137,6 +137,76 @@ TypeError: unsupported operand type(s) for /: 'str' and 'int'
 
 ```
 
+## Accessing Generated Objects
+
+Sometimes what you really want to do is define a couple
+of different objects in a schema, and then be able to use
+them flexibly.
+
+Any object built as a reference can be obtained from the top
+level namespace. Thus, to obtain multiple top level classes,
+define them separately in a definitions structure, then simply
+make the top level schema refer to each of them as a `oneOf`.
+
+Other classes identified during the build process will also be
+available from the top level object. However, if you pass `named_only`
+to the build_classes call, then only objects with a `title` will be
+included in the output namespace.
+
+Finally, by default, the names in the returned namespace are transformed
+by passing them through a camel case function. If you want to have names unchanged,
+pass `standardize_names=False` to the build call.
+
+The schema and code example below show how this works.
+
+``` schema
+{
+    "title": "MultipleObjects",
+    "id": "foo",
+    "type": "object",
+    "oneOf":[
+            {"$ref": "#/definitions/ErrorResponse"},
+            {"$ref": "#/definitions/VersionGetResponse"}
+            ],
+    "definitions": {
+        "ErrorResponse": {
+            "title": "Error Response",
+            "id": "Error Response",
+            "type": "object",
+            "properties": {
+                "message": {"type": "string"},
+                "status": {"type": "integer"}
+            },
+            "required": ["message", "status"]
+        },
+        "VersionGetResponse": {
+            "title": "Version Get Response",
+            "type": "object",
+            "properties": {
+                "local": {"type": "boolean"},
+                "version": {"type": "string"}
+            },
+            "required": ["version"]
+        }
+    }
+}
+```
+
+``` python
+>>> builder = pjs.ObjectBuilder(examples["MultipleObjects"])
+>>> classes = builder.build_classes()
+>>> [str(x) for x in dir(classes)]
+['ErrorResponse', 'Local', 'Message', 'Multipleobjects', 'Status', 'Version', 'VersionGetResponse']
+>>> classes = builder.build_classes(named_only=True, standardize_names=False)
+>>> [str(x) for x in dir(classes)]
+['Error Response', 'MultipleObjects', 'Version Get Response']
+>>> classes = builder.build_classes(named_only=True)
+>>> [str(x) for x in dir(classes)]
+['ErrorResponse', 'Multipleobjects', 'VersionGetResponse']
+
+```
+
+
 ## Supported Operators
 
 ### $ref
@@ -160,61 +230,6 @@ below) to create a wrapper object that is just a string literal.
 >>> ns = builder.build_classes()
 >>> ns.JustAReference('Hello')
 <Literal<str> Hello>
-
-```
-
-#### The "memory:" URI
-
-The ObjectBuilder can be passed a dictionary specifying
-'memory' schemas when instantiated. This will allow it to
-resolve references where the referenced schemas are retrieved
-out of band and provided at instantiation.
-
-For instance, given the following schemas:
-
-``` schema
-{
-    "title": "Address",
-    "type": "string"
-}
-```
-
-``` schema
-{
-    "title": "AddlPropsAllowed",
-    "type": "object",
-    "additionalProperties": true
-}
-```
-
-``` schema
-{
-    "title": "Other",
-    "type": "object",
-    "properties": {
-        "MyAddress": {"$ref": "memory:Address"}
-    },
-    "additionalProperties": false
-}
-```
-
-The ObjectBuilder can be used to build the "Other" object by
-passing in a definition for "Address".
-
-``` python
->>> builder = pjs.ObjectBuilder(examples['Other'], resolved={"Address": {"type":"string"}})
->>> builder.validate({"MyAddress": '1234'})
->>> ns = builder.build_classes()
->>> thing = ns.Other()
->>> thing
-<other MyAddress=None>
->>> thing.MyAddress = "Franklin Square"
->>> thing
-<other MyAddress=<Literal<str> Franklin Square>>
->>> thing.MyAddress = 423  # doctest: +IGNORE_EXCEPTION_DETAIL
-Traceback (most recent call last):
-    ...
-ValidationError: 432 is not a string
 
 ```
 
@@ -275,6 +290,61 @@ ValidationError: '[u'author']' are required attributes for B
 
 ```
 
+#### The "memory:" URI
+
+The ObjectBuilder can be passed a dictionary specifying
+'memory' schemas when instantiated. This will allow it to
+resolve references where the referenced schemas are retrieved
+out of band and provided at instantiation.
+
+For instance, given the following schemas:
+
+``` schema
+{
+    "title": "Address",
+    "type": "string"
+}
+```
+
+``` schema
+{
+    "title": "AddlPropsAllowed",
+    "type": "object",
+    "additionalProperties": true
+}
+```
+
+``` schema
+{
+    "title": "Other",
+    "type": "object",
+    "properties": {
+        "MyAddress": {"$ref": "memory:Address"}
+    },
+    "additionalProperties": false
+}
+```
+
+The ObjectBuilder can be used to build the "Other" object by
+passing in a definition for "Address".
+
+``` python
+>>> builder = pjs.ObjectBuilder(examples['Other'], resolved={"Address": {"type":"string"}})
+>>> builder.validate({"MyAddress": '1234'})
+>>> ns = builder.build_classes()
+>>> thing = ns.Other()
+>>> thing
+<other MyAddress=None>
+>>> thing.MyAddress = "Franklin Square"
+>>> thing
+<other MyAddress=<Literal<str> Franklin Square>>
+>>> thing.MyAddress = 423  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValidationError: 432 is not a string
+
+```
+
 ### oneOf
 
 Generated wrappers can properly deserialize data
@@ -313,60 +383,6 @@ schemas are unique.
             ],
     "additionalProperties": false
 }
-```
-
-## Generating Multiple Top Level Objects
-
-Sometimes what you really want to do is define a couple
-of different objects in a schema, and then be able to use
-them flexibly.
-
-Any object built as a reference can be obtained from the top
-level namespace. Thus, to obtain multiple top level classes,
-define them separately in a definitions structure, then simply
-make the top level schema refer to each of them as a `oneOf`.
-
-The schema and code example below show how this works.
-
-``` schema
-{
-    "title": "MultipleObjects",
-    "id": "foo",
-    "type": "object",
-    "oneOf":[
-            {"$ref": "#/definitions/ErrorResponse"},
-            {"$ref": "#/definitions/VersionGetResponse"}
-            ],
-    "definitions": {
-        "ErrorResponse": {
-            "title": "Error Response",
-            "id": "Error Response",
-            "type": "object",
-            "properties": {
-                "message": {"type": "string"},
-                "status": {"type": "integer"}
-            },
-            "required": ["message", "status"]
-        },
-        "VersionGetResponse": {
-            "title": "Version Get Response",
-            "type": "object",
-            "properties": {
-                "local": {"type": "boolean"},
-                "version": {"type": "string"}
-            },
-            "required": ["version"]
-        }
-    }
-}
-```
-
-``` python
->>> builder = pjs.ObjectBuilder(examples["MultipleObjects"])
->>> classes = builder.build_classes()
->>> [str(x) for x in dir(classes)]
-['ErrorResponse', 'Local', 'Message', 'Multipleobjects', 'Status', 'Version', 'VersionGetResponse']
-
 ```
 
 ## Installation

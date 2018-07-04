@@ -548,6 +548,7 @@ class ClassBuilder(object):
       cls = type(str(nm), tuple((LiteralValue,)), {
         '__propinfo__': {
             '__literal__': clsdata,
+            '__title__': clsdata.get('title'),
             '__default__': clsdata.get('default')}
         })
 
@@ -714,6 +715,8 @@ class ClassBuilder(object):
         props['__has_default__'] = defaults
         if required and kw.get("strict"):
             props['__strict__'] = True
+
+        props['__title__'] = clsdata.get('title')
         cls = type(str(nm.split('/')[-1]), tuple(parents), props)
         self.under_construction.remove(nm)
 

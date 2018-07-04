@@ -92,22 +92,39 @@ class ObjectBuilder(object):
             raise ValidationError(e)
 
 
-    def build_classes(self,strict=False):
+    def build_classes(self,strict=False, named_only=False, standardize_names=True):
         """
+        Build all of the classes named in the JSONSchema.
+
+        Class names will be transformed using inflection by default, so names with spaces in the
+        schema will be camelcased, while names without spaces will have internal capitalization
+        dropped. Thus "Home Address" becomes "HomeAddress", while "HomeAddress" becomes "Homeaddress"
+        To disable this behavior, pass standardize_names=False, but be aware that accessing names
+        with spaces from the namespace can be problematic.
 
         Args:
-            strict: use this to validate required fields while creating the class
+            strict: (bool) use this to validate required fields while creating the class
+            named_only: (bool) If true, only properties with an actual title attribute will
+                be included in the resulting namespace (although all will be generated).
+            standardize_names: (bool) If true (the default), class names will be tranformed
+                by camel casing
 
         Returns:
+            A namespace containing all the generated classes
 
         """
         kw = {"strict": strict}
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in iteritems(self.schema.get('definitions', {})):
-            uri = util.resolve_ref_uri(
+            uri = python_jsonschema_objects.util.resolve_ref_uri(
                 self.resolver.resolution_scope,
                 "#/definitions/" + nm)
             builder.construct(uri, defn, **kw)
+
+        if standardize_names:
+            name_transform = lambda t: inflection.camelize(inflection.parameterize(six.text_type(t), '_'))
+        else:
+            name_transform = lambda t: t
 
         nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
         nm = inflection.parameterize(six.text_type(nm), '_')
@@ -115,12 +132,15 @@ class ObjectBuilder(object):
         builder.construct(nm, self.schema,**kw)
         self._resolved = builder.resolved
 
-        return (
-            util.Namespace.from_mapping(dict(
-                (inflection.camelize(uri.split('/')[-1]),
-                 klass) for uri,
-                klass in six.iteritems(builder.resolved)))
-        )
+        classes = {}
+        for uri, klass in six.iteritems(builder.resolved):
+            title = getattr(klass, '__title__', None)
+            if title is not None:
+                classes[name_transform(title)] = klass
+            elif not named_only:
+                classes[name_transform(uri.split('/')[-1])] = klass
+
+        return python_jsonschema_objects.util.Namespace.from_mapping(classes)
 
 
 if __name__ == '__main__':
