@@ -91,16 +91,17 @@ class ObjectBuilder(object):
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
 
-
     def build_classes(self,strict=False, named_only=False, standardize_names=True):
         """
         Build all of the classes named in the JSONSchema.
 
-        Class names will be transformed using inflection by default, so names with spaces in the
-        schema will be camelcased, while names without spaces will have internal capitalization
-        dropped. Thus "Home Address" becomes "HomeAddress", while "HomeAddress" becomes "Homeaddress"
-        To disable this behavior, pass standardize_names=False, but be aware that accessing names
-        with spaces from the namespace can be problematic.
+        Class names will be transformed using inflection by default, so names
+        with spaces in the schema will be camelcased, while names without
+        spaces will have internal capitalization dropped. Thus "Home Address"
+        becomes "HomeAddress", while "HomeAddress" becomes "Homeaddress" To
+        disable this behavior, pass standardize_names=False, but be aware
+        that accessing names with spaces from the namespace can be
+        problematic.
 
         Args:
             strict: (bool) use this to validate required fields while creating the class
