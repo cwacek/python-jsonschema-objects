@@ -586,7 +586,7 @@ class ClassBuilder(object):
             if 'oneOf' in detail:
                 one_of_list = detail['oneOf']
                 if 'required' in one_of_list[0]:
-                  skip_one_of = True
+                    skip_one_of = True
 
             if detail.get('default', None) is not None:
                 defaults.add(prop)
