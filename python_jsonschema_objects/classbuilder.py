@@ -72,6 +72,10 @@ class ProtocolBase(collections.MutableMapping):
     def __eq__(self, other):
         if not isinstance(other, ProtocolBase):
             return False
+        if other:
+            return self.as_dict() == other.as_dict()
+        else:
+            return False
 
         return self.as_dict() == other.as_dict()
 
@@ -578,6 +582,12 @@ class ClassBuilder(object):
             properties[prop]['raw_name'] = prop
             name_translation[prop] = prop.replace('@', '')
             prop = name_translation[prop]
+            
+            skip_one_of = False
+            if 'oneOf' in detail:
+                one_of_list = detail['oneOf']
+                if 'required' in one_of_list[0]:
+                skip_one_of = True
 
             if detail.get('default', None) is not None:
                 defaults.add(prop)
@@ -613,7 +623,7 @@ class ClassBuilder(object):
                 properties[prop]['$ref'] = uri
                 properties[prop]['type'] = typ
 
-            elif 'oneOf' in detail:
+            elif 'oneOf' in detail and not skip_one_of:
                 potential = self.resolve_classes(detail['oneOf'])
                 logger.debug(util.lazy_format("Designating {0} as oneOf {1}", prop, potential))
                 desc = detail[
