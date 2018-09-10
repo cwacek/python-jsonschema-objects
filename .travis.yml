@@ -13,9 +13,12 @@ before_script:
   - ./cc-test-reporter before-build
 
 install:
-- pip install tox-travis tox
+- pip install tox-travis tox black
 
-script: tox
+
+script:
+- black --check --diff
+- tox
 
 after_script:
   - ./cc-test-reporter --debug after-build --exit-code $TRAVIS_TEST_RESULT
