@@ -14,7 +14,7 @@ def test_schema_validation():
     """
     schema = {
         "$schema": "http://json-schema.org/schema#",
-        "id": "test",
+        "$id": "test",
         "type": "object",
         "properties": {
                 "name": "string",
@@ -29,7 +29,7 @@ def test_schema_validation():
 def test_regression_9():
     schema = {
         "$schema": "http://json-schema.org/schema#",
-        "id": "test",
+        "$id": "test",
         "type": "object",
         "properties": {
                 "name": {"type": "string"},
@@ -101,7 +101,7 @@ def test_underscore_properties():
 def test_array_regressions():
     schema = {
         "$schema": "http://json-schema.org/schema#",
-        "id": "test",
+        "$id": "test",
         "type": "object",
         "properties": {
                 "name": {"type": "string"},
@@ -137,7 +137,7 @@ def test_array_regressions():
 def test_arrays_can_have_reffed_items_of_mixed_type():
     schema = {
             "$schema": "http://json-schema.org/schema#",
-            "id": "test",
+            "$id": "test",
             "type": "object",
             "properties": {
                 "list": {
@@ -462,7 +462,7 @@ def test_strict_mode():
                 "firstName": {"type": "string"},
                 "lastName": {"type":"string"},
         },
-        "id":"test",
+        "$id":"test",
         "title":"Name Data",
         "required": ["firstName"]
     }
@@ -480,7 +480,7 @@ def test_strict_mode():
 def test_boolean_in_child_object():
     schema = {
         "$schema": "http://json-schema.org/schema#",
-        "id": "test",
+        "$id": "test",
         "type": "object",
         "properties": {
             "data": {
@@ -505,7 +505,7 @@ def test_default_values(default):
     default = json.loads(default)
     schema = {
         "$schema": "http://json-schema.org/schema#",
-        "id": "test",
+        "$id": "test",
         "type": "object",
         "properties": {
             "sample": default
