@@ -462,7 +462,7 @@ def test_strict_mode():
                 "firstName": {"type": "string"},
                 "lastName": {"type":"string"},
         },
-        "$id":"test",
+        "$id": "test",
         "title":"Name Data",
         "required": ["firstName"]
     }
