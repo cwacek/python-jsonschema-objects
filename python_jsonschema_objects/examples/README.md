@@ -76,6 +76,11 @@ Traceback (most recent call last):
     ...
 ValidationError: -2 is less than 0
 
+>>> james.dogs= ["Jasper", "Spot", "Noodles", "Fido", "Dumbo"]  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValidationError: ["Jasper", "Spot", "Noodles", "Fido", "Dumbo"]  has too many elements. Wanted 4.
+
 ```
 
 The object can be serialized out to JSON. Options are passed

@@ -653,13 +653,13 @@ class ClassBuilder(object):
                                 typ = self.construct(uri, detail['items'])
                             propdata = {'type': 'array',
                                         'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri, item_constraint=typ,
-                                                                                                                 addl_constraints=detail)}
+                                                                                                                 **detail)}
                         except NotImplementedError:
                             typ = detail['items']
                             propdata = {'type': 'array',
                                         'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri,
                                                                                                                  item_constraint=typ,
-                                                                                                                 addl_constraints=detail)}
+                                                                                                                 **detail)}
 
                     props[prop] = make_property(prop,
                                                 propdata,
