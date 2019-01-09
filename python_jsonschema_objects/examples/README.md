@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/cwacek/python-jsonschema-objects.svg?branch=master)](https://travis-ci.org/cwacek/python-jsonschema-objects)
+[![Reviewed by Hound](https://img.shields.io/badge/Reviewed_by-Hound-8E64B0.svg)](https://houndci.com)
 
 ## What
 
