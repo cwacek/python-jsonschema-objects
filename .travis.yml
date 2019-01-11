@@ -9,8 +9,7 @@ env:
     - CC_TEST_REPORTER_ID=dc84306013e5ab029d115d8c2f9b27f23ee83b8d73c2dc35fed00954769fc76b
 
 stages:
-  - name: lint
-    if: env(TRAVIS_PYTHON_VERSION) =~ ^3\.[67].*$
+  - lint
   - test
   - name: deploy
     if: tag IS present
