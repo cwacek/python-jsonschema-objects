@@ -633,7 +633,8 @@ class ClassBuilder(object):
                             'type': 'array',
                             'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
                                 uri,
-                                item_constraint=typ)}
+                                item_constraint=typ,
+                                **detail)}
                     else:
                         uri = "{0}/{1}_{2}".format(nm,
                                                    prop, "<anonymous_field>")
