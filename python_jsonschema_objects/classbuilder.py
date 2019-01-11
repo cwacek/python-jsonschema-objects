@@ -681,24 +681,22 @@ class ClassBuilder(object):
                                     ]
                                 )
                             else:
-                                typ = self.construct(uri, detail["items"])
-                            propdata = {
-                                "type": "array",
-                                "validator": python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
-                                    uri, item_constraint=typ, addl_constraints=detail
-                                ),
-                            }
-                        except NotImplementedError:
-                            typ = detail["items"]
-                            propdata = {
-                                "type": "array",
-                                "validator": python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
-                                    uri, item_constraint=typ, addl_constraints=detail
-                                ),
-                            }
 
-                    props[prop] = make_property(prop, propdata, typ.__doc__)
-                elif "items" in detail:
+                                typ = self.construct(uri, detail['items'])
+                            propdata = {'type': 'array',
+                                        'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri, item_constraint=typ,
+                                                                                                                 **detail)}
+                        except NotImplementedError:
+                            typ = detail['items']
+                            propdata = {'type': 'array',
+                                        'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(uri,
+                                                                                                                 item_constraint=typ,
+                                                                                                                 **detail)}
+
+                    props[prop] = make_property(prop,
+                                                propdata,
+                                                typ.__doc__)
+                elif 'items' in detail:
                     typs = []
                     for i, elem in enumerate(detail["items"]):
                         uri = "{0}/{1}/<anonymous_{2}>".format(nm, prop, i)
