@@ -12,13 +12,25 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 
-install:
-- pip install tox-travis tox black
+stages:
+  - name: lint
+    if: env(TRAVIS_PYTHON_VERSION) =~ ^3\.[67].*$
+  - test
+  - name: deploy
+    if: branch = master
 
+jobs:
+  include:
+    - stage: lint
+      install:
+        - pip install black
+      script:
+        - black --check --diff
+    - stage: test
+      install:
+        - pip install tox-travis tox
+      script: tox
 
-script:
-- black --check --diff
-- tox
 
 after_script:
   - ./cc-test-reporter --debug after-build --exit-code $TRAVIS_TEST_RESULT
@@ -26,6 +38,7 @@ after_script:
 deploy:
   distributions: "sdist bdist_wheel"
   provider: pypi
+  skip_existing: true
   user: cwacek
   password:
     secure: oaPdY7TNgXrpUs0R89nODGCD5gFiiHInBXQST/wj4PRfP/jNj7A1H70n0E/X6NzhhmTWTtGXmgiItMs+gSv1nMvfAGDKMCSh1BQQ6ByRa58MT7P+ORnCaNdxy3dM+40a+JTv8fdGNgTmVDyVGOtSrbt4etD7wEHayVom0XcYBW0=
