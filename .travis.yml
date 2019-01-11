@@ -3,14 +3,10 @@ python:
 - '2.7'
 - '3.5'
 - '3.6'
+- '3.7'
 env:
   global:
     - CC_TEST_REPORTER_ID=dc84306013e5ab029d115d8c2f9b27f23ee83b8d73c2dc35fed00954769fc76b
-
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
 
 stages:
   - name: lint
@@ -27,22 +23,26 @@ jobs:
       script:
         - black --check --diff
     - stage: test
+      before_script:
+        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        - chmod +x ./cc-test-reporter
+        - ./cc-test-reporter before-build
       install:
         - pip install tox-travis tox
-      script: tox
-
-
-after_script:
-  - ./cc-test-reporter --debug after-build --exit-code $TRAVIS_TEST_RESULT
-
-deploy:
-  distributions: "sdist bdist_wheel"
-  provider: pypi
-  skip_existing: true
-  user: cwacek
-  password:
-    secure: oaPdY7TNgXrpUs0R89nODGCD5gFiiHInBXQST/wj4PRfP/jNj7A1H70n0E/X6NzhhmTWTtGXmgiItMs+gSv1nMvfAGDKMCSh1BQQ6ByRa58MT7P+ORnCaNdxy3dM+40a+JTv8fdGNgTmVDyVGOtSrbt4etD7wEHayVom0XcYBW0=
-  on:
-    tags: true
-    repo: cwacek/python-jsonschema-objects
-    branch: master
+      script:
+        - tox
+      after_script:
+        - ./cc-test-reporter --debug after-build --exit-code $TRAVIS_TEST_RESULT
+    - stage: deploy
+      script: skip
+      deploy:
+        distributions: "sdist bdist_wheel"
+        provider: pypi
+        skip_existing: true
+        user: cwacek
+        password:
+          secure: oaPdY7TNgXrpUs0R89nODGCD5gFiiHInBXQST/wj4PRfP/jNj7A1H70n0E/X6NzhhmTWTtGXmgiItMs+gSv1nMvfAGDKMCSh1BQQ6ByRa58MT7P+ORnCaNdxy3dM+40a+JTv8fdGNgTmVDyVGOtSrbt4etD7wEHayVom0XcYBW0=
+        on:
+          tags: true
+          repo: cwacek/python-jsonschema-objects
+          branch: master
