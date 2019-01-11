@@ -3,7 +3,6 @@ python:
 - '2.7'
 - '3.5'
 - '3.6'
-- '3.7'
 env:
   global:
     - CC_TEST_REPORTER_ID=dc84306013e5ab029d115d8c2f9b27f23ee83b8d73c2dc35fed00954769fc76b
@@ -21,7 +20,7 @@ jobs:
       install:
         - pip install black
       script:
-        - black --check --diff
+        - black --check --diff $(find python_jsonschema_objects -name '*.py' -print)
     - stage: deploy
       python: 3.6
       script: skip
