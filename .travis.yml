@@ -13,27 +13,18 @@ stages:
     if: env(TRAVIS_PYTHON_VERSION) =~ ^3\.[67].*$
   - test
   - name: deploy
-    if: branch = master
+    if: tag IS present
 
 jobs:
   include:
     - stage: lint
+      python: 3.6
       install:
         - pip install black
       script:
         - black --check --diff
-    - stage: test
-      before_script:
-        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-        - chmod +x ./cc-test-reporter
-        - ./cc-test-reporter before-build
-      install:
-        - pip install tox-travis tox
-      script:
-        - tox
-      after_script:
-        - ./cc-test-reporter --debug after-build --exit-code $TRAVIS_TEST_RESULT
     - stage: deploy
+      python: 3.6
       script: skip
       deploy:
         distributions: "sdist bdist_wheel"
@@ -46,3 +37,14 @@ jobs:
           tags: true
           repo: cwacek/python-jsonschema-objects
           branch: master
+
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+install:
+  - pip install tox-travis tox
+script:
+  - tox
+after_script:
+      - ./cc-test-reporter --debug after-build --exit-code $TRAVIS_TEST_RESULT
