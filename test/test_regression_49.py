@@ -8,27 +8,19 @@ import json
 @pytest.fixture
 def bad_schema_49():
     return {
-        'title': 'example',
-        'type': 'array',
-        'items': {
-            'oneOf': [
+        "title": "example",
+        "type": "array",
+        "items": {
+            "oneOf": [
                 {
-                    'type': 'object',
-                    'properties': {
-                        'a': {
-                            'type': 'string',
-                        }
-                    },
-                    'required': ['a'],
+                    "type": "object",
+                    "properties": {"a": {"type": "string"}},
+                    "required": ["a"],
                 },
                 {
-                    'type': 'object',
-                    'properties': {
-                        'b': {
-                            'type': 'string',
-                        }
-                    },
-                    'required': ['b'],
+                    "type": "object",
+                    "properties": {"b": {"type": "string"}},
+                    "required": ["b"],
                 },
             ]
         },
@@ -37,7 +29,7 @@ def bad_schema_49():
 
 @pytest.fixture
 def instance():
-    return [{"a": ''}, {"b": ""}]
+    return [{"a": ""}, {"b": ""}]
 
 
 def test_is_valid_jsonschema(bad_schema_49, instance):

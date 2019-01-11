@@ -20,7 +20,7 @@ jobs:
       install:
         - pip install black
       script:
-        - black --check --diff $(find python_jsonschema_objects -name '*.py' -print)
+        - black --check --diff $(git ls-files | grep '*.py' | grep -v versioneer.py)
     - stage: deploy
       python: 3.6
       script: skip

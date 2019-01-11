@@ -6,17 +6,12 @@ import python_jsonschema_objects as pjo
 @pytest.fixture
 def base_schema():
     return {
-        'title': 'example',
-        'type': 'object',
+        "title": "example",
+        "type": "object",
         "additionalProperties": False,
         "properties": {
-          "dictLike": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object"
-          }
-        }
+            "dictLike": {"additionalProperties": {"type": "integer"}, "type": "object"}
+        },
     }
 
 
@@ -34,12 +29,12 @@ def test_wrong_exception_protocolbase_getitem(base_schema):
     builder = pjo.ObjectBuilder(base_schema)
     ns = builder.build_classes()
 
-    t = ns.Example(dictLike={'a': 0, 'b': 1})
+    t = ns.Example(dictLike={"a": 0, "b": 1})
     t.validate()
-    assert 'a' in t.dictLike
-    assert 'c' not in t.dictLike
-    assert getattr(t, 'not_present', None) is None
+    assert "a" in t.dictLike
+    assert "c" not in t.dictLike
+    assert getattr(t, "not_present", None) is None
 
 
-if __name__ == '__main__':
-    test_wrong_exception_protocolbase_getitem(base_schema()) 
+if __name__ == "__main__":
+    test_wrong_exception_protocolbase_getitem(base_schema())
