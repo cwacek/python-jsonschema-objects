@@ -1,4 +1,3 @@
-
 import pytest
 
 import python_jsonschema_objects as pjo
@@ -10,27 +9,64 @@ def arrayClass():
         "title": "ArrayVal",
         "type": "object",
         "properties": {
-            "min": {"type": "array", "items": {"type": "string"}, "default": [], "minItems": 1},
-            "max": {"type": "array", "items": {"type": "string"}, "default": [], "maxItems": 1},
-            "both": {"type": "array", "items": {"type": "string"}, "default": [], "maxItems": 2, "minItems": 1},
-            "unique": {"type": "array", "items": {"type": "string"}, "default": [], "uniqueItems": True}
+            "min": {
+                "type": "array",
+                "items": {"type": "string"},
+                "default": [],
+                "minItems": 1,
+            },
+            "max": {
+                "type": "array",
+                "items": {"type": "string"},
+                "default": [],
+                "maxItems": 1,
+            },
+            "both": {
+                "type": "array",
+                "items": {"type": "string"},
+                "default": [],
+                "maxItems": 2,
+                "minItems": 1,
+            },
+            "unique": {
+                "type": "array",
+                "items": {"type": "string"},
+                "default": [],
+                "uniqueItems": True,
+            },
+            "reffed": {
+                "type": "array",
+                "items": {"$ref": "#/definitions/myref"},
+                "minItems": 1,
+            },
         },
+        "definitions": {"myref": {"type": "string"}},
     }
 
     ns = pjo.ObjectBuilder(schema).build_classes()
-    return ns['Arrayval'](min=["1"], both=["1"])
+    return ns["Arrayval"](min=["1"], both=["1"])
+
+
+def test_validators_work_with_reference(arrayClass):
+    arrayClass.reffed = ["foo"]
+
+    with pytest.raises(pjo.ValidationError):
+        arrayClass.reffed = []
 
 
 def test_array_length_validates(markdown_examples):
 
     builder = pjo.ObjectBuilder(
-        markdown_examples['Example Schema'],
-        resolved=markdown_examples)
+        markdown_examples["Example Schema"], resolved=markdown_examples
+    )
     ns = builder.build_classes()
 
     with pytest.raises(pjo.ValidationError):
-        ns.ExampleSchema(firstName="Fred", lastName="Huckstable",
-                         dogs=["Fido", "Spot", "Jasper", "Lady", "Tramp"])
+        ns.ExampleSchema(
+            firstName="Fred",
+            lastName="Huckstable",
+            dogs=["Fido", "Spot", "Jasper", "Lady", "Tramp"],
+        )
 
 
 def test_minitems(arrayClass):
