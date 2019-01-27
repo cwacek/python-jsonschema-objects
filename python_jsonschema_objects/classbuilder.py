@@ -629,12 +629,15 @@ class ClassBuilder(object):
                             self.resolver.resolution_scope,
                             detail['items']['$ref'])
                         typ = self.construct(uri, detail['items'])
+                        constraints = copy.copy(detail)
+                        constraints['strict'] = kw.get('strict')
                         propdata = {
                             'type': 'array',
                             'validator': python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
                                 uri,
                                 item_constraint=typ,
-                                strict=kw.get('strict'))}
+                                **constraints)}
+
                     else:
                         uri = "{0}/{1}_{2}".format(nm,
                                                    prop, "<anonymous_field>")
@@ -660,6 +663,7 @@ class ClassBuilder(object):
                                             uri,
                                             item_constraint=typ,
                                             **constraints)}
+
                         except NotImplementedError:
                             typ = detail['items']
                             constraints = copy.copy(detail)

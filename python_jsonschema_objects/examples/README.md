@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/cwacek/python-jsonschema-objects.svg?branch=master)](https://travis-ci.org/cwacek/python-jsonschema-objects)
+[![Reviewed by Hound](https://img.shields.io/badge/Reviewed_by-Hound-8E64B0.svg)](https://houndci.com)
 
 ## What
 
@@ -75,6 +76,11 @@ Validations will also be applied as the object is manipulated.
 Traceback (most recent call last):
     ...
 ValidationError: -2 is less than 0
+
+>>> james.dogs= ["Jasper", "Spot", "Noodles", "Fido", "Dumbo"]  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValidationError: ["Jasper", "Spot", "Noodles", "Fido", "Dumbo"]  has too many elements. Wanted 4.
 
 ```
 
