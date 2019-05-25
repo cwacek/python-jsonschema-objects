@@ -9,7 +9,7 @@ def test_class():
         'title': 'Example',
         'properties': {
             "claimed_by": {
-                "id": "claimed",
+                "$id": "claimed",
                 "type": ["string", "integer", "null"],
                 "description": "Robots Only. The human agent that has claimed this robot.",
                 },

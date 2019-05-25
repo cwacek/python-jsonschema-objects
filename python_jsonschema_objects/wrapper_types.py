@@ -5,6 +5,7 @@ import six
 
 from python_jsonschema_objects import util
 from python_jsonschema_objects.validators import registry, ValidationError
+from python_jsonschema_objects.util import lazy_format as fmt
 
 logger = logging.getLogger(__name__)
 
@@ -16,20 +17,30 @@ class ArrayWrapper(collections.MutableSequence):
     with a dirty-tracking mechanism to avoid constant validation costs.
     """
 
+    @property
+    def strict(self):
+        return getattr(self, '_strict_', False)
+
     def __len__(self):
         return len(self.data)
 
+    def mark_or_revalidate(self):
+        if self.strict:
+            self.validate()
+        else:
+            self._dirty = True
+
     def __delitem__(self, index):
-        self.data.remove(index)
-        self._dirty = True
+        self.data.pop(index)
+        self.mark_or_revalidate()
 
     def insert(self, index, value):
         self.data.insert(index, value)
-        self._dirty = True
+        self.mark_or_revalidate()
 
     def __setitem__(self, index, value):
         self.data[index] = value
-        self._dirty = True
+        self.mark_or_revalidate()
 
     def __getitem__(self, idx):
         return self.typed_elems[idx]
@@ -41,23 +52,33 @@ class ArrayWrapper(collections.MutableSequence):
             return self.for_json() == other
 
     def __init__(self, ary):
+        """ Initialize a wrapper for the array
+
+        Args:
+            ary: (list-like, or ArrayWrapper)
+        """
+
+        """ Marks whether or not the underlying array has been modified """
+        self._dirty = True
+
+        """ Holds a typed copy of the array """
+        self._typed = None
+
         if isinstance(ary, (list, tuple, collections.Sequence)):
             self.data = ary
-            self._dirty = True
-            self._typed = None
         elif isinstance(ary, ArrayWrapper):
             self.data = ary.data
-            self._dirty = True
-            self._typed = None
         else:
             raise TypeError("Invalid value given to array validator: {0}"
                             .format(ary))
 
+        logger.debug(fmt("Initializing ArrayWrapper {} with {}", self, ary))
+
     @property
     def typed_elems(self):
+        logger.debug(fmt("Accessing typed_elems of ArrayWrapper {} ", self))
         if self._typed is None or self._dirty is True:
-            self._typed = self.validate_items()
-            self._dirty = False
+            self.validate()
 
         return self._typed
 
@@ -77,9 +98,8 @@ class ArrayWrapper(collections.MutableSequence):
         return obj
 
     def serialize(self):
-        d = self.validate_items()
         enc = util.ProtocolJSONEncoder()
-        return enc.encode(d)
+        return enc.encode(self.typed_elems)
 
     def for_json(self):
         from python_jsonschema_objects import classbuilder
@@ -97,13 +117,13 @@ class ArrayWrapper(collections.MutableSequence):
         return out
 
     def validate(self):
-        self.validate_items()
-        self.validate_length()
-        self.validate_uniqueness()
+        if self.strict or self._dirty:
+            self.validate_items()
+            self.validate_length()
+            self.validate_uniqueness()
         return True
 
     def validate_uniqueness(self):
-        from python_jsonschema_objects import classbuilder
 
         if getattr(self, 'uniqueItems', None) is not None:
             testset = set(self.data)
@@ -113,7 +133,6 @@ class ArrayWrapper(collections.MutableSequence):
                     .format(self.data))
 
     def validate_length(self):
-        from python_jsonschema_objects import classbuilder
 
         if getattr(self, 'minItems', None) is not None:
             if len(self.data) < self.minItems:
@@ -124,10 +143,19 @@ class ArrayWrapper(collections.MutableSequence):
         if getattr(self, 'maxItems', None) is not None:
             if len(self.data) > self.maxItems:
                 raise ValidationError(
-                    "{1} has too few elements. Wanted {0}."
+                    "{1} has too many elements. Wanted {0}."
                     .format(self.maxItems, self.data))
 
     def validate_items(self):
+        """ Validates the items in the backing array, including
+        performing type validation.
+
+        Sets the _typed property and clears the dirty flag as a side effect
+
+        Returns:
+            The typed array
+        """
+        logger.debug(fmt("Validating {}", self))
         from python_jsonschema_objects import classbuilder
 
         if self.__itemtype__ is None:
@@ -188,6 +216,8 @@ class ArrayWrapper(collections.MutableSequence):
                     val.validate()
                     typed_elems.append(val)
 
+        self._dirty = False
+        self._typed = typed_elems
         return typed_elems
 
     @staticmethod
@@ -202,6 +232,7 @@ class ArrayWrapper(collections.MutableSequence):
         addl_constraints is expected to be key-value pairs of any of the other
         constraints permitted by JSON Schema v4.
         """
+        logger.debug(fmt("Constructing ArrayValidator with {} and {}", item_constraint, addl_constraints))
         from python_jsonschema_objects import classbuilder
         klassbuilder = addl_constraints.pop("classbuilder", None)
         props = {}
@@ -283,6 +314,8 @@ class ArrayWrapper(collections.MutableSequence):
 
         props['__itemtype__'] = item_constraint
 
+        strict = addl_constraints.pop('strict', False)
+        props['_strict_'] = strict
         props.update(addl_constraints)
 
         validator = type(str(name), (ArrayWrapper,), props)

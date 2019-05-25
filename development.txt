@@ -6,3 +6,4 @@ sphinx
 sphinx-autobuild
 recommonmark
 pytest
+pytest-mock
