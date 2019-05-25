@@ -128,7 +128,7 @@ class ObjectBuilder(object):
         else:
             name_transform = lambda t: t
 
-        nm = self.schema['title'] if 'title' in self.schema else self.schema['id']
+        nm = self.schema['title'] if 'title' in self.schema else self.schema['$id']
         nm = inflection.parameterize(six.text_type(nm), '_')
 
         builder.construct(nm, self.schema,**kw)
