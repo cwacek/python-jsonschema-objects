@@ -40,8 +40,8 @@ if __name__ == '__main__':
           url='http://python-jsonschema-objects.readthedocs.org/',
           setup_requires=["setuptools>=18.0.0"],
           install_requires=[
-              "inflection~=0.2",
-              "Markdown~=2.4",
+              "inflection>=0.2",
+              "Markdown>=2.4",
               "jsonschema>=2.3",
               "six>=1.5.2"
           ],

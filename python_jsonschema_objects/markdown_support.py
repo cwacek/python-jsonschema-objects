@@ -11,21 +11,33 @@ def extract_code_blocks(filename):
 
     M = markdown.Markdown(extensions=[SpecialFencedCodeExtension()])
 
-    for prep in M.preprocessors.values():
+    preprocessors = M.preprocessors
+    tree_processors = M.treeprocessors
+
+    # Markdown 3.* stores the processors in a class that can be iterated directly.
+    # Markdown 2.* stores them in a dict, so we have to pull out the values.
+    if markdown.version_info[0] == 2:
+        # Note: `markdown.version_info` will be deprecated in favor of
+        # `markdown.__version_info__` in later versions of Markdown.
+        preprocessors = preprocessors.values()
+        tree_processors = tree_processors.values()
+
+    for prep in preprocessors:
         doc = prep.run(doc)
 
     root = M.parser.parseDocument(doc).getroot()
 
-    for treeproc in M.treeprocessors.values():
+    for treeproc in tree_processors:
         newRoot = treeproc.run(root)
         if newRoot is not None:
             root = newRoot
 
     return SpecialFencePreprocessor.EXAMPLES
 
+
 class SpecialFencedCodeExtension(Extension):
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md, md_globals=None):
         """ Add FencedBlockPreprocessor to the Markdown instance. """
         md.registerExtension(self)
 
