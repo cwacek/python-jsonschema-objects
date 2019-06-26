@@ -3,7 +3,9 @@ import python_jsonschema_objects as pjo
 
 
 def test_regression_156(markdown_examples):
-    builder = pjo.ObjectBuilder(markdown_examples['MultipleObjects'], resolved=markdown_examples)
+    builder = pjo.ObjectBuilder(
+        markdown_examples["MultipleObjects"], resolved=markdown_examples
+    )
     classes = builder.build_classes(named_only=True)
 
     er = classes.ErrorResponse(message="Danger!", status=99)
