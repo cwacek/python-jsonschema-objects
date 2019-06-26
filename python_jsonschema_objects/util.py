@@ -4,7 +4,7 @@ import json
 
 
 class lazy_format(object):
-    __slots__ = ('fmt', 'args', 'kwargs')
+    __slots__ = ("fmt", "args", "kwargs")
 
     def __init__(self, fmt, *args, **kwargs):
         self.fmt = fmt
@@ -35,13 +35,12 @@ def coerce_for_expansion(mapping):
     In py2.7, the value must be a dictionary- thus a as_dict() method
     will be invoked if available.  In py3k, the raw mapping is returned
     unmodified."""
-    if six.PY2 and hasattr(mapping, 'as_dict'):
-       return mapping.as_dict()
+    if six.PY2 and hasattr(mapping, "as_dict"):
+        return mapping.as_dict()
     return mapping
 
 
 class ProtocolJSONEncoder(json.JSONEncoder):
-
     def default(self, obj):
         from python_jsonschema_objects import classbuilder
         from python_jsonschema_objects import wrapper_types
@@ -79,25 +78,22 @@ def propmerge(into, data_from):
             if subprop not in new_sp:
                 new_sp[subprop] = spval
 
-            elif subprop == 'enum':
+            elif subprop == "enum":
                 new_sp[subprop] = set(spval) & set(new_sp[subprop])
 
-            elif subprop == 'type':
+            elif subprop == "type":
                 if spval != new_sp[subprop]:
                     raise TypeError("Type cannot conflict in allOf'")
 
-            elif subprop in ('minLength', 'minimum'):
-                new_sp[subprop] = (new_sp[subprop] if
-                                   new_sp[subprop] > spval else spval)
-            elif subprop in ('maxLength', 'maximum'):
-                new_sp[subprop] = (new_sp[subprop] if
-                                   new_sp[subprop] < spval else spval)
-            elif subprop == 'multipleOf':
+            elif subprop in ("minLength", "minimum"):
+                new_sp[subprop] = new_sp[subprop] if new_sp[subprop] > spval else spval
+            elif subprop in ("maxLength", "maximum"):
+                new_sp[subprop] = new_sp[subprop] if new_sp[subprop] < spval else spval
+            elif subprop == "multipleOf":
                 if new_sp[subprop] % spval == 0:
                     new_sp[subprop] = spval
                 else:
-                    raise AttributeError(
-                        "Cannot set conflicting multipleOf values")
+                    raise AttributeError("Cannot set conflicting multipleOf values")
             else:
                 new_sp[subprop] = spval
 
@@ -107,13 +103,15 @@ def propmerge(into, data_from):
 
 
 def resolve_ref_uri(base, ref):
-    if ref[0] == '#':
-    # Local ref
+    if ref[0] == "#":
+        # Local ref
         uri = base.rsplit("#", 1)[0] + ref
     else:
         uri = ref
 
     return uri
+
+
 """namespace module"""
 
 __all__ = ("Namespace", "as_namespace")
@@ -123,6 +121,8 @@ from collections import Mapping, Sequence
 
 class _Dummy:
     pass
+
+
 CLASS_ATTRS = dir(_Dummy)
 NEWCLASS_ATTRS = dir(object)
 del _Dummy
@@ -159,7 +159,7 @@ class Namespace(dict):
     def __delattr__(self, name):
         del self[name]
 
-    #------------------------
+    # ------------------------
     # "copy constructors"
 
     @classmethod
@@ -181,7 +181,7 @@ class Namespace(dict):
             seq = {name: val for name, val in seq if name in names}
         return cls(seq)
 
-    #------------------------
+    # ------------------------
     # static methods
 
     @staticmethod

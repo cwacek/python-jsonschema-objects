@@ -19,7 +19,7 @@ class ArrayWrapper(collections.MutableSequence):
 
     @property
     def strict(self):
-        return getattr(self, '_strict_', False)
+        return getattr(self, "_strict_", False)
 
     def __len__(self):
         return len(self.data)
@@ -69,8 +69,7 @@ class ArrayWrapper(collections.MutableSequence):
         elif isinstance(ary, ArrayWrapper):
             self.data = ary.data
         else:
-            raise TypeError("Invalid value given to array validator: {0}"
-                            .format(ary))
+            raise TypeError("Invalid value given to array validator: {0}".format(ary))
 
         logger.debug(fmt("Initializing ArrayWrapper {} with {}", self, ary))
 
@@ -83,15 +82,12 @@ class ArrayWrapper(collections.MutableSequence):
         return self._typed
 
     def __repr__(self):
-        return "<%s=%s>" % (
-            self.__class__.__name__,
-            str(self.data)
-        )
-
+        return "<%s=%s>" % (self.__class__.__name__, str(self.data))
 
     @classmethod
     def from_json(cls, jsonmsg):
         import json
+
         msg = json.loads(jsonmsg)
         obj = cls(msg)
         obj.validate()
@@ -106,10 +102,10 @@ class ArrayWrapper(collections.MutableSequence):
 
         out = []
         for item in self.typed_elems:
-            if isinstance(item, (
-                    classbuilder.ProtocolBase,
-                    classbuilder.LiteralValue,
-                    ArrayWrapper)):
+            if isinstance(
+                item,
+                (classbuilder.ProtocolBase, classbuilder.LiteralValue, ArrayWrapper),
+            ):
                 out.append(item.for_json())
             else:
                 out.append(item)
@@ -125,26 +121,32 @@ class ArrayWrapper(collections.MutableSequence):
 
     def validate_uniqueness(self):
 
-        if getattr(self, 'uniqueItems', None) is not None:
+        if getattr(self, "uniqueItems", None) is not None:
             testset = set(self.data)
             if len(testset) != len(self.data):
                 raise ValidationError(
-                    "{0} has duplicate elements, but uniqueness required"
-                    .format(self.data))
+                    "{0} has duplicate elements, but uniqueness required".format(
+                        self.data
+                    )
+                )
 
     def validate_length(self):
 
-        if getattr(self, 'minItems', None) is not None:
+        if getattr(self, "minItems", None) is not None:
             if len(self.data) < self.minItems:
                 raise ValidationError(
-                    "{1} has too few elements. Wanted {0}."
-                    .format(self.minItems, self.data))
+                    "{1} has too few elements. Wanted {0}.".format(
+                        self.minItems, self.data
+                    )
+                )
 
-        if getattr(self, 'maxItems', None) is not None:
+        if getattr(self, "maxItems", None) is not None:
             if len(self.data) > self.maxItems:
                 raise ValidationError(
-                    "{1} has too many elements. Wanted {0}."
-                    .format(self.maxItems, self.data))
+                    "{1} has too many elements. Wanted {0}.".format(
+                        self.maxItems, self.data
+                    )
+                )
 
     def validate_items(self):
         """ Validates the items in the backing array, including
@@ -167,8 +169,10 @@ class ArrayWrapper(collections.MutableSequence):
             type_checks = [type_checks] * len(self.data)
         elif len(type_checks) > len(self.data):
             raise ValidationError(
-                "{1} does not have sufficient elements to validate against {0}"
-                .format(self.__itemtype__, self.data))
+                "{1} does not have sufficient elements to validate against {0}".format(
+                    self.__itemtype__, self.data
+                )
+            )
 
         typed_elems = []
         for elem, typ in zip(self.data, type_checks):
@@ -186,13 +190,18 @@ class ArrayWrapper(collections.MutableSequence):
             elif util.safe_issubclass(typ, classbuilder.ProtocolBase):
                 if not isinstance(elem, typ):
                     try:
-                        if isinstance(elem, (six.string_types, six.integer_types, float)):
+                        if isinstance(
+                            elem, (six.string_types, six.integer_types, float)
+                        ):
                             val = typ(elem)
                         else:
                             val = typ(**util.coerce_for_expansion(elem))
                     except TypeError as e:
-                        raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
-                                              .format(elem, typ, e))
+                        raise ValidationError(
+                            "'{0}' is not a valid value for '{1}': {2}".format(
+                                elem, typ, e
+                            )
+                        )
                 else:
                     val = elem
                 val.validate()
@@ -210,8 +219,9 @@ class ArrayWrapper(collections.MutableSequence):
                     else:
                         val = typ(**util.coerce_for_expansion(elem))
                 except TypeError as e:
-                    raise ValidationError("'{0}' is not a valid value for '{1}': {2}"
-                                          .format(elem, typ, e))
+                    raise ValidationError(
+                        "'{0}' is not a valid value for '{1}': {2}".format(elem, typ, e)
+                    )
                 else:
                     val.validate()
                     typed_elems.append(val)
@@ -232,8 +242,15 @@ class ArrayWrapper(collections.MutableSequence):
         addl_constraints is expected to be key-value pairs of any of the other
         constraints permitted by JSON Schema v4.
         """
-        logger.debug(fmt("Constructing ArrayValidator with {} and {}", item_constraint, addl_constraints))
+        logger.debug(
+            fmt(
+                "Constructing ArrayValidator with {} and {}",
+                item_constraint,
+                addl_constraints,
+            )
+        )
         from python_jsonschema_objects import classbuilder
+
         klassbuilder = addl_constraints.pop("classbuilder", None)
         props = {}
 
@@ -241,33 +258,45 @@ class ArrayWrapper(collections.MutableSequence):
             if isinstance(item_constraint, (tuple, list)):
                 for i, elem in enumerate(item_constraint):
                     isdict = isinstance(elem, (dict,))
-                    isklass = isinstance( elem, type) and util.safe_issubclass(
-                        elem, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
+                    isklass = isinstance(elem, type) and util.safe_issubclass(
+                        elem, (classbuilder.ProtocolBase, classbuilder.LiteralValue)
+                    )
 
                     if not any([isdict, isklass]):
                         raise TypeError(
-                            "Item constraint (position {0}) is not a schema".format(i))
-            elif isinstance(item_constraint, (classbuilder.TypeProxy, classbuilder.TypeRef)):
+                            "Item constraint (position {0}) is not a schema".format(i)
+                        )
+            elif isinstance(
+                item_constraint, (classbuilder.TypeProxy, classbuilder.TypeRef)
+            ):
                 pass
             elif util.safe_issubclass(item_constraint, ArrayWrapper):
                 pass
             else:
                 isdict = isinstance(item_constraint, (dict,))
-                isklass = isinstance( item_constraint, type) and util.safe_issubclass(
-                    item_constraint, (classbuilder.ProtocolBase, classbuilder.LiteralValue))
+                isklass = isinstance(item_constraint, type) and util.safe_issubclass(
+                    item_constraint,
+                    (classbuilder.ProtocolBase, classbuilder.LiteralValue),
+                )
 
                 if not any([isdict, isklass]):
                     raise TypeError("Item constraint is not a schema")
 
-                if isdict and '$ref' in item_constraint:
+                if isdict and "$ref" in item_constraint:
                     if klassbuilder is None:
-                        raise TypeError("Cannot resolve {0} without classbuilder"
-                                        .format(item_constraint['$ref']))
+                        raise TypeError(
+                            "Cannot resolve {0} without classbuilder".format(
+                                item_constraint["$ref"]
+                            )
+                        )
 
-                    uri = item_constraint['$ref']
+                    uri = item_constraint["$ref"]
                     if uri in klassbuilder.resolved:
-                        logger.debug(util.lazy_format(
-                            "Using previously resolved object for {0}", uri))
+                        logger.debug(
+                            util.lazy_format(
+                                "Using previously resolved object for {0}", uri
+                            )
+                        )
                     else:
                         logger.debug(util.lazy_format("Resolving object for {0}", uri))
 
@@ -275,47 +304,49 @@ class ArrayWrapper(collections.MutableSequence):
                             # Set incase there is a circular reference in schema definition
                             klassbuilder.resolved[uri] = None
                             klassbuilder.resolved[uri] = klassbuilder.construct(
-                                uri,
-                                resolved,
-                                (classbuilder.ProtocolBase,))
+                                uri, resolved, (classbuilder.ProtocolBase,)
+                            )
 
                     item_constraint = klassbuilder.resolved[uri]
 
-                elif isdict and item_constraint.get('type') == 'array':
+                elif isdict and item_constraint.get("type") == "array":
                     # We need to create a sub-array validator.
-                    item_constraint = ArrayWrapper.create(name + "#sub",
-                                                          item_constraint=item_constraint[
-                                                                'items'],
-                                                          addl_constraints=item_constraint)
-                elif isdict and 'oneOf' in item_constraint:
+                    item_constraint = ArrayWrapper.create(
+                        name + "#sub",
+                        item_constraint=item_constraint["items"],
+                        addl_constraints=item_constraint,
+                    )
+                elif isdict and "oneOf" in item_constraint:
                     # We need to create a TypeProxy validator
                     uri = "{0}_{1}".format(name, "<anonymous_list_type>")
                     type_array = []
-                    for i, item_detail in enumerate(item_constraint['oneOf']):
-                        if '$ref' in item_detail:
+                    for i, item_detail in enumerate(item_constraint["oneOf"]):
+                        if "$ref" in item_detail:
                             subtype = klassbuilder.construct(
                                 util.resolve_ref_uri(
                                     klassbuilder.resolver.resolution_scope,
-                                    item_detail['$ref']),
-                                item_detail)
+                                    item_detail["$ref"],
+                                ),
+                                item_detail,
+                            )
                         else:
                             subtype = klassbuilder.construct(
-                                uri + "_%s" % i, item_detail)
+                                uri + "_%s" % i, item_detail
+                            )
 
                         type_array.append(subtype)
 
                     item_constraint = classbuilder.TypeProxy(type_array)
 
-                elif isdict and item_constraint.get('type') == 'object':
+                elif isdict and item_constraint.get("type") == "object":
                     """ We need to create a ProtocolBase object for this anonymous definition"""
                     uri = "{0}_{1}".format(name, "<anonymous_list_type>")
-                    item_constraint = klassbuilder.construct(
-                        uri, item_constraint)
+                    item_constraint = klassbuilder.construct(uri, item_constraint)
 
-        props['__itemtype__'] = item_constraint
+        props["__itemtype__"] = item_constraint
 
-        strict = addl_constraints.pop('strict', False)
-        props['_strict_'] = strict
+        strict = addl_constraints.pop("strict", False)
+        props["_strict_"] = strict
         props.update(addl_constraints)
 
         validator = type(str(name), (ArrayWrapper,), props)
