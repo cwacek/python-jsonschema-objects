@@ -233,6 +233,9 @@ class ProtocolBase(collections.MutableMapping):
 
             self._extended_properties[name] = val
 
+    def __hash__(self):
+        return hash(repr(self))
+
     """ Implement collections.MutableMapping methods """
 
     def __iter__(self):
