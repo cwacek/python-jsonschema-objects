@@ -1,4 +1,3 @@
-
 import python_jsonschema_objects as pjs
 
 
@@ -11,17 +10,16 @@ def test_nested_arrays_work_fine():
         },
     }
 
-
     ns1 = pjs.ObjectBuilder(schema).build_classes()
 
     foo = ns1.ExampleSchema()
-    foo.a.append('foo')
+    foo.a.append("foo")
     print(foo.for_json())
 
-    assert foo.a == ['foo']
+    assert foo.a == ["foo"]
 
     bar = ns1.ExampleSchema()
-    bar.a.append('bar')
+    bar.a.append("bar")
     print(bar.for_json())
 
-    assert bar.a == ['bar']
+    assert bar.a == ["bar"]
