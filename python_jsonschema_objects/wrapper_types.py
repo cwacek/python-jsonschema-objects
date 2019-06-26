@@ -121,7 +121,8 @@ class ArrayWrapper(collections.MutableSequence):
 
     def validate_uniqueness(self):
 
-        if getattr(self, "uniqueItems", None) is not None:
+        if getattr(self, "uniqueItems", False) is True:
+
             testset = set(self.data)
             if len(testset) != len(self.data):
                 raise ValidationError(

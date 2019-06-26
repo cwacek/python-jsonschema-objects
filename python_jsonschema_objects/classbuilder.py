@@ -153,6 +153,7 @@ class ProtocolBase(collections.MutableMapping):
             )
             try:
                 obj = klass(**props)
+                obj.validate()
             except validators.ValidationError as e:
                 validation_errors.append((klass, e))
             else:
