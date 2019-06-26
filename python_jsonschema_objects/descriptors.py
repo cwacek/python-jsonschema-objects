@@ -132,4 +132,4 @@ class AttributeDescriptor(object):
         if prop in obj.__required__:
             raise AttributeError("'%s' is required" % prop)
         else:
-            del obj._properties[prop]
+            obj._properties[prop] = None

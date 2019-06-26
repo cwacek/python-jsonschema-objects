@@ -251,16 +251,6 @@ class ProtocolBase(collections.MutableMapping):
         except AttributeError:
             raise KeyError(key)
 
-    def __setitem__(self, key, val):
-        return setattr(self, key, val)
-
-    def __delitem__(self, key):
-        if key in self._extended_properties:
-            del self._extended_properties[key]
-            return
-
-        return delattr(self, key)
-
     def __getattr__(self, name):
         if name in self.__prop_names__:
             raise AttributeError(name)
@@ -269,6 +259,24 @@ class ProtocolBase(collections.MutableMapping):
         raise AttributeError(
             "{0} is not a valid property of {1}".format(name, self.__class__.__name__)
         )
+
+    def __setitem__(self, key, val):
+        return setattr(self, key, val)
+
+    def __delitem__(self, key):
+        return delattr(self, key)
+
+    def __delattr__(self, name):
+        if name in self._extended_properties:
+            del self._extended_properties[name]
+            return
+
+        if name in self.__prop_names__:
+            prop = getattr(self.__class__, self.__prop_names__[name])
+            prop.__delete__(self)
+            return
+
+        return delattr(self, name)
 
     @classmethod
     def propinfo(cls, propname):
