@@ -1,4 +1,3 @@
-
 import six
 import re
 import python_jsonschema_objects.validators as validators

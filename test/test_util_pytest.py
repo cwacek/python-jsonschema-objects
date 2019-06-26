@@ -1,4 +1,3 @@
-
 import pytest
 
 from python_jsonschema_objects.validators import ValidationError
