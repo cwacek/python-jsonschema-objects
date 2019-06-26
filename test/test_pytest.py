@@ -256,8 +256,19 @@ def test_additional_props_permitted_explicitly(markdown_examples):
 def test_still_raises_when_accessing_undefined_attrs(Person):
 
     person = Person()
+    person.firstName = "James"
+
+    # If the attribute doesn't exist, we expect an AttributeError
     with pytest.raises(AttributeError):
         print(person.randomFoo)
+
+    # If the attribute is literal-esq, isn't set but isn't required, accessing it should be fine
+    assert person.gender == None
+
+    # If the attribute is an object, isn't set, but isn't required accessing it should throw an exception
+    with pytest.raises(AttributeError) as e:
+        print(person.address.street)
+        assert "'NoneType' object has no attribute 'street'" in e
 
 
 def test_permits_deletion_of_additional_properties(Person):

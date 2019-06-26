@@ -35,6 +35,9 @@ def test_wrong_exception_protocolbase_getitem(base_schema):
     assert "c" not in t.dictLike
     assert getattr(t, "not_present", None) is None
 
+    with pytest.raises(AttributeError):
+        assert "a" not in t.notAnAttribute
+
 
 if __name__ == "__main__":
     test_wrong_exception_protocolbase_getitem(base_schema())

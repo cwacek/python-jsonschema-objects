@@ -263,7 +263,7 @@ class ProtocolBase(collections.MutableMapping):
 
     def __getattr__(self, name):
         if name in self.__prop_names__:
-            raise KeyError(name)
+            raise AttributeError(name)
         if name in self._extended_properties:
             return self._extended_properties[name]
         raise AttributeError(
