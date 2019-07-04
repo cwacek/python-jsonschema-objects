@@ -302,7 +302,6 @@ class ArrayWrapper(collections.MutableSequence):
 
                         with klassbuilder.resolver.resolving(uri) as resolved:
                             # Set incase there is a circular reference in schema definition
-                            klassbuilder.resolved[uri] = None
                             klassbuilder.resolved[uri] = klassbuilder.construct(
                                 uri, resolved, (classbuilder.ProtocolBase,)
                             )
