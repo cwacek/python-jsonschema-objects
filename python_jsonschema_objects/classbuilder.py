@@ -453,6 +453,7 @@ class ClassBuilder(object):
         logger.debug(util.lazy_format("Constructing {0}", uri))
         if ("override" not in kw or kw["override"] is False) and uri in self.resolved:
             logger.debug(util.lazy_format("Using existing {0}", uri))
+            assert self.resolved[uri] is not None
             return self.resolved[uri]
         else:
             ret = self._construct(uri, *args, **kw)
