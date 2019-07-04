@@ -122,8 +122,7 @@ class ArrayWrapper(collections.MutableSequence):
     def validate_uniqueness(self):
 
         if getattr(self, "uniqueItems", False) is True:
-
-            testset = set(self.data)
+            testset = set(repr(item) for item in self.data)
             if len(testset) != len(self.data):
                 raise ValidationError(
                     "{0} has duplicate elements, but uniqueness required".format(

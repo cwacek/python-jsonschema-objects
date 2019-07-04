@@ -233,10 +233,6 @@ class ProtocolBase(collections.MutableMapping):
 
             self._extended_properties[name] = val
 
-    def __hash__(self):
-        """ This doesn't work in py27 or py35 for some reason"""
-        return hash(repr(self))
-
     """ Implement collections.MutableMapping methods """
 
     def __iter__(self):
