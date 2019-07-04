@@ -10,8 +10,11 @@ def testclass():
 
 
 def test_extra_properties_can_be_deleted_with_item_syntax(testclass):
-    testclass.foo = 42
+    # Deletion before setting should throw attribute errors
+    with pytest.raises(AttributeError):
+        del testclass["foo"]
 
+    testclass.foo = 42
     assert testclass.foo == 42
     del testclass["foo"]
 
@@ -21,8 +24,11 @@ def test_extra_properties_can_be_deleted_with_item_syntax(testclass):
 
 
 def test_extra_properties_can_be_deleted_with_attribute_syntax(testclass):
-    testclass.foo = 42
+    # Deletion before setting should throw attribute errors
+    with pytest.raises(AttributeError):
+        del testclass.foo
 
+    testclass.foo = 42
     assert testclass.foo == 42
     del testclass.foo
 
@@ -32,8 +38,11 @@ def test_extra_properties_can_be_deleted_with_attribute_syntax(testclass):
 
 
 def test_extra_properties_can_be_deleted_directly(testclass):
-    testclass.foo = 42
+    # Deletion before setting should throw attribute errors
+    with pytest.raises(AttributeError):
+        delattr(testclass, "foo")
 
+    testclass.foo = 42
     assert testclass.foo == 42
     delattr(testclass, "foo")
 
@@ -42,9 +51,37 @@ def test_extra_properties_can_be_deleted_directly(testclass):
         testclass.foo
 
 
-def test_real_properties_arent_really_deleted(Person):
+def test_unrequired_real_properties_arent_really_deleted(Person):
     p = Person(age=20)
 
     assert p.age == 20
     del p.age
     assert p.age == None
+
+    p.age = 20
+    assert p.age == 20
+    delattr(p, "age")
+    assert p.age == None
+
+    p.age = 20
+    assert p.age == 20
+    del p["age"]
+    assert p.age == None
+
+
+def test_required_real_properties_throw_attributeerror_on_delete(Person):
+    p = Person(firstName="Fred")
+
+    assert p.firstName == "Fred"
+    with pytest.raises(AttributeError):
+        del p.firstName
+
+    p.firstName = "Fred"
+    assert p.firstName == "Fred"
+    with pytest.raises(AttributeError):
+        delattr(p, "firstName")
+
+    p.firstName = "Fred"
+    assert p.firstName == "Fred"
+    with pytest.raises(AttributeError):
+        del p["firstName"]

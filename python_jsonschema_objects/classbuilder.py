@@ -276,7 +276,7 @@ class ProtocolBase(collections.MutableMapping):
             prop.__delete__(self)
             return
 
-        return delattr(self, name)
+        return object.__delattr__(self, name)
 
     @classmethod
     def propinfo(cls, propname):
