@@ -4,7 +4,7 @@
 ## What
 
 python-jsonschema-objects provides an *automatic* class-based
-binding to JSON schemas for use in python.
+binding to JSON Schemas (draft-4 only) for use in python.
 
 For example, given the following schema:
 
