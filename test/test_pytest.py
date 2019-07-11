@@ -1,5 +1,6 @@
 import pytest
 
+import warnings
 import json
 import six
 import jsonschema
@@ -10,6 +11,29 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
+@pytest.mark.parametrize(
+    "version, warn",
+    [
+        ("http://json-schema.org/schema#", True),
+        ("http://json-schema.org/draft-03/schema", False),
+        ("http://json-schema.org/draft-04/schema", False),
+        ("http://json-schema.org/draft-06/schema", True),
+        ("http://json-schema.org/draft-07/schema", True),
+    ],
+)
+def test_warnings_on_schema_version(version, warn):
+    schema = {"$schema": version, "$id": "test", "type": "object", "properties": {}}
+
+    with warnings.catch_warnings(record=True) as w:
+        pjs.ObjectBuilder(schema)
+
+        if warn:
+            assert len(w) == 1
+            assert "Schema version %s not recognized" % version in str(w[-1].message)
+        else:
+            assert len(w) == 0, w[-1].message
+
+
 def test_schema_validation():
     """ Test that the ObjectBuilder validates the schema itself.
     """
@@ -18,7 +42,7 @@ def test_schema_validation():
         "$id": "test",
         "type": "object",
         "properties": {
-            "name": "string",
+            "name": "string",  #  <-- this is invalid
             "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
         },
         "required": ["email"],
