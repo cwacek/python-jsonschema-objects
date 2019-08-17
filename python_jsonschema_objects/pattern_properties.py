@@ -30,7 +30,7 @@ class ExtensibleValidator(object):
             self._additional_type = True
         else:
             if "$ref" in addlProp:
-                refs = builder.resolve_classes([addlProp])
+                typ = builder.resolve_type(addlProp["$ref"], name)
             else:
                 uri = "{0}/{1}_{2}".format(
                     name, "<additionalProperties>", "<anonymous>"
@@ -38,23 +38,23 @@ class ExtensibleValidator(object):
                 builder.resolved[uri] = builder.construct(
                     uri, addlProp, (cb.ProtocolBase,)
                 )
-                refs = [builder.resolved[uri]]
+                typ = builder.resolved[uri]
 
-            self._additional_type = refs[0]
+            self._additional_type = typ
 
         for pattern, typedef in six.iteritems(schemadef.get("patternProperties", {})):
             if "$ref" in typedef:
-                refs = builder.resolve_classes([typedef])
+                typ = builder.resolve_type(typedef["$ref"], name)
             else:
                 uri = "{0}/{1}_{2}".format(name, "<patternProperties>", pattern)
 
                 builder.resolved[uri] = builder.construct(
                     uri, typedef, (cb.ProtocolBase,)
                 )
-                refs = [builder.resolved[uri]]
+                typ = builder.resolved[uri]
 
             self._pattern_types.append(
-                PatternDef(pattern=re.compile(pattern), schema_type=refs[0])
+                PatternDef(pattern=re.compile(pattern), schema_type=typ)
             )
 
     def _make_type(self, typ, val):

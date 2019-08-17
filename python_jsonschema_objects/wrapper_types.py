@@ -251,7 +251,9 @@ class ArrayWrapper(collections.MutableSequence):
         )
         from python_jsonschema_objects import classbuilder
 
-        klassbuilder = addl_constraints.pop("classbuilder", None)
+        klassbuilder = addl_constraints.pop(
+            "classbuilder", None
+        )  # type: python_jsonschema_objects.classbuilder.ClassBuilder
         props = {}
 
         if item_constraint is not None:
@@ -290,23 +292,9 @@ class ArrayWrapper(collections.MutableSequence):
                             )
                         )
 
-                    uri = item_constraint["$ref"]
-                    if uri in klassbuilder.resolved:
-                        logger.debug(
-                            util.lazy_format(
-                                "Using previously resolved object for {0}", uri
-                            )
-                        )
-                    else:
-                        logger.debug(util.lazy_format("Resolving object for {0}", uri))
-
-                        with klassbuilder.resolver.resolving(uri) as resolved:
-                            # Set incase there is a circular reference in schema definition
-                            klassbuilder.resolved[uri] = klassbuilder.construct(
-                                uri, resolved, (classbuilder.ProtocolBase,)
-                            )
-
-                    item_constraint = klassbuilder.resolved[uri]
+                    item_constraint = klassbuilder.resolve_type(
+                        item_constraint["$ref"], name
+                    )
 
                 elif isdict and item_constraint.get("type") == "array":
                     # We need to create a sub-array validator.
@@ -318,22 +306,9 @@ class ArrayWrapper(collections.MutableSequence):
                 elif isdict and "oneOf" in item_constraint:
                     # We need to create a TypeProxy validator
                     uri = "{0}_{1}".format(name, "<anonymous_list_type>")
-                    type_array = []
-                    for i, item_detail in enumerate(item_constraint["oneOf"]):
-                        if "$ref" in item_detail:
-                            subtype = klassbuilder.construct(
-                                util.resolve_ref_uri(
-                                    klassbuilder.resolver.resolution_scope,
-                                    item_detail["$ref"],
-                                ),
-                                item_detail,
-                            )
-                        else:
-                            subtype = klassbuilder.construct(
-                                uri + "_%s" % i, item_detail
-                            )
-
-                        type_array.append(subtype)
+                    type_array = klassbuilder.construct_objects(
+                        item_constraint["oneOf"], uri
+                    )
 
                     item_constraint = classbuilder.TypeProxy(type_array)
 

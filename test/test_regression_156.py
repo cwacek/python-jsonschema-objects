@@ -18,3 +18,11 @@ def test_regression_156(markdown_examples):
     # round-trip serialize-deserialize into class defined with `oneOf`
     classes.Multipleobjects.from_json(er.serialize())
     classes.Multipleobjects.from_json(vgr.serialize())
+
+
+def test_toplevel_oneof_gets_a_name(markdown_examples):
+    builder = pjo.ObjectBuilder(
+        markdown_examples["MultipleObjects"], resolved=markdown_examples
+    )
+    classes = builder.build_classes(named_only=True)
+    assert classes.Multipleobjects.__title__ is not None

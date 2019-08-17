@@ -529,3 +529,12 @@ def test_default_values(default):
 
     x = ns.Test()
     assert x.sample == default["default"]
+
+
+def test_justareference_example(markdown_examples):
+
+    builder = pjs.ObjectBuilder(
+        markdown_examples["Just a Reference"], resolved=markdown_examples
+    )
+    ns = builder.build_classes()
+    ns.JustAReference("Hello")
