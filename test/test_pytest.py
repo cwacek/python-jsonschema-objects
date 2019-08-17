@@ -402,6 +402,19 @@ def test_attribute_set_via_dict(person_object):
     assert str(name) == "John"
 
 
+def test_keys_can_be_other_pjo_objects(Person, person_object):
+    person_object.lastName = "Smith"
+
+    jane = Person(firstName="Jane", lastName=person_object.lastName)
+
+    assert jane.lastName == person_object.lastName
+
+    # We don't want the names to be the same literal object though.
+    # Changing one after assignment should not change the other
+    jane.lastName = "Borges"
+    assert jane.lastName != person_object.lastName
+
+
 def test_numeric_attribute_validation(Person):
     with pytest.raises(pjs.ValidationError):
         Person(firstName="James", lastName="Bond", age=-10)

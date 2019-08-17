@@ -213,6 +213,7 @@ class ProtocolBase(collections.MutableMapping):
             self.validate()
 
     def __setattr__(self, name, val):
+        name = str(name)
         if name in self.__object_attr_list__:
             object.__setattr__(self, name, val)
         elif name in self.__propinfo__:
@@ -252,6 +253,7 @@ class ProtocolBase(collections.MutableMapping):
             raise KeyError(key)
 
     def __getattr__(self, name):
+        name = str(name)
         if name in self.__prop_names__:
             raise AttributeError(name)
         if name in self._extended_properties:
@@ -261,12 +263,15 @@ class ProtocolBase(collections.MutableMapping):
         )
 
     def __setitem__(self, key, val):
+        key = str(key)
         return setattr(self, key, val)
 
     def __delitem__(self, key):
+        key = str(key)
         return delattr(self, key)
 
     def __delattr__(self, name):
+        name = str(name)
         if name in self._extended_properties:
             del self._extended_properties[name]
             return
