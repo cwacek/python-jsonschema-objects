@@ -1,8 +1,10 @@
 import jsonschema
 from jsonschema import Draft4Validator
 from jsonschema.compat import iteritems
+import re
 import json
 import codecs
+import warnings
 import copy
 import os.path
 import inflection
@@ -22,6 +24,11 @@ __all__ = ["ObjectBuilder", "markdown_support", "ValidationError"]
 
 FILE = __file__
 
+SUPPORTED_VERSIONS = (
+    "http://json-schema.org/draft-03/schema",
+    "http://json-schema.org/draft-04/schema",
+)
+
 
 class ObjectBuilder(object):
     def __init__(self, schema_uri, resolved={}, resolver=None, validatorClass=None):
@@ -36,6 +43,17 @@ class ObjectBuilder(object):
             self.schema = schema_uri
             uri = os.path.normpath(FILE)
             self.basedir = os.path.dirname(uri)
+
+        if (
+            "$schema" in self.schema
+            and self.schema["$schema"] not in SUPPORTED_VERSIONS
+        ):
+            warnings.warn(
+                "Schema version {} not recognized. Some "
+                "keywords and features may not be supported.".format(
+                    self.schema["$schema"]
+                )
+            )
 
         self.resolver = resolver or jsonschema.RefResolver.from_schema(self.schema)
         self.resolver.handlers.update(

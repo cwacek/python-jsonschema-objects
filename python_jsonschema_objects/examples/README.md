@@ -1,10 +1,10 @@
 [![Build Status](https://travis-ci.org/cwacek/python-jsonschema-objects.svg?branch=master)](https://travis-ci.org/cwacek/python-jsonschema-objects)
-[![Reviewed by Hound](https://img.shields.io/badge/Reviewed_by-Hound-8E64B0.svg)](https://houndci.com)
 
 ## What
 
 python-jsonschema-objects provides an *automatic* class-based
-binding to JSON Schemas (draft-4 only) for use in python.
+binding to JSON Schemas for use in python. See [Draft Schema
+Support](#draft-schema-support) to see supported keywords
 
 For example, given the following schema:
 
@@ -400,7 +400,29 @@ schemas are unique.
 Tests are managed using the excellent Tox. Simply `pip install
 tox`, then `tox`.
 
+## Draft Keyword Support
+
+Most of draft-4 is supported, so only exceptions are noted
+in the table. Where a keyword functionality changed between
+drafts, the version that is supported is noted.
+
+The library will warn (but not throw an exception) if you give
+it an unsupported `$schema`
+
+| Keyword | supported | version |
+| --------| -----------| --------- |
+| $id     | true   | draft-6      |
+| propertyNames | false   | |
+| contains    | false   | |
+| const | false   |      |
+| required | true   | draft-4 |
+| examples | false |       |
+| format | false |       |
+
+
 ## Changelog
+
+*Please refer to Github releases for up to date changelogs.*
 
 **0.0.18**
 
