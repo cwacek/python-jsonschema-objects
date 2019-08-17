@@ -30,7 +30,7 @@ class ExtensibleValidator(object):
             self._additional_type = True
         else:
             if "$ref" in addlProp:
-                refs = builder.resolve_classes([addlProp])
+                refs = builder.expand_references([addlProp])
             else:
                 uri = "{0}/{1}_{2}".format(
                     name, "<additionalProperties>", "<anonymous>"
@@ -44,7 +44,7 @@ class ExtensibleValidator(object):
 
         for pattern, typedef in six.iteritems(schemadef.get("patternProperties", {})):
             if "$ref" in typedef:
-                refs = builder.resolve_classes([typedef])
+                refs = builder.expand_references([typedef])
             else:
                 uri = "{0}/{1}_{2}".format(name, "<patternProperties>", pattern)
 

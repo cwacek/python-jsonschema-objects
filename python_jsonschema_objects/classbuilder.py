@@ -399,8 +399,19 @@ class TypeRef(object):
 
 
 class TypeProxy(object):
-    def __init__(self, types):
+    slots = ("__title__", "_types")
+
+    def __init__(self, types, title=None):
+        self.__title__ = title
         self._types = types
+
+    def from_json(self, jsonmsg):
+        import json
+
+        msg = json.loads(jsonmsg)
+        obj = self(**msg)
+        obj.validate()
+        return obj
 
     def __call__(self, *a, **kw):
         validation_errors = []
@@ -434,7 +445,10 @@ class ClassBuilder(object):
         self.resolved = {}
         self.under_construction = set()
 
-    def resolve_classes(self, iterable):
+    def expand_references(self, iterable):
+        """ Give an iterable of jsonschema descriptors, expands any
+        of them that are $ref objects, and otherwise leaves them alone. 
+        """
         pp = []
         for elem in iterable:
             if "$ref" in elem:
@@ -472,11 +486,19 @@ class ClassBuilder(object):
             raise NotImplementedError("anyOf is not supported as bare property")
 
         elif "oneOf" in clsdata:
-            self.resolved[uri] = self._build_object(uri, clsdata, parent, **kw)
+            """ If this object itself has a 'oneOf' designation, 
+            then construct a TypeProxy.
+            """
+            klasses = self.construct_objects(clsdata["oneOf"], uri)
+
+            logger.debug(
+                util.lazy_format("Designating {0} as TypeProxy for {1}", uri, klasses)
+            )
+            self.resolved[uri] = TypeProxy(klasses, title=clsdata.get("title"))
             return self.resolved[uri]
 
         elif "allOf" in clsdata:
-            potential_parents = self.resolve_classes(clsdata["allOf"])
+            potential_parents = self.expand_references(clsdata["allOf"])
             parents = []
             for p in potential_parents:
                 if isinstance(p, dict):
@@ -655,7 +677,7 @@ class ClassBuilder(object):
                 properties[prop]["type"] = typ
 
             elif "oneOf" in detail:
-                potential = self.resolve_classes(detail["oneOf"])
+                potential = self.expand_references(detail["oneOf"])
                 logger.debug(
                     util.lazy_format("Designating {0} as oneOf {1}", prop, potential)
                 )
@@ -683,20 +705,9 @@ class ClassBuilder(object):
                         try:
                             if "oneOf" in detail["items"]:
                                 typ = TypeProxy(
-                                    [
-                                        self.construct(uri + "_%s" % i, item_detail)
-                                        if "$ref" not in item_detail
-                                        else self.construct(
-                                            util.resolve_ref_uri(
-                                                self.resolver.resolution_scope,
-                                                item_detail["$ref"],
-                                            ),
-                                            item_detail,
-                                        )
-                                        for i, item_detail in enumerate(
-                                            detail["items"]["oneOf"]
-                                        )
-                                    ]
+                                    self.construct_objects(
+                                        detail["items"]["oneOf"], uri
+                                    )
                                 )
                             else:
                                 typ = self.construct(uri, detail["items"])
@@ -738,14 +749,6 @@ class ClassBuilder(object):
 
                 props[prop] = make_property(prop, {"type": typ}, desc)
 
-        """ If this object itself has a 'oneOf' designation, then
-        make the validation 'type' the list of potential objects.
-        """
-        if "oneOf" in clsdata:
-            klasses = self.resolve_classes(clsdata["oneOf"])
-            # Need a validation to check that it meets one of them
-            props["__validation__"] = {"type": klasses}
-
         props["__extensible__"] = pattern_properties.ExtensibleValidator(
             nm, clsdata, self
         )
@@ -776,6 +779,19 @@ class ClassBuilder(object):
         self.under_construction.remove(nm)
 
         return cls
+
+    def construct_objects(self, oneOfList, uri):
+        return [
+            self.construct(uri + "_%s" % i, item_detail)
+            if "$ref" not in item_detail
+            else self.construct(
+                util.resolve_ref_uri(
+                    self.resolver.resolution_scope, item_detail["$ref"]
+                ),
+                item_detail,
+            )
+            for i, item_detail in enumerate(oneOfList)
+        ]
 
 
 def make_property(prop, info, desc=""):
