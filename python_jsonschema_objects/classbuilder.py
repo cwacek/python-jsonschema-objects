@@ -445,27 +445,43 @@ class ClassBuilder(object):
         self.resolved = {}
         self.under_construction = set()
 
-    def expand_references(self, iterable):
+    def expand_references(self, source_uri, iterable):
         """ Give an iterable of jsonschema descriptors, expands any
         of them that are $ref objects, and otherwise leaves them alone. 
         """
         pp = []
         for elem in iterable:
             if "$ref" in elem:
-                ref = elem["$ref"]
-                uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
-                if uri in self.resolved:
-                    pp.append(self.resolved[uri])
-                else:
-                    with self.resolver.resolving(ref) as resolved:
-                        self.resolved[uri] = self.construct(
-                            uri, resolved, (ProtocolBase,)
-                        )
-                        pp.append(self.resolved[uri])
+                pp.append(self.resolve_type(elem["$ref"], source_uri))
             else:
                 pp.append(elem)
 
         return pp
+
+    def resolve_type(self, ref, source):
+        """ Return a resolved type for a URI, potentially constructing one if necessary"""
+        uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
+        if uri in self.resolved:
+            return self.resolved[uri]
+
+        elif uri in self.under_construction:
+            logger.debug(
+                util.lazy_format(
+                    "Using a TypeRef to avoid a cyclic reference for {0} -> {1} ",
+                    uri,
+                    source,
+                )
+            )
+            return TypeRef(uri, self.resolved)
+        else:
+            logger.debug(
+                util.lazy_format(
+                    "Resolving direct reference object {0} -> {1}", source, uri
+                )
+            )
+            with self.resolver.resolving(ref) as resolved:
+                self.resolved[uri] = self.construct(uri, resolved, (ProtocolBase,))
+                return self.resolved[uri]
 
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
@@ -498,7 +514,7 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif "allOf" in clsdata:
-            potential_parents = self.expand_references(clsdata["allOf"])
+            potential_parents = self.expand_references(uri, clsdata["allOf"])
             parents = []
             for p in potential_parents:
                 if isinstance(p, dict):
@@ -531,25 +547,8 @@ class ClassBuilder(object):
                 )
             else:
                 ref = clsdata["$ref"]
-                refuri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
-                if refuri in self.under_construction:
-                    logger.debug(
-                        util.lazy_format(
-                            "Resolving cyclic reference from {0} to {1}.", uri, refuri
-                        )
-                    )
-                    return TypeRef(refuri, self.resolved)
-                else:
-                    logger.debug(
-                        util.lazy_format(
-                            "Resolving direct reference object for {0}: {1}",
-                            uri,
-                            refuri,
-                        )
-                    )
-
-                    with self.resolver.resolving(refuri) as resolved:
-                        self.resolved[uri] = self.construct(refuri, resolved, parent)
+                typ = self.resolve_type(ref, uri)
+                self.resolved[uri] = typ
 
             return self.resolved[uri]
 
@@ -661,23 +660,14 @@ class ClassBuilder(object):
 
             elif "type" not in detail and "$ref" in detail:
                 ref = detail["$ref"]
-                uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
-                logger.debug(
-                    util.lazy_format(
-                        "Resolving reference {0} for {1}.{2}", ref, nm, prop
-                    )
-                )
-                if uri in self.resolved:
-                    typ = self.resolved[uri]
-                else:
-                    typ = self.construct(uri, detail, (ProtocolBase,))
+                typ = self.resolve_type(ref, ".".join([nm, prop]))
 
                 props[prop] = make_property(prop, {"type": typ}, typ.__doc__)
-                properties[prop]["$ref"] = uri
+                properties[prop]["$ref"] = ref
                 properties[prop]["type"] = typ
 
             elif "oneOf" in detail:
-                potential = self.expand_references(detail["oneOf"])
+                potential = self.expand_references(nm, detail["oneOf"])
                 logger.debug(
                     util.lazy_format("Designating {0} as oneOf {1}", prop, potential)
                 )
@@ -687,16 +677,13 @@ class ClassBuilder(object):
             elif "type" in detail and detail["type"] == "array":
                 if "items" in detail and isinstance(detail["items"], dict):
                     if "$ref" in detail["items"]:
-                        uri = util.resolve_ref_uri(
-                            self.resolver.resolution_scope, detail["items"]["$ref"]
-                        )
-                        typ = self.construct(uri, detail["items"])
+                        typ = self.resolve_type(detail["items"]["$ref"], nm)
                         constraints = copy.copy(detail)
                         constraints["strict"] = kw.get("strict")
                         propdata = {
                             "type": "array",
                             "validator": python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
-                                uri, item_constraint=typ, **constraints
+                                nm, item_constraint=typ, **constraints
                             ),
                         }
 
@@ -784,12 +771,7 @@ class ClassBuilder(object):
         return [
             self.construct(uri + "_%s" % i, item_detail)
             if "$ref" not in item_detail
-            else self.construct(
-                util.resolve_ref_uri(
-                    self.resolver.resolution_scope, item_detail["$ref"]
-                ),
-                item_detail,
-            )
+            else self.resolve_type(item_detail["$ref"], uri + "_%s" % i)
             for i, item_detail in enumerate(oneOfList)
         ]
 
