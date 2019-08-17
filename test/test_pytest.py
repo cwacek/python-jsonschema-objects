@@ -409,7 +409,8 @@ def test_keys_can_be_other_pjo_objects(Person, person_object):
 
     assert jane.lastName == person_object.lastName
 
-    # We don't want the names to be the same literal object though. Changing one after assignment should change both
+    # We don't want the names to be the same literal object though.
+    # Changing one after assignment should not change the other
     jane.lastName = "Borges"
     assert jane.lastName != person_object.lastName
 
