@@ -15,10 +15,10 @@ logging.basicConfig(level=logging.DEBUG)
     "version, warn",
     [
         ("http://json-schema.org/schema#", True),
-        ("http://json-schema.org/draft-03/schema", False),
-        ("http://json-schema.org/draft-04/schema", False),
-        ("http://json-schema.org/draft-06/schema", True),
-        ("http://json-schema.org/draft-07/schema", True),
+        ("http://json-schema.org/draft-03/schema#", False),
+        ("http://json-schema.org/draft-04/schema#", False),
+        ("http://json-schema.org/draft-06/schema#", True),
+        ("http://json-schema.org/draft-07/schema#", True),
     ],
 )
 def test_warnings_on_schema_version(version, warn):

@@ -1,32 +1,31 @@
+import codecs
+import copy
+import json
+import logging
+import os.path
+import warnings
+
+import inflection
 import jsonschema
+import six
 from jsonschema import Draft4Validator
 from jsonschema.compat import iteritems
-import re
-import json
-import codecs
-import warnings
-import copy
-import os.path
-import inflection
-import six
-
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 import python_jsonschema_objects.classbuilder as classbuilder
-from python_jsonschema_objects.validators import ValidationError
-import python_jsonschema_objects.util
 import python_jsonschema_objects.markdown_support
+import python_jsonschema_objects.util
+from python_jsonschema_objects.validators import ValidationError
+
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["ObjectBuilder", "markdown_support", "ValidationError"]
 
 FILE = __file__
 
 SUPPORTED_VERSIONS = (
-    "http://json-schema.org/draft-03/schema",
-    "http://json-schema.org/draft-04/schema",
+    "http://json-schema.org/draft-03/schema#",
+    "http://json-schema.org/draft-04/schema#",
 )
 
 
