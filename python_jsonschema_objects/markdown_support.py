@@ -45,9 +45,7 @@ class SpecialFencedCodeExtension(Extension):
         """ Add FencedBlockPreprocessor to the Markdown instance. """
         md.registerExtension(self)
 
-        md.preprocessors.add(
-            "fenced_code_block", SpecialFencePreprocessor(md), ">normalize_whitespace"
-        )
+        md.preprocessors.register(SpecialFencePreprocessor(md), "fenced_code_block", 10)
 
 
 class SpecialFencePreprocessor(Preprocessor):
