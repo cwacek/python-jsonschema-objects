@@ -127,6 +127,9 @@ class ProtocolBase(collections.MutableMapping):
         obj.validate()
         return obj
 
+    def __deepcopy__(self, memo):
+        return self.__class__(**self.as_dict())
+
     def __new__(cls, **props):
         """ Overridden to support oneOf, where we need to
         instantiate a different class depending on what
