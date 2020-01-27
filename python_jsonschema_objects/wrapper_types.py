@@ -66,8 +66,6 @@ class ArrayWrapper(collections.MutableSequence):
 
         if isinstance(ary, (list, tuple, collections.Sequence)):
             self.data = ary
-        elif isinstance(ary, ArrayWrapper):
-            self.data = ary.data
         else:
             raise TypeError("Invalid value given to array validator: {0}".format(ary))
 
