@@ -151,9 +151,9 @@ class ProtocolBase(collections.MutableMapping):
         obj = None
         validation_errors = []
         for klass in valid_types:
-            logger.debug(
+            logger.debug(str(
                 util.lazy_format("Attempting to instantiate {0} as {1}", cls, klass)
-            )
+            ))
             try:
                 obj = klass(**props)
                 obj.validate()
@@ -184,18 +184,18 @@ class ProtocolBase(collections.MutableMapping):
         for name in self.__has_default__:
             if name not in props:
                 default_value = copy.deepcopy(self.__propinfo__[name]["default"])
-                logger.debug(
+                logger.debug(str(
                     util.lazy_format("Initializing '{0}' to '{1}'", name, default_value)
-                )
+                ))
                 setattr(self, name, default_value)
 
         for prop in props:
             try:
-                logger.debug(
+                logger.debug(str(
                     util.lazy_format(
                         "Setting value for '{0}' to {1}", prop, props[prop]
                     )
-                )
+                ))
                 if props[prop] is not None:
                     setattr(self, prop, props[prop])
             except validators.ValidationError as e:
@@ -420,11 +420,11 @@ class TypeProxy(object):
         validation_errors = []
         valid_types = self._types
         for klass in valid_types:
-            logger.debug(
+            logger.debug(str(
                 util.lazy_format(
                     "Attempting to instantiate {0} as {1}", self.__class__, klass
                 )
-            )
+            ))
             try:
                 obj = klass(*a, **kw)
                 obj.validate()
@@ -468,34 +468,34 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif uri in self.under_construction:
-            logger.debug(
+            logger.debug(str(
                 util.lazy_format(
                     "Using a TypeRef to avoid a cyclic reference for {0} -> {1} ",
                     uri,
                     source,
                 )
-            )
+            ))
             return TypeRef(uri, self.resolved)
         else:
-            logger.debug(
+            logger.debug(str(
                 util.lazy_format(
                     "Resolving direct reference object {0} -> {1}", source, uri
                 )
-            )
+            ))
             with self.resolver.resolving(ref) as resolved:
                 self.resolved[uri] = self.construct(uri, resolved, (ProtocolBase,))
                 return self.resolved[uri]
 
     def construct(self, uri, *args, **kw):
         """ Wrapper to debug things """
-        logger.debug(util.lazy_format("Constructing {0}", uri))
+        logger.debug(str(util.lazy_format("Constructing {0}", uri)))
         if ("override" not in kw or kw["override"] is False) and uri in self.resolved:
-            logger.debug(util.lazy_format("Using existing {0}", uri))
+            logger.debug(str(util.lazy_format("Using existing {0}", uri)))
             assert self.resolved[uri] is not None
             return self.resolved[uri]
         else:
             ret = self._construct(uri, *args, **kw)
-        logger.debug(util.lazy_format("Constructed {0}", ret))
+        logger.debug(str(util.lazy_format("Constructed {0}", ret)))
 
         return ret
 
@@ -510,9 +510,9 @@ class ClassBuilder(object):
             """
             klasses = self.construct_objects(clsdata["oneOf"], uri)
 
-            logger.debug(
+            logger.debug(str(
                 util.lazy_format("Designating {0} as TypeProxy for {1}", uri, klasses)
-            )
+            ))
             self.resolved[uri] = TypeProxy(klasses, title=clsdata.get("title"))
             return self.resolved[uri]
 
@@ -536,18 +536,18 @@ class ClassBuilder(object):
             ):
                 # It's possible that this reference was already resolved, in which
                 # case it will have its type parameter set
-                logger.debug(
+                logger.debug(str(
                     util.lazy_format(
                         "Using previously resolved type "
                         "(with different URI) for {0}",
                         uri,
                     )
-                )
+                ))
                 self.resolved[uri] = clsdata["type"]
             elif uri in self.resolved:
-                logger.debug(
+                logger.debug(str(
                     util.lazy_format("Using previously resolved object for {0}", uri)
-                )
+                ))
             else:
                 ref = clsdata["$ref"]
                 typ = self.resolve_type(ref, uri)
@@ -625,7 +625,7 @@ class ClassBuilder(object):
         return cls
 
     def _build_object(self, nm, clsdata, parents, **kw):
-        logger.debug(util.lazy_format("Building object {0}", nm))
+        logger.debug(str(util.lazy_format("Building object {0}", nm)))
 
         # To support circular references, we tag objects that we're
         # currently building as "under construction"
@@ -644,7 +644,7 @@ class ClassBuilder(object):
         name_translation = {}
 
         for prop, detail in properties.items():
-            logger.debug(util.lazy_format("Handling property {0}.{1}", nm, prop))
+            logger.debug(str(util.lazy_format("Handling property {0}.{1}", nm, prop)))
             properties[prop]["raw_name"] = prop
             name_translation[prop] = prop.replace("@", "")
             prop = name_translation[prop]
@@ -671,9 +671,9 @@ class ClassBuilder(object):
 
             elif "oneOf" in detail:
                 potential = self.expand_references(nm, detail["oneOf"])
-                logger.debug(
+                logger.debug(str(
                     util.lazy_format("Designating {0} as oneOf {1}", prop, potential)
-                )
+                ))
                 desc = detail["description"] if "description" in detail else ""
                 props[prop] = make_property(prop, {"type": potential}, desc)
 
