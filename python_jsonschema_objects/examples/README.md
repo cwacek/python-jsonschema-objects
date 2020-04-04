@@ -56,7 +56,7 @@ here that the schema above has been loaded in a variable called
 
 ``` python
 >>> import python_jsonschema_objects as pjs
->>> builder = pjs.ObjectBuilder(examples['Example Schema'])
+>>> builder = pjs.ObjectBuilder(examples)
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName="Bond")
@@ -122,7 +122,7 @@ them just as you would other literals.
 
 ``` python
 >>> import python_jsonschema_objects as pjs
->>> builder = pjs.ObjectBuilder(examples['Example Schema'])
+>>> builder = pjs.ObjectBuilder(examples)
 >>> ns = builder.build_classes()
 >>> Person = ns.ExampleSchema
 >>> james = Person(firstName="James", lastName="Bond")
