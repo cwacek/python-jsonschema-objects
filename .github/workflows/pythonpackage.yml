@@ -29,8 +29,8 @@ jobs:
         pip install black tox
     - name: Lint with black
       run: | 
-        git ls-files | grep '.py' | grep -v versioneer.py
-        black --check --diff $(git ls-files | grep '.py' | grep -v versioneer.py)
+        git ls-files | grep '\.py' | grep -v versioneer.py
+        black --check --diff $(git ls-files | grep '\.py' | grep -v versioneer.py)
     - name: Test with pytest
       run: |
         tox
