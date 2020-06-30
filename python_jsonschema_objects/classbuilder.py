@@ -23,7 +23,7 @@ if sys.version_info > (3,):
     long = int
 
 
-class ProtocolBase(collections.MutableMapping):
+class ProtocolBase(collections.abc.MutableMapping):
     """ An instance of a class generated from the provided
     schema. All properties will be validated according to
     the definitions provided. However, whether or not all required
