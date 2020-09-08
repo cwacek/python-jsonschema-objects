@@ -116,7 +116,7 @@ def resolve_ref_uri(base, ref):
 
 __all__ = ("Namespace", "as_namespace")
 
-from collections import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 
 class _Dummy:

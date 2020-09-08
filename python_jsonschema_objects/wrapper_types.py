@@ -10,7 +10,7 @@ from python_jsonschema_objects.util import lazy_format as fmt
 logger = logging.getLogger(__name__)
 
 
-class ArrayWrapper(collections.MutableSequence):
+class ArrayWrapper(collections.abc.MutableSequence):
     """ A wrapper for array-like structures.
 
     This implements all of the array like behavior that one would want,
