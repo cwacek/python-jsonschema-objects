@@ -30,9 +30,9 @@ class LiteralValue(object):
     def __init__(self, value, typ=None):
         """@todo: to be defined
 
-      :value: @todo
+        :value: @todo
 
-      """
+        """
         if isinstance(value, LiteralValue):
             self._value = value._value
         else:

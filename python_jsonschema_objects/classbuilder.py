@@ -24,7 +24,7 @@ if sys.version_info > (3,):
 
 
 class ProtocolBase(collections.abc.MutableMapping):
-    """ An instance of a class generated from the provided
+    """An instance of a class generated from the provided
     schema. All properties will be validated according to
     the definitions provided. However, whether or not all required
     properties have been provide will *not* be validated.
@@ -46,7 +46,7 @@ class ProtocolBase(collections.abc.MutableMapping):
     __object_attr_list__ = set(["_properties", "_extended_properties"])
 
     def as_dict(self):
-        """ Return a dictionary containing the current values
+        """Return a dictionary containing the current values
         of the object.
 
         Returns:
@@ -104,7 +104,7 @@ class ProtocolBase(collections.abc.MutableMapping):
 
     @classmethod
     def from_json(cls, jsonmsg):
-        """ Create an object directly from a JSON string.
+        """Create an object directly from a JSON string.
 
         Applies general validation after creating the
         object to check whether all required fields are
@@ -131,9 +131,9 @@ class ProtocolBase(collections.abc.MutableMapping):
         return self.__class__(**self.as_dict())
 
     def __new__(cls, **props):
-        """ Overridden to support oneOf, where we need to
+        """Overridden to support oneOf, where we need to
         instantiate a different class depending on what
-        value we've seen """
+        value we've seen"""
         if getattr(cls, "__validation__", None) is None:
             new = super(ProtocolBase, cls).__new__
             if new is object.__new__:
@@ -298,7 +298,7 @@ class ProtocolBase(collections.abc.MutableMapping):
         return enc.encode(self)
 
     def validate(self):
-        """ Applies all defined validation to the current
+        """Applies all defined validation to the current
         state of the object, and raises an error if
         they are not all met.
 
@@ -449,8 +449,8 @@ class ClassBuilder(object):
         self.under_construction = set()
 
     def expand_references(self, source_uri, iterable):
-        """ Give an iterable of jsonschema descriptors, expands any
-        of them that are $ref objects, and otherwise leaves them alone. 
+        """Give an iterable of jsonschema descriptors, expands any
+        of them that are $ref objects, and otherwise leaves them alone.
         """
         pp = []
         for elem in iterable:
@@ -505,7 +505,7 @@ class ClassBuilder(object):
             raise NotImplementedError("anyOf is not supported as bare property")
 
         elif "oneOf" in clsdata:
-            """ If this object itself has a 'oneOf' designation, 
+            """If this object itself has a 'oneOf' designation,
             then construct a TypeProxy.
             """
             klasses = self.construct_objects(clsdata["oneOf"], uri)
@@ -605,11 +605,11 @@ class ClassBuilder(object):
     def _build_literal(self, nm, clsdata):
         """@todo: Docstring for _build_literal
 
-      :nm: @todo
-      :clsdata: @todo
-      :returns: @todo
+        :nm: @todo
+        :clsdata: @todo
+        :returns: @todo
 
-      """
+        """
         cls = type(
             str(nm),
             tuple((LiteralValue,)),

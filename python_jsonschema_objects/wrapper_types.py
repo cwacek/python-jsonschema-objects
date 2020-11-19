@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ArrayWrapper(collections.abc.MutableSequence):
-    """ A wrapper for array-like structures.
+    """A wrapper for array-like structures.
 
     This implements all of the array like behavior that one would want,
     with a dirty-tracking mechanism to avoid constant validation costs.
@@ -52,7 +52,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
             return self.for_json() == other
 
     def __init__(self, ary):
-        """ Initialize a wrapper for the array
+        """Initialize a wrapper for the array
 
         Args:
             ary: (list-like, or ArrayWrapper)
@@ -147,7 +147,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
                 )
 
     def validate_items(self):
-        """ Validates the items in the backing array, including
+        """Validates the items in the backing array, including
         performing type validation.
 
         Sets the _typed property and clears the dirty flag as a side effect
@@ -230,7 +230,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
 
     @staticmethod
     def create(name, item_constraint=None, **addl_constraints):
-        """ Create an array validator based on the passed in constraints.
+        """Create an array validator based on the passed in constraints.
 
         If item_constraint is a tuple, it is assumed that tuple validation
         is being performed. If it is a class or dictionary, list validation
