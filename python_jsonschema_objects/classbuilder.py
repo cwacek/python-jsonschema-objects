@@ -196,8 +196,8 @@ class ProtocolBase(collections.abc.MutableMapping):
                         "Setting value for '{0}' to {1}", prop, props[prop]
                     )
                 )
-                if props[prop] is not None:
-                    setattr(self, prop, props[prop])
+                # Always set the property, even if None
+                setattr(self, prop, props[prop])
             except validators.ValidationError as e:
                 import sys
 
@@ -649,7 +649,8 @@ class ClassBuilder(object):
             name_translation[prop] = prop.replace("@", "")
             prop = name_translation[prop]
 
-            if detail.get("default", None) is not None:
+            # Set default value, even if None
+            if "default" in detail:
                 defaults.add(prop)
 
             if detail.get("type", None) == "object":
