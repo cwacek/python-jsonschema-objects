@@ -56,7 +56,7 @@ class ObjectBuilder(object):
 
         self.resolver = resolver or jsonschema.RefResolver.from_schema(self.schema)
         self.resolver.handlers.update(
-            {"file": self.relative_file_resolver, "memory": self.memory_resolver}
+            {"": self.relative_file_resolver, "file": self.relative_file_resolver, "memory": self.memory_resolver}
         )
 
         validatorClass = validatorClass or Draft4Validator
@@ -93,7 +93,7 @@ class ObjectBuilder(object):
         return self.mem_resolved[uri[7:]]
 
     def relative_file_resolver(self, uri):
-        path = os.path.join(self.basedir, uri[8:])
+        path = os.path.join(self.basedir, uri[8:]) if uri.startswith('file:') else os.path.join(self.basedir, uri)
         with codecs.open(path, "r", "utf-8") as fin:
             result = json.loads(fin.read())
         return result
