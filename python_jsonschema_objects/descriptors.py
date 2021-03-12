@@ -55,7 +55,6 @@ class AttributeDescriptor(object):
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        validator.validate()
                         ok = True
                         break
                 elif util.safe_issubclass(typ, ProtocolBase):
@@ -67,7 +66,6 @@ class AttributeDescriptor(object):
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        val.validate()
                         ok = True
                         break
                 elif util.safe_issubclass(typ, wrapper_types.ArrayWrapper):
