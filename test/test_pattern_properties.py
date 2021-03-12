@@ -18,7 +18,7 @@ def base_schema():
 
 
 def test_standard_properties_take_precedence(base_schema):
-    """ foobar is a boolean, and it's a standard property,
+    """foobar is a boolean, and it's a standard property,
     so we expect it will validate properly as a boolean,
     not using the patternProperty that matches it.
     """

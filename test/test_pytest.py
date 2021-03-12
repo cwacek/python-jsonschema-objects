@@ -35,8 +35,7 @@ def test_warnings_on_schema_version(version, warn):
 
 
 def test_schema_validation():
-    """ Test that the ObjectBuilder validates the schema itself.
-    """
+    """Test that the ObjectBuilder validates the schema itself."""
     schema = {
         "$schema": "http://json-schema.org/schema#",
         "$id": "test",
