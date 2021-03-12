@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip 
-        pip install black
+        pip install black==20.8b1
     - name: Lint with black
       run: | 
         git ls-files | grep '\.py' | grep -v versioneer.py
