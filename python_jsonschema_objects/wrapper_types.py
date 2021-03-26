@@ -64,7 +64,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
         """ Holds a typed copy of the array """
         self._typed = None
 
-        if isinstance(ary, (list, tuple, collections.Sequence)):
+        if isinstance(ary, (list, tuple, collections.abc.Sequence)):
             self.data = ary
         else:
             raise TypeError("Invalid value given to array validator: {0}".format(ary))

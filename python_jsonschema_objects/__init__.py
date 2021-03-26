@@ -60,7 +60,7 @@ class ObjectBuilder(object):
         )
 
         validatorClass = validatorClass or Draft4Validator
-        meta_validator = validatorClass(Draft4Validator.META_SCHEMA)
+        meta_validator = validatorClass(validatorClass.META_SCHEMA)
         meta_validator.validate(self.schema)
         self.validator = validatorClass(self.schema, resolver=self.resolver)
 
