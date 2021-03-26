@@ -197,7 +197,8 @@ class ProtocolBase(collections.abc.MutableMapping):
                     )
                 )
                 # Always set the property, even if None
-                setattr(self, prop, props[prop])
+                if props[prop] is not None:
+                    setattr(self, prop, props[prop])
             except validators.ValidationError as e:
                 import sys
 
