@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/cwacek/python-jsonschema-objects.svg?branch=master)](https://travis-ci.org/cwacek/python-jsonschema-objects)
+[![Build](https://github.com/cwacek/python-jsonschema-objects/actions/workflows/pythonpackage.yml/badge.svg?branch=master)](https://github.com/cwacek/python-jsonschema-objects/actions/workflows/pythonpackage.yml)
 
 ## What
 
