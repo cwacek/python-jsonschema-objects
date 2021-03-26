@@ -50,32 +50,32 @@ class AttributeDescriptor(object):
                 elif hasattr(typ, "isLiteralClass"):
                     try:
                         validator = typ(val)
+                        validator.validate()
                     except Exception as e:
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        validator.validate()
                         ok = True
                         break
                 elif util.safe_issubclass(typ, ProtocolBase):
                     # force conversion- thus the val rather than validator assignment
                     try:
                         val = typ(**util.coerce_for_expansion(val))
+                        val.validate()
                     except Exception as e:
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        val.validate()
                         ok = True
                         break
                 elif util.safe_issubclass(typ, wrapper_types.ArrayWrapper):
                     try:
                         val = typ(val)
+                        val.validate()
                     except Exception as e:
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
                         pass
                     else:
-                        val.validate()
                         ok = True
                         break
 
