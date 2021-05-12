@@ -22,6 +22,7 @@ def MakeLiteral(name, typ, value, **properties):
     return klass(value)
 
 
+@functools.total_ordering
 class LiteralValue(object):
     """Docstring for LiteralValue """
 
@@ -84,12 +85,16 @@ class LiteralValue(object):
                 validator(paramval, self._value, info)
 
     def __eq__(self, other):
+        if isinstance(other, LiteralValue):
+            return self._value == other._value
         return self._value == other
 
     def __hash__(self):
         return hash(self._value)
 
     def __lt__(self, other):
+        if isinstance(other, LiteralValue):
+            return self._value < other._value
         return self._value < other
 
     def __int__(self):
