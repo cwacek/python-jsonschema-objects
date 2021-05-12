@@ -91,7 +91,7 @@ def schema_json():
     return json.loads(schema)
 
 
-def test_unpack_arraywrapper_on_init(schema_json):
+def test_roundtrip_oneof_serializer(schema_json):
     builder = pjo.ObjectBuilder(schema_json)
     namespace = builder.build_classes()
 
