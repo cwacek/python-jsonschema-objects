@@ -44,7 +44,7 @@ class AttributeDescriptor(object):
                     type_checks.append(typ)
 
             for typ in type_checks:
-                if isinstance(val, typ):
+                if not isinstance(typ, TypeProxy) and isinstance(val, typ):
                     ok = True
                     break
                 elif hasattr(typ, "isLiteralClass"):
@@ -71,6 +71,16 @@ class AttributeDescriptor(object):
                 elif util.safe_issubclass(typ, wrapper_types.ArrayWrapper):
                     try:
                         val = typ(val)
+                        val.validate()
+                    except Exception as e:
+                        errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
+                        pass
+                    else:
+                        ok = True
+                        break
+                elif isinstance(typ, TypeProxy):
+                    try:
+                        val = typ(**util.coerce_for_expansion(val))
                         val.validate()
                     except Exception as e:
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
