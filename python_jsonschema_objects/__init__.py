@@ -9,7 +9,6 @@ import inflection
 import jsonschema
 import six
 from jsonschema import Draft4Validator
-from jsonschema.compat import iteritems
 
 import python_jsonschema_objects.classbuilder as classbuilder
 import python_jsonschema_objects.markdown_support
@@ -129,7 +128,7 @@ class ObjectBuilder(object):
         """
         kw = {"strict": strict}
         builder = classbuilder.ClassBuilder(self.resolver)
-        for nm, defn in iteritems(self.schema.get("definitions", {})):
+        for nm, defn in six.iteritems(self.schema.get("definitions", {})):
             uri = python_jsonschema_objects.util.resolve_ref_uri(
                 self.resolver.resolution_scope, "#/definitions/" + nm
             )
