@@ -4,6 +4,11 @@ from markdown.preprocessors import Preprocessor
 import re
 import json
 
+try:
+    from markdown import __version_info__ as markdown_version_info
+except ImportError:
+    from markdown import version_info as markdown_version_info
+
 
 def extract_code_blocks(filename):
     with open(filename) as fin:
@@ -14,14 +19,9 @@ def extract_code_blocks(filename):
     preprocessors = M.preprocessors
     tree_processors = M.treeprocessors
 
-    try:
-        version_info = markdown.__version_info__
-    except AttributeError:
-        version_info = markdown.version_info
-
     # Markdown 3.* stores the processors in a class that can be iterated directly.
     # Markdown 2.* stores them in a dict, so we have to pull out the values.
-    if version_info[0] == 2:
+    if markdown_version_info[0] == 2:
         # Note: `markdown.version_info` will be deprecated in favor of
         # `markdown.__version_info__` in later versions of Markdown.
         preprocessors = preprocessors.values()
@@ -45,7 +45,7 @@ class SpecialFencedCodeExtension(Extension):
         """ Add FencedBlockPreprocessor to the Markdown instance. """
         md.registerExtension(self)
 
-        if markdown.version_info[0] >= 3:
+        if markdown_version_info[0] >= 3:
             md.preprocessors.register(
                 SpecialFencePreprocessor(md), "fenced_code_block", 10
             )
