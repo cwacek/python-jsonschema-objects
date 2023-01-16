@@ -7,6 +7,14 @@ schema = {
     "title": "myschema",
     "type": "object",
     "definitions": {
+        "RefObject": {
+            "title": "Ref Object",
+            "properties": {
+                "location": {
+                    "$ref": "#/definitions/Location"
+                }
+            }
+        },
         "MainObject": {
             "title": "Main Object",
             "additionalProperties": False,
@@ -79,3 +87,22 @@ def test_nested_oneof_with_different_types(schema_json):
     assert obj1.location == 12345
     assert obj2.location.type == "Location"
     assert obj3.location == "unique:12"
+
+
+def test_nested_oneof_with_different_types_by_reference(schema_json):
+    builder = pjo.ObjectBuilder(schema_json)
+    ns = builder.build_classes()
+
+    resolver = jsonschema.RefResolver.from_schema(schema_json)
+    ref_obj = schema_json["definitions"]["RefObject"]
+
+    test1 = {"location": 12345}
+    test2 = {"location": {"type": "Location"}}
+    jsonschema.validate(test1, ref_obj, resolver=resolver)
+    jsonschema.validate(test2, ref_obj, resolver=resolver)
+
+    obj1 = ns.RefObject(**test1)
+    obj2 = ns.RefObject(**test2)
+
+    assert obj1.location == 12345
+    assert obj2.location.type == "Location"

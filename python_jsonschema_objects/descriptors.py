@@ -125,7 +125,11 @@ class AttributeDescriptor(object):
             val.validate()
 
         elif isinstance(info["type"], TypeProxy):
-            val = info["type"](val)
+            val = util.coerce_for_expansion(val)
+            if isinstance(val, dict):
+                val = info["type"](**val)
+            else:
+                val = info["type"](val)
 
         elif isinstance(info["type"], TypeRef):
             if not isinstance(val, info["type"].ref_class):
