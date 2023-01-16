@@ -44,8 +44,11 @@ class SpecialFencedCodeExtension(Extension):
     def extendMarkdown(self, md, md_globals=None):
         """ Add FencedBlockPreprocessor to the Markdown instance. """
         md.registerExtension(self)
-
-        if markdown.version_info[0] >= 3:
+        md_ver = (
+            getattr(markdown, "version_info", None) or
+            getattr(markdown, "__version_info__", None)
+        )
+        if md_ver[0] >= 3:
             md.preprocessors.register(
                 SpecialFencePreprocessor(md), "fenced_code_block", 10
             )

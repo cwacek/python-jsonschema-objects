@@ -80,7 +80,13 @@ class AttributeDescriptor(object):
                         break
                 elif isinstance(typ, TypeProxy):
                     try:
-                        val = typ(**util.coerce_for_expansion(val))
+                        # handle keyword expansion according to expected types
+                        # using keywords like oneOf, value can be an object, array or literal
+                        val = util.coerce_for_expansion(val)
+                        if isinstance(val, dict):
+                            val = typ(**val)
+                        else:
+                            val = typ(val)
                         val.validate()
                     except Exception as e:
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
