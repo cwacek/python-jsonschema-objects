@@ -15,6 +15,12 @@ schema = {
                 }
             }
         },
+        "MapObject": {
+            "title": "Map Object",
+            "additionalProperties": {
+                "$ref": "#/definitions/Location"
+            }
+        },
         "MainObject": {
             "title": "Main Object",
             "additionalProperties": False,
@@ -106,3 +112,24 @@ def test_nested_oneof_with_different_types_by_reference(schema_json):
 
     assert obj1.location == 12345
     assert obj2.location.type == "Location"
+
+
+def test_nested_oneof_with_different_types_in_additional_properties(schema_json):
+    builder = pjo.ObjectBuilder(schema_json)
+    ns = builder.build_classes()
+
+    resolver = jsonschema.RefResolver.from_schema(schema_json)
+    map_obj = schema_json["definitions"]["MapObject"]
+
+    x_prop_name = "location-id"
+
+    test1 = {x_prop_name: 12345}
+    test2 = {x_prop_name: {"type": "Location"}}
+    jsonschema.validate(test1, map_obj, resolver=resolver)
+    jsonschema.validate(test2, map_obj, resolver=resolver)
+
+    obj1 = ns.MapObject(**test1)
+    obj2 = ns.MapObject(**test2)
+
+    assert obj1[x_prop_name] == 12345
+    assert obj2[x_prop_name].type == "Location"
