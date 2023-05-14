@@ -9,17 +9,11 @@ schema = {
     "definitions": {
         "RefObject": {
             "title": "Ref Object",
-            "properties": {
-                "location": {
-                    "$ref": "#/definitions/Location"
-                }
-            }
+            "properties": {"location": {"$ref": "#/definitions/Location"}},
         },
         "MapObject": {
             "title": "Map Object",
-            "additionalProperties": {
-                "$ref": "#/definitions/Location"
-            }
+            "additionalProperties": {"$ref": "#/definitions/Location"},
         },
         "MainObject": {
             "title": "Main Object",
