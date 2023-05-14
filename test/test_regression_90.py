@@ -2,7 +2,6 @@ import python_jsonschema_objects as pjs
 
 
 def test_null_type():
-
     schema = {
         "$schema": "http://json-schema.org/draft-04/schema",
         "title": "Example1",
@@ -16,7 +15,6 @@ def test_null_type():
 
 
 def test_null_type_one_of():
-
     schema = {
         "$schema": "http://json-schema.org/draft-04/schema",
         "title": "Example1",

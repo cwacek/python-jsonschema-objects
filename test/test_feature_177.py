@@ -5,7 +5,6 @@ import python_jsonschema_objects as pjo
 
 @pytest.fixture
 def classes():
-
     schema = {
         "title": "Config",
         "type": "object",

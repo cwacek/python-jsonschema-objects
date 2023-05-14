@@ -3,7 +3,6 @@ import python_jsonschema_objects as pjo
 
 
 def test_circular_references(markdown_examples):
-
     builder = pjo.ObjectBuilder(markdown_examples["Circular References"])
     klasses = builder.build_classes()
     a = klasses.A()

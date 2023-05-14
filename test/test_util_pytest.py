@@ -61,7 +61,6 @@ def test_validate_arrays_with_object_types(Person):
 
 
 def test_validate_arrays_with_mixed_types(Person):
-
     validator = ArrayWrapper.create(
         "test", item_constraint=[Person, {"type": "number"}]
     )
@@ -75,7 +74,6 @@ def test_validate_arrays_with_mixed_types(Person):
 
 
 def test_validate_arrays_nested():
-
     validator = ArrayWrapper.create(
         "test", item_constraint={"type": "array", "items": {"type": "integer"}}
     )

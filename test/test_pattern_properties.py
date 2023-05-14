@@ -53,7 +53,6 @@ def test_standard_properties_take_precedence(base_schema):
     ],
 )
 def test_pattern_properties_work(base_schema, permit_addl, property, value, is_error):
-
     base_schema["additionalProperties"] = permit_addl
 
     builder = pjo.ObjectBuilder(base_schema)

@@ -55,7 +55,6 @@ def test_validators_work_with_reference(arrayClass):
 
 
 def test_array_length_validates(markdown_examples):
-
     builder = pjo.ObjectBuilder(
         markdown_examples["Example Schema"], resolved=markdown_examples
     )
@@ -70,7 +69,6 @@ def test_array_length_validates(markdown_examples):
 
 
 def test_minitems(arrayClass):
-
     arrayClass.min = ["1"]
     arrayClass.min.append("2")
 
@@ -79,7 +77,6 @@ def test_minitems(arrayClass):
 
 
 def test_maxitems(arrayClass):
-
     arrayClass.max = []
     arrayClass.max.append("2")
 
@@ -95,7 +92,6 @@ def test_maxitems(arrayClass):
 
 
 def test_unique(arrayClass):
-
     arrayClass.unique = ["hi", "there"]
     with pytest.raises(pjo.ValidationError):
         arrayClass.unique.append("hi")

@@ -118,7 +118,6 @@ class ArrayWrapper(collections.abc.MutableSequence):
         return True
 
     def validate_uniqueness(self):
-
         if getattr(self, "uniqueItems", False) is True:
             testset = set(repr(item) for item in self.data)
             if len(testset) != len(self.data):
@@ -129,7 +128,6 @@ class ArrayWrapper(collections.abc.MutableSequence):
                 )
 
     def validate_length(self):
-
         if getattr(self, "minItems", None) is not None:
             if len(self.data) < self.minItems:
                 raise ValidationError(
@@ -311,7 +309,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
                     item_constraint = classbuilder.TypeProxy(type_array)
 
                 elif isdict and item_constraint.get("type") == "object":
-                    """ We need to create a ProtocolBase object for this anonymous definition"""
+                    """We need to create a ProtocolBase object for this anonymous definition"""
                     uri = "{0}_{1}".format(name, "<anonymous_list_type>")
                     item_constraint = klassbuilder.construct(uri, item_constraint)
 

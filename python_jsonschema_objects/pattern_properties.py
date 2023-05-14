@@ -87,7 +87,6 @@ class ExtensibleValidator(object):
                 return self._make_type(p.schema_type, val)
 
         if self._additional_type is True:
-
             valtype = [
                 k
                 for k, t in validators.SCHEMA_TYPE_MAPPING

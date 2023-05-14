@@ -42,7 +42,7 @@ def extract_code_blocks(filename):
 
 class SpecialFencedCodeExtension(Extension):
     def extendMarkdown(self, md, md_globals=None):
-        """ Add FencedBlockPreprocessor to the Markdown instance. """
+        """Add FencedBlockPreprocessor to the Markdown instance."""
         md.registerExtension(self)
 
         if markdown.version_info[0] >= 3:
@@ -78,7 +78,6 @@ class SpecialFencePreprocessor(Preprocessor):
         self.codehilite_conf = {}
 
     def run(self, lines):
-
         text = "\n".join(lines)
 
         while True:
