@@ -44,7 +44,7 @@ def test_limited_validation(mocker):
 
 
 def test_strict_validation(mocker):
-    """ Validate that when specified as strict, validation still occurs on every change"""
+    """Validate that when specified as strict, validation still occurs on every change"""
     schema = {
         "title": "Example Schema",
         "type": "object",

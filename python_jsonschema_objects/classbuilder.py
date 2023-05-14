@@ -347,7 +347,6 @@ class ProtocolBase(collections.abc.MutableMapping):
         propname = lambda x: self.__prop_names__[x]
         missing = []
         for x in self.__required__:
-
             # Allow the null type
             propinfo = self.propinfo(propname(x))
             null_type = False
@@ -463,7 +462,7 @@ class ClassBuilder(object):
         return pp
 
     def resolve_type(self, ref, source):
-        """ Return a resolved type for a URI, potentially constructing one if necessary"""
+        """Return a resolved type for a URI, potentially constructing one if necessary"""
         uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
         if uri in self.resolved:
             return self.resolved[uri]
@@ -488,7 +487,7 @@ class ClassBuilder(object):
                 return self.resolved[uri]
 
     def construct(self, uri, *args, **kw):
-        """ Wrapper to debug things """
+        """Wrapper to debug things"""
         logger.debug(util.lazy_format("Constructing {0}", uri))
         if ("override" not in kw or kw["override"] is False) and uri in self.resolved:
             logger.debug(util.lazy_format("Using existing {0}", uri))
@@ -501,7 +500,6 @@ class ClassBuilder(object):
         return ret
 
     def _construct(self, uri, clsdata, parent=(ProtocolBase,), **kw):
-
         if "anyOf" in clsdata:
             raise NotImplementedError("anyOf is not supported as bare property")
 
@@ -531,7 +529,6 @@ class ClassBuilder(object):
             return self.resolved[uri]
 
         elif "$ref" in clsdata:
-
             if "type" in clsdata and util.safe_issubclass(
                 clsdata["type"], (ProtocolBase, LiteralValue)
             ):

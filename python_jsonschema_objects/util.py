@@ -65,7 +65,7 @@ class ProtocolJSONEncoder(json.JSONEncoder):
 
 
 def propmerge(into, data_from):
-    """ Merge JSON schema requirements into a dictionary """
+    """Merge JSON schema requirements into a dictionary"""
     newprops = copy.deepcopy(into)
 
     for prop, propval in six.iteritems(data_from):
@@ -206,7 +206,6 @@ class Namespace(dict):
 
 
 def as_namespace(obj, names=None):
-
     # functions
     if isinstance(obj, type(as_namespace)):
         obj = obj()

@@ -3,7 +3,7 @@ from .classbuilder import ProtocolBase, TypeProxy, TypeRef
 
 
 class AttributeDescriptor(object):
-    """ Provides property access for constructed class properties """
+    """Provides property access for constructed class properties"""
 
     def __init__(self, prop, info, desc=""):
         self.prop = prop

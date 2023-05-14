@@ -221,7 +221,6 @@ def oneOf(markdown_examples):
     "json_object", ['{"MyData": "an address"}', '{"MyData": "1234"}']
 )
 def test_oneOf_validates_against_any_valid(oneOf, json_object):
-
     oneOf.from_json(json_object)
 
 
@@ -243,7 +242,6 @@ def oneOfBare(markdown_examples):
     ['{"MyAddress": "an address"}', '{"firstName": "John", "lastName": "Winnebago"}'],
 )
 def test_oneOfBare_validates_against_any_valid(oneOfBare, json_object):
-
     oneOfBare.from_json(json_object)
 
 
@@ -277,7 +275,6 @@ def test_additional_props_permitted_explicitly(markdown_examples):
 
 
 def test_still_raises_when_accessing_undefined_attrs(Person):
-
     person = Person()
     person.firstName = "James"
 
@@ -306,7 +303,6 @@ def test_permits_deletion_of_additional_properties(Person):
 
 
 def test_additional_props_disallowed_explicitly(Other):
-
     other = Other()
     with pytest.raises(pjs.ValidationError):
         other.randomAttribute = 4
@@ -467,7 +463,6 @@ def test_lists_get_serialized_correctly(Person):
     ],
 )
 def test_dictionary_transformation(Person, pdict):
-
     person = Person(**pdict)
 
     assert person.as_dict() == pdict
@@ -531,7 +526,6 @@ def test_default_values(default):
 
 
 def test_justareference_example(markdown_examples):
-
     builder = pjs.ObjectBuilder(
         markdown_examples["Just a Reference"], resolved=markdown_examples
     )

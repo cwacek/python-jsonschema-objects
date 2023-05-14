@@ -24,7 +24,7 @@ def MakeLiteral(name, typ, value, **properties):
 
 @functools.total_ordering
 class LiteralValue(object):
-    """Docstring for LiteralValue """
+    """Docstring for LiteralValue"""
 
     isLiteralClass = True
 
