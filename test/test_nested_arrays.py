@@ -9,12 +9,14 @@ import logging
 @pytest.fixture
 def nested_arrays():
     return {
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "example",
         "properties": {
             "foo": {
                 "type": "array",
                 "items": {
                     "type": "array",
+                    # FIXME: not supported anymore in https://json-schema.org/draft/2020-12
                     "items": [{"type": "number"}, {"type": "number"}],
                 },
             }

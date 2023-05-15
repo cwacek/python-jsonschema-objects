@@ -71,6 +71,14 @@ class ExtensibleValidator(object):
         ):
             return typ(val)
 
+        if isinstance(typ, cb.TypeProxy):
+            val = util.coerce_for_expansion(val)
+            if isinstance(val, dict):
+                val = typ(**val)
+            else:
+                val = typ(val)
+            return val
+
         raise validators.ValidationError(
             "additionalProperty type {0} was neither a literal "
             "nor a schema wrapper: {1}".format(typ, val)
@@ -95,7 +103,7 @@ class ExtensibleValidator(object):
             valtype = valtype[0]
             return MakeLiteral(name, valtype, val)
 
-        elif isinstance(self._additional_type, type):
+        elif isinstance(self._additional_type, (type, cb.TypeProxy)):
             return self._make_type(self._additional_type, val)
 
         raise validators.ValidationError(
