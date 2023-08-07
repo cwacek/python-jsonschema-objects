@@ -667,6 +667,9 @@ class ClassBuilder(object):
                 props[prop] = make_property(prop, {"type": typ}, typ.__doc__)
                 properties[prop]["$ref"] = ref
                 properties[prop]["type"] = typ
+                if getattr(typ, "default", None) is not None:
+                    defaults.add(prop)
+                    properties[prop]["default"] = typ.default()
 
             elif "oneOf" in detail:
                 potential = self.expand_references(nm, detail["oneOf"])
