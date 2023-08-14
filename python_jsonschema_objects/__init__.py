@@ -162,4 +162,5 @@ if __name__ == "__main__":
     validator = ObjectBuilder("../../protocol/json/schema.json")
 
 from . import _version
-__version__ = _version.get_versions()['version']
+
+__version__ = _version.get_versions()["version"]
