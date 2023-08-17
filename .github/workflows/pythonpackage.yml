@@ -23,11 +23,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install black==23.3.0
+        pip install black==23.7.0
     - name: Lint with black
       run: |
-        git ls-files | grep '\.py' | grep -v versioneer.py
-        black --check --diff $(git ls-files | grep '\.py' | grep -v versioneer.py)
+        black --check --diff --extend-exclude=versioneer.py .
 
   build:
 
