@@ -3,9 +3,6 @@
 # <python_jsonschema_objects - An object wrapper for JSON Schema definitions>
 # Copyright (C) <2014-2016>  Chris Wacek <cwacek@gmail.com
 
-import ast
-import os
-import re
 import sys
 from setuptools import setup, find_packages
 
@@ -49,12 +46,12 @@ if __name__ == "__main__":
         ],
         cmdclass=versioneer.get_cmdclass(),
         classifiers=[
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
             "Intended Audience :: Developers",
             "Development Status :: 4 - Beta",
             "License :: OSI Approved :: MIT License",
