@@ -1,3 +1,4 @@
+import importlib.resources
 import json
 
 import pkg_resources
@@ -8,10 +9,19 @@ import python_jsonschema_objects as pjs
 
 @pytest.fixture
 def markdown_examples():
-    md = pkg_resources.resource_filename(
+    # FIXME: Remove md_old and examples_old after checking the new way against them.
+    md_old = pkg_resources.resource_filename(
         "python_jsonschema_objects.examples", "README.md"
     )
-    examples = pjs.markdown_support.extract_code_blocks(md)
+    examples_old = pjs.markdown_support.extract_code_blocks(md_old)
+
+    with importlib.resources.path(
+        "python_jsonschema_objects.examples", "README.md"
+    ) as md:
+        examples = pjs.markdown_support.extract_code_blocks(str(md))
+
+    assert examples == examples_old
+
     return {json.loads(v)["title"]: json.loads(v) for v in examples["schema"]}
 
 
