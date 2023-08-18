@@ -1,10 +1,9 @@
+import json
+
+import pkg_resources
 import pytest
 
-import json
-import pkg_resources
-import os
 import python_jsonschema_objects as pjs
-import python_jsonschema_objects.markdown_support
 
 
 @pytest.fixture
@@ -12,9 +11,8 @@ def markdown_examples():
     md = pkg_resources.resource_filename(
         "python_jsonschema_objects.examples", "README.md"
     )
-    examples = python_jsonschema_objects.markdown_support.extract_code_blocks(md)
-    examples = {json.loads(v)["title"]: json.loads(v) for v in examples["schema"]}
-    return examples
+    examples = pjs.markdown_support.extract_code_blocks(md)
+    return {json.loads(v)["title"]: json.loads(v) for v in examples["schema"]}
 
 
 @pytest.fixture(autouse=True)
