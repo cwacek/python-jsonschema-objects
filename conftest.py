@@ -18,7 +18,7 @@ def markdown_examples():
     with importlib.resources.path(
         "python_jsonschema_objects.examples", "README.md"
     ) as md:
-        examples = pjs.markdown_support.extract_code_blocks(str(md))
+        examples = pjs.markdown_support.extract_code_blocks(md)
 
     assert examples == examples_old
 
