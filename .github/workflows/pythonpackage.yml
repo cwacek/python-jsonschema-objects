@@ -28,16 +28,16 @@ jobs:
       run: |
         black --check --diff --extend-exclude=versioneer.py .
 
-  build:
+  test:
 
     needs: lint
-    name: "Build ${{matrix.python-version}} (continue-on-error: ${{matrix.experimental}})"
-    runs-on: ${{ matrix.os }}
+    name: "Test ${{matrix.os}}, ${{matrix.python-version}} (continue-on-error: ${{matrix.experimental}})"
+    runs-on: ${{ matrix.os }}-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu, windows, macos]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         include:
           - experimental: false
