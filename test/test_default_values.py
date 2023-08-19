@@ -1,5 +1,7 @@
 import json
+
 import pytest
+
 import python_jsonschema_objects as pjo
 
 schema = """

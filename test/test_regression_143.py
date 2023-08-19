@@ -1,5 +1,4 @@
 import python_jsonschema_objects as pjs
-import python_jsonschema_objects.wrapper_types
 
 
 def test_limited_validation(mocker):
@@ -44,7 +43,9 @@ def test_limited_validation(mocker):
 
 
 def test_strict_validation(mocker):
-    """Validate that when specified as strict, validation still occurs on every change"""
+    """Validate that when specified as strict, validation still occurs on every
+    change.
+    """
     schema = {
         "title": "Example Schema",
         "type": "object",
@@ -68,15 +69,16 @@ def test_strict_validation(mocker):
     )
 
     foo = ns1.ExampleSchema()
-    # We expect validation to be called on creation
+    # We expect validation to be called on creation.
     assert validate_items.call_count == 1
 
-    # We expect manipulation to revalidate immediately with strict
+    # We expect manipulation to revalidate immediately with strict.
     foo.a.append("foo")
     foo.a.append("bar")
     assert validate_items.call_count == 3
 
-    # We expect accessing data elements to not revalidate because strict would have revalidated on load
+    # We expect accessing data elements to not revalidate because strict would
+    # have revalidated on load.
     print(foo.a[0])
     print(foo.a)
     assert foo.a == ["foo", "bar"]

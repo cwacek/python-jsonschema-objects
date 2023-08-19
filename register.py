@@ -1,5 +1,6 @@
-import pandoc
 import os
+
+import pandoc
 
 
 def markdown_to_rst(src):

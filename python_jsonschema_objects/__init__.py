@@ -1,3 +1,5 @@
+__all__ = ["ObjectBuilder", "markdown_support", "ValidationError"]
+
 import codecs
 import copy
 import json
@@ -10,15 +12,10 @@ import jsonschema
 import six
 from jsonschema import Draft4Validator
 
-import python_jsonschema_objects.classbuilder as classbuilder
-import python_jsonschema_objects.markdown_support
-import python_jsonschema_objects.util
+from python_jsonschema_objects import classbuilder, markdown_support, util
 from python_jsonschema_objects.validators import ValidationError
 
-
 logger = logging.getLogger(__name__)
-
-__all__ = ["ObjectBuilder", "markdown_support", "ValidationError"]
 
 FILE = __file__
 
@@ -110,17 +107,17 @@ class ObjectBuilder(object):
         Class names will be transformed using inflection by default, so names
         with spaces in the schema will be camelcased, while names without
         spaces will have internal capitalization dropped. Thus "Home Address"
-        becomes "HomeAddress", while "HomeAddress" becomes "Homeaddress" To
-        disable this behavior, pass standardize_names=False, but be aware
-        that accessing names with spaces from the namespace can be
-        problematic.
+        becomes "HomeAddress", while "HomeAddress" becomes "Homeaddress". To
+        disable this behavior, pass standardize_names=False, but be aware that
+        accessing names with spaces from the namespace can be problematic.
 
         Args:
             strict: (bool) use this to validate required fields while creating the class
-            named_only: (bool) If true, only properties with an actual title attribute will
-                be included in the resulting namespace (although all will be generated).
-            standardize_names: (bool) If true (the default), class names will be tranformed
-                by camel casing
+            named_only: (bool) If true, only properties with an actual title attribute
+                will be included in the resulting namespace (although all will be
+                generated).
+            standardize_names: (bool) If true (the default), class names will be
+                transformed by camel casing
 
         Returns:
             A namespace containing all the generated classes
@@ -129,7 +126,7 @@ class ObjectBuilder(object):
         kw = {"strict": strict}
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in six.iteritems(self.schema.get("definitions", {})):
-            uri = python_jsonschema_objects.util.resolve_ref_uri(
+            uri = util.resolve_ref_uri(
                 self.resolver.resolution_scope, "#/definitions/" + nm
             )
             builder.construct(uri, defn, **kw)
@@ -155,7 +152,7 @@ class ObjectBuilder(object):
             elif not named_only:
                 classes[name_transform(uri.split("/")[-1])] = klass
 
-        return python_jsonschema_objects.util.Namespace.from_mapping(classes)
+        return util.Namespace.from_mapping(classes)
 
 
 if __name__ == "__main__":

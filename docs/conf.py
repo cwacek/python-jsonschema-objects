@@ -12,7 +12,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -176,8 +175,6 @@ html_static_path = ["_static"]
 
 # If true, the index is split into individual pages for each letter.
 # html_split_index = False
-
-import os
 
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 

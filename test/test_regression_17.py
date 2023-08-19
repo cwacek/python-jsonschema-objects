@@ -11,7 +11,7 @@ def test_class():
             "claimed_by": {
                 "$id": "claimed",
                 "type": ["string", "integer", "null"],
-                "description": "Robots Only. The human agent that has claimed this robot.",
+                "description": "Robots Only. The human agent that has claimed this robot.",  # noqa: E501
             }
         },
     }

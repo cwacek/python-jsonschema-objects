@@ -1,10 +1,10 @@
-import pytest
-import python_jsonschema_objects as pjs
+import copy
+import json
+import pprint
+
 import jsonschema
 
-import json
-import copy
-import pprint
+import python_jsonschema_objects as pjs
 
 pp = pprint.PrettyPrinter(indent=2)
 

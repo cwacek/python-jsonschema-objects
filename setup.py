@@ -4,10 +4,10 @@
 # Copyright (C) <2014-2016>  Chris Wacek <cwacek@gmail.com
 
 import sys
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 import versioneer
-
 
 if __name__ == "__main__":
     if "register" in sys.argv or "upload" in sys.argv:

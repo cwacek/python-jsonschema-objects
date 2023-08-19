@@ -1,5 +1,5 @@
-from . import validators, util, wrapper_types
-from .classbuilder import ProtocolBase, TypeProxy, TypeRef
+from python_jsonschema_objects import util, validators, wrapper_types
+from python_jsonschema_objects.classbuilder import ProtocolBase, TypeProxy, TypeRef
 
 
 class AttributeDescriptor(object):
@@ -58,7 +58,7 @@ class AttributeDescriptor(object):
                         ok = True
                         break
                 elif util.safe_issubclass(typ, ProtocolBase):
-                    # force conversion- thus the val rather than validator assignment
+                    # Force conversion- thus the val rather than validator assignment.
                     try:
                         val = typ(**util.coerce_for_expansion(val))
                         val.validate()
@@ -80,8 +80,8 @@ class AttributeDescriptor(object):
                         break
                 elif isinstance(typ, TypeProxy):
                     try:
-                        # handle keyword expansion according to expected types
-                        # using keywords like oneOf, value can be an object, array or literal
+                        # Handle keyword expansion according to expected types. Using
+                        # keywords like oneOf, value can be an object, array or literal.
                         val = util.coerce_for_expansion(val)
                         if isinstance(val, dict):
                             val = typ(**val)
@@ -106,7 +106,7 @@ class AttributeDescriptor(object):
             val.validate()
 
         elif util.safe_issubclass(info["type"], wrapper_types.ArrayWrapper):
-            # An array type may have already been converted into an ArrayValidator
+            # An array type may have already been converted into an ArrayValidator.
             val = info["type"](val)
             val.validate()
 
@@ -115,7 +115,7 @@ class AttributeDescriptor(object):
                 validator = info["type"](val)
                 validator.validate()
                 if validator._value is not None:
-                    # This allows setting of default Literal values
+                    # This allows setting of default Literal values.
                     val = validator
 
         elif util.safe_issubclass(info["type"], ProtocolBase):

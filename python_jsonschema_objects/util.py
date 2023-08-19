@@ -1,6 +1,12 @@
-import six
+"""Utility and namespace module."""
+
+__all__ = ["Namespace", "as_namespace"]
+
 import copy
 import json
+from collections.abc import Mapping, Sequence
+
+import six
 
 
 class lazy_format(object):
@@ -22,7 +28,8 @@ def safe_issubclass(x, y):
     in the underlying implementation throwing TypeError's from trying to
     memoize the result- 'object' isn't a usable weakref target at that level.
     Unfortunately this gets exposed all the way up to our code; thus a
-    'safe' version of the function."""
+    'safe' version of the function.
+    """
     try:
         return issubclass(x, y)
     except TypeError:
@@ -34,7 +41,8 @@ def coerce_for_expansion(mapping):
 
     In py2.7, the value must be a dictionary- thus a as_dict() method
     will be invoked if available.  In py3k, the raw mapping is returned
-    unmodified."""
+    unmodified.
+    """
     if six.PY2 and hasattr(mapping, "as_dict"):
         return mapping.as_dict()
     return mapping
@@ -42,8 +50,7 @@ def coerce_for_expansion(mapping):
 
 class ProtocolJSONEncoder(json.JSONEncoder):
     def default(self, obj):
-        from python_jsonschema_objects import classbuilder
-        from python_jsonschema_objects import wrapper_types
+        from python_jsonschema_objects import classbuilder, wrapper_types
 
         if isinstance(obj, classbuilder.LiteralValue):
             return obj._value
@@ -112,13 +119,6 @@ def resolve_ref_uri(base, ref):
     return uri
 
 
-"""namespace module"""
-
-__all__ = ("Namespace", "as_namespace")
-
-from collections.abc import Mapping, Sequence
-
-
 class _Dummy:
     pass
 
@@ -129,12 +129,10 @@ del _Dummy
 
 
 class Namespace(dict):
-
     """A dict subclass that exposes its items as attributes.
 
     Warning: Namespace instances do not have direct access to the
     dict methods.
-
     """
 
     def __init__(self, obj={}):
