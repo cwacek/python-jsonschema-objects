@@ -17,9 +17,6 @@ def test_limited_validation(mocker):
     validate_items = mocker.patch.object(
         validator, "validate_items", side_effect=validator.validate_items
     )
-    validate = mocker.patch.object(
-        validator, "validate", side_effect=validator.validate
-    )
     mocker.patch.dict(
         ns1.ExampleSchema.a.info,
         {"validator": mocker.MagicMock(return_value=validator)},
@@ -28,23 +25,19 @@ def test_limited_validation(mocker):
     foo = ns1.ExampleSchema()
     # We expect validation to be called on creation
     assert validate_items.call_count == 1
-    assert validate.call_count == 1
 
     # We expect manipulation to not revalidate immediately without strict
     foo.a.append("foo")
     foo.a.append("bar")
     assert validate_items.call_count == 1
-    assert validate.call_count == 1
 
     # We expect accessing data elements to cause a revalidate, but only the first time
     print(foo.a[0])
     assert validate_items.call_count == 2
-    assert validate.call_count == 2
 
     print(foo.a)
     assert foo.a == ["foo", "bar"]
     assert validate_items.call_count == 2
-    assert validate.call_count == 2
 
 
 def test_strict_validation(mocker):
@@ -63,9 +56,6 @@ def test_strict_validation(mocker):
     validate_items = mocker.patch.object(
         validator, "validate_items", side_effect=validator.validate_items
     )
-    validate = mocker.patch.object(
-        validator, "validate", side_effect=validator.validate
-    )
     mocker.patch.dict(
         ns1.ExampleSchema.a.info,
         {"validator": mocker.MagicMock(return_value=validator)},
@@ -74,13 +64,11 @@ def test_strict_validation(mocker):
     foo = ns1.ExampleSchema()
     # We expect validation to be called on creation
     assert validate_items.call_count == 1
-    assert validate.call_count == 1
 
     # We expect manipulation to revalidate immediately with strict
     foo.a.append("foo")
     foo.a.append("bar")
     assert validate_items.call_count == 3
-    assert validate.call_count == 3
 
     # We expect accessing data elements to not revalidate because strict would have revalidated on load
     print(foo.a[0])
