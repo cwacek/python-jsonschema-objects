@@ -5,5 +5,6 @@ pyandoc
 pytest
 pytest-mock
 recommonmark
+setuptools;python_version>="3.12"
 sphinx
 sphinx-autobuild
