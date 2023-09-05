@@ -551,4 +551,4 @@ def test_number_multiple_of_validation():
 
     builder = pjs.ObjectBuilder(schema)
     ns = builder.build_classes()
-    ns.Base(sample=1.001)
+    ns.Base(sample=33.069)

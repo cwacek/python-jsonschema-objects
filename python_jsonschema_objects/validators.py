@@ -42,7 +42,8 @@ registry = ValidatorRegistry()
 @registry.register()
 def multipleOf(param, value, _):
     quot, rem = divmod(value, param)
-    if not (math.isclose(rem, 0) or math.isclose(rem, param)):
+    tolerance = 1e-12
+    if not (math.isclose(rem, 0, abs_tol=tolerance) or math.isclose(rem, param, abs_tol=tolerance)):
         raise ValidationError("{0} is not a multiple of {1}".format(value, param))
 
 
