@@ -1,4 +1,5 @@
 import logging
+import math
 
 import six
 
@@ -41,7 +42,7 @@ registry = ValidatorRegistry()
 @registry.register()
 def multipleOf(param, value, _):
     quot, rem = divmod(value, param)
-    if rem != 0:
+    if not (math.isclose(rem, 0) or math.isclose(rem, param)):
         raise ValidationError("{0} is not a multiple of {1}".format(value, param))
 
 
@@ -108,7 +109,6 @@ else:
             raise ValidationError(
                 "'{0}' is not formatted as a {1}".format(value, param)
             )
-
 
 type_registry = ValidatorRegistry()
 
