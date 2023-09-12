@@ -46,7 +46,7 @@ def multipleOf(param, value, _):
     # Decimal('33.0690000000000026147972675971686840057373046875')
     # >>> decimal.Decimal('33.069')
     # Decimal('33.069')
-    value = decimal.Decimal(str(param))
+    value = decimal.Decimal(str(value))
     divisor = decimal.Decimal(str(param))
     if value % divisor != 0:
         raise ValidationError("{0} is not a multiple of {1}".format(value, param))
