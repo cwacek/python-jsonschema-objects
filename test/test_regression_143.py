@@ -17,9 +17,6 @@ def test_limited_validation(mocker):
     validate_items = mocker.patch.object(
         validator, "validate_items", side_effect=validator.validate_items
     )
-    validate = mocker.patch.object(
-        validator, "validate", side_effect=validator.validate
-    )
     mocker.patch.dict(
         ns1.ExampleSchema.a.info,
         {"validator": mocker.MagicMock(return_value=validator)},
@@ -58,9 +55,6 @@ def test_strict_validation(mocker):
     validator = ns1.ExampleSchema.a.info["validator"]([])
     validate_items = mocker.patch.object(
         validator, "validate_items", side_effect=validator.validate_items
-    )
-    validate = mocker.patch.object(
-        validator, "validate", side_effect=validator.validate
     )
     mocker.patch.dict(
         ns1.ExampleSchema.a.info,
