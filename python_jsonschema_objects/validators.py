@@ -1,5 +1,5 @@
+import decimal
 import logging
-import math
 
 import six
 
@@ -41,9 +41,14 @@ registry = ValidatorRegistry()
 
 @registry.register()
 def multipleOf(param, value, _):
-    quot, rem = divmod(value, param)
-    tolerance = 1e-12
-    if not (math.isclose(rem, 0, abs_tol=tolerance) or math.isclose(rem, param, abs_tol=tolerance)):
+    # This conversion to string is intentional because floats are imprecise.
+    # >>> decimal.Decimal(33.069)
+    # Decimal('33.0690000000000026147972675971686840057373046875')
+    # >>> decimal.Decimal('33.069')
+    # Decimal('33.069')
+    value = decimal.Decimal(str(param))
+    divisor = decimal.Decimal(str(param))
+    if value % divisor != 0:
         raise ValidationError("{0} is not a multiple of {1}".format(value, param))
 
 
@@ -110,6 +115,7 @@ else:
             raise ValidationError(
                 "'{0}' is not formatted as a {1}".format(value, param)
             )
+
 
 type_registry = ValidatorRegistry()
 
