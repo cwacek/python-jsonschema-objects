@@ -15,7 +15,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -28,15 +28,16 @@ jobs:
       run: |
         black --check --diff --extend-exclude=versioneer.py .
 
-  build:
+  test:
 
     needs: lint
-    name: "Build ${{matrix.python-version}} (continue-on-error: ${{matrix.experimental}})"
-    runs-on: ubuntu-latest
+    name: Test (${{ matrix.os }}, ${{ matrix.python-version }}, ${{ matrix.experimental }})
+    runs-on: ${{ matrix.os }}-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: true
       matrix:
+        os: [ubuntu, macos, windows]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           - experimental: false
@@ -44,7 +45,7 @@ jobs:
             experimental: true
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
