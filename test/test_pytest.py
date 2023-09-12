@@ -544,9 +544,9 @@ def test_number_multiple_of_validation():
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1000000000,
-                "multipleOf": 0.001
+                "multipleOf": 0.001,
             },
-        }
+        },
     }
 
     builder = pjs.ObjectBuilder(schema)
