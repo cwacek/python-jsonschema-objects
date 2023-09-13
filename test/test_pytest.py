@@ -41,7 +41,7 @@ def test_schema_validation():
         "$id": "test",
         "type": "object",
         "properties": {
-            "name": "string",  #  <-- this is invalid
+            "name": "string",  # <-- this is invalid
             "email": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
         },
         "required": ["email"],
@@ -531,3 +531,24 @@ def test_justareference_example(markdown_examples):
     )
     ns = builder.build_classes()
     ns.JustAReference("Hello")
+
+
+def test_number_multiple_of_validation():
+    schema = {
+        "$schema": "http://json-schema.org/schema#",
+        "$id": "test",
+        "type": "object",
+        "title": "Base",
+        "properties": {
+            "sample": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000000000,
+                "multipleOf": 0.001,
+            },
+        },
+    }
+
+    builder = pjs.ObjectBuilder(schema)
+    ns = builder.build_classes()
+    ns.Base(sample=33.069)
