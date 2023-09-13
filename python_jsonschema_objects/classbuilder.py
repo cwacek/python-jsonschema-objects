@@ -62,7 +62,10 @@ class ProtocolBase(collections.abc.MutableMapping):
                 out[prop] = [getattr(x, "for_json", lambda: x)() for x in propval]
             elif isinstance(propval, (ProtocolBase, LiteralValue)):
                 out[prop] = propval.as_dict()
-            elif propval is not None:
+            elif (
+                propval is not None
+                or self.__propinfo__[prop].get("type", None) == "null"
+            ):
                 out[prop] = propval
 
         return out
@@ -151,9 +154,6 @@ class ProtocolBase(collections.abc.MutableMapping):
         obj = None
         validation_errors = []
         for klass in valid_types:
-            logger.debug(
-                util.lazy_format("Attempting to instantiate {0} as {1}", cls, klass)
-            )
             try:
                 obj = klass(**props)
                 obj.validate()
@@ -171,6 +171,7 @@ class ProtocolBase(collections.abc.MutableMapping):
         return obj
 
     def __init__(self, **props):
+        logger.debug(util.lazy_format("Creating '{0}'", self.__class__))
         self._extended_properties = dict()
         self._properties = dict(
             zip(
@@ -649,6 +650,14 @@ class ClassBuilder(object):
 
             # Set default value, even if None
             if "default" in detail:
+                logger.debug(
+                    util.lazy_format(
+                        "Setting default for {0}.{1} to: {2}",
+                        nm,
+                        prop,
+                        detail["default"],
+                    )
+                )
                 defaults.add(prop)
 
             if detail.get("type", None) == "object":

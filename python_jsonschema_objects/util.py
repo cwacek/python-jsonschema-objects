@@ -45,21 +45,15 @@ class ProtocolJSONEncoder(json.JSONEncoder):
         from python_jsonschema_objects import classbuilder
         from python_jsonschema_objects import wrapper_types
 
-        if isinstance(obj, classbuilder.LiteralValue):
-            return obj._value
-        if isinstance(obj, wrapper_types.ArrayWrapper):
+        if isinstance(
+            obj,
+            (
+                wrapper_types.ArrayWrapper,
+                classbuilder.ProtocolBase,
+                classbuilder.LiteralValue,
+            ),
+        ):
             return obj.for_json()
-        if isinstance(obj, classbuilder.ProtocolBase):
-            props = {}
-            for raw, trans in six.iteritems(obj.__prop_names__):
-                props[raw] = getattr(obj, trans)
-                if props[raw] is None:
-                    del props[raw]
-            for raw, data in six.iteritems(obj._extended_properties):
-                props[raw] = data
-                if props[raw] is None:
-                    del props[raw]
-            return props
         else:
             return json.JSONEncoder.default(self, obj)
 
