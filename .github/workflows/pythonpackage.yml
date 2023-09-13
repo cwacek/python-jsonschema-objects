@@ -38,10 +38,10 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu, macos, windows]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           - experimental: false
-          - python-version: "3.11"
+          - python-version: "3.12"
             experimental: true
 
     steps:
@@ -50,6 +50,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: ${{ matrix.experimental }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
