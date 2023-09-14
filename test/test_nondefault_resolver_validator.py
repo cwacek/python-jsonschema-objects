@@ -1,6 +1,6 @@
-import pytest  # noqa
-from jsonschema import RefResolver, Draft3Validator
-from jsonschema._utils import load_schema, URIDict
+from jsonschema import Draft3Validator, RefResolver
+from jsonschema._utils import URIDict, load_schema
+
 import python_jsonschema_objects as pjo
 
 

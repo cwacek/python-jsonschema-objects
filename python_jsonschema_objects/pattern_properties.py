@@ -1,14 +1,11 @@
-import six
-import re
-import python_jsonschema_objects.validators as validators
-import python_jsonschema_objects.util as util
-from python_jsonschema_objects.literals import MakeLiteral
-
 import collections
-
 import logging
+import re
 
-import python_jsonschema_objects.wrapper_types
+import six
+
+from python_jsonschema_objects import util, validators, wrapper_types
+from python_jsonschema_objects.literals import MakeLiteral
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +63,7 @@ class ExtensibleValidator(object):
         if util.safe_issubclass(typ, cb.ProtocolBase):
             return typ(**util.coerce_for_expansion(val))
 
-        if util.safe_issubclass(
-            typ, python_jsonschema_objects.wrapper_types.ArrayWrapper
-        ):
+        if util.safe_issubclass(typ, wrapper_types.ArrayWrapper):
             return typ(val)
 
         if isinstance(typ, cb.TypeProxy):

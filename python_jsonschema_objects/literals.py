@@ -1,9 +1,9 @@
-from python_jsonschema_objects import util
-from python_jsonschema_objects import validators
 import functools
-import logging
-import six
 import operator
+
+import six
+
+from python_jsonschema_objects import util, validators
 
 
 def MakeLiteral(name, typ, value, **properties):
@@ -76,7 +76,8 @@ class LiteralValue(object):
     def validate(self):
         info = self.propinfo("__literal__")
 
-        # TODO: this duplicates logic in validators.ArrayValidator.check_items; unify it.
+        # TODO: this duplicates logic in validators.ArrayValidator.check_items;
+        # unify it.
         for param, paramval in sorted(
             six.iteritems(info), key=lambda x: x[0].lower() != "type"
         ):

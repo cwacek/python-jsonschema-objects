@@ -4,8 +4,8 @@ import logging
 import six
 
 from python_jsonschema_objects import util
-from python_jsonschema_objects.validators import registry, ValidationError
 from python_jsonschema_objects.util import lazy_format as fmt
+from python_jsonschema_objects.validators import ValidationError, registry
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +161,8 @@ class ArrayWrapper(collections.abc.MutableSequence):
 
         type_checks = self.__itemtype__
         if not isinstance(type_checks, (tuple, list)):
-            # we were given items = {'type': 'blah'} ; thus ensure the type for all data.
+            # We were given items = {'type': 'blah'}.
+            # Thus ensure the type for all data.
             type_checks = [type_checks] * len(self.data)
         elif len(type_checks) > len(self.data):
             raise ValidationError(
@@ -300,7 +301,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
                         addl_constraints=item_constraint,
                     )
                 elif isdict and "oneOf" in item_constraint:
-                    # We need to create a TypeProxy validator
+                    # We need to create a TypeProxy validator.
                     uri = "{0}_{1}".format(name, "<anonymous_list_type>")
                     type_array = klassbuilder.construct_objects(
                         item_constraint["oneOf"], uri
@@ -309,7 +310,8 @@ class ArrayWrapper(collections.abc.MutableSequence):
                     item_constraint = classbuilder.TypeProxy(type_array)
 
                 elif isdict and item_constraint.get("type") == "object":
-                    """We need to create a ProtocolBase object for this anonymous definition"""
+                    # We need to create a ProtocolBase object for this
+                    # anonymous definition.
                     uri = "{0}_{1}".format(name, "<anonymous_list_type>")
                     item_constraint = klassbuilder.construct(uri, item_constraint)
 

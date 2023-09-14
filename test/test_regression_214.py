@@ -1,5 +1,5 @@
-import json
 import pytest
+
 import python_jsonschema_objects as pjo
 
 schema = {
@@ -57,7 +57,7 @@ schema = {
         "UNIQUE_STRING": {
             "additionalProperties": False,
             "type": "string",
-            "pattern": "^\\w[^:]*:.+$",
+            "pattern": r"^\w[^:]*:.+$",
         },
     },
 }

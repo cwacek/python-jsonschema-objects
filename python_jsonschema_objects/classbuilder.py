@@ -1,22 +1,21 @@
-import python_jsonschema_objects.util as util
-import python_jsonschema_objects.validators as validators
-import python_jsonschema_objects.pattern_properties as pattern_properties
-from python_jsonschema_objects.literals import LiteralValue
-
-import copy
 import collections
+import copy
 import itertools
-import six
+import logging
 import sys
 
-import logging
+import six
 
-import python_jsonschema_objects.wrapper_types
+from python_jsonschema_objects import (
+    pattern_properties,
+    util,
+    validators,
+    wrapper_types,
+)
+from python_jsonschema_objects.literals import LiteralValue
 
 logger = logging.getLogger(__name__)
-
 logger.addHandler(logging.NullHandler())
-
 
 # Long is no longer a thing in python3.x
 if sys.version_info > (3,):
@@ -462,7 +461,9 @@ class ClassBuilder(object):
         return pp
 
     def resolve_type(self, ref, source):
-        """Return a resolved type for a URI, potentially constructing one if necessary"""
+        """Return a resolved type for a URI, potentially constructing one if
+        necessary.
+        """
         uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
         if uri in self.resolved:
             return self.resolved[uri]
@@ -556,9 +557,7 @@ class ClassBuilder(object):
         elif clsdata.get("type") == "array" and "items" in clsdata:
             clsdata_copy = {}
             clsdata_copy.update(clsdata)
-            self.resolved[
-                uri
-            ] = python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
+            self.resolved[uri] = wrapper_types.ArrayWrapper.create(
                 uri,
                 item_constraint=clsdata_copy.pop("items"),
                 classbuilder=self,
@@ -684,7 +683,7 @@ class ClassBuilder(object):
                         constraints["strict"] = kw.get("strict")
                         propdata = {
                             "type": "array",
-                            "validator": python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
+                            "validator": wrapper_types.ArrayWrapper.create(
                                 nm, item_constraint=typ, **constraints
                             ),
                         }
@@ -705,7 +704,7 @@ class ClassBuilder(object):
                             constraints["strict"] = kw.get("strict")
                             propdata = {
                                 "type": "array",
-                                "validator": python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
+                                "validator": wrapper_types.ArrayWrapper.create(
                                     uri, item_constraint=typ, **constraints
                                 ),
                             }
@@ -716,7 +715,7 @@ class ClassBuilder(object):
                             constraints["strict"] = kw.get("strict")
                             propdata = {
                                 "type": "array",
-                                "validator": python_jsonschema_objects.wrapper_types.ArrayWrapper.create(
+                                "validator": wrapper_types.ArrayWrapper.create(
                                     uri, item_constraint=typ, **constraints
                                 ),
                             }

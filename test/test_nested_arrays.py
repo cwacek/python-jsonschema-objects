@@ -1,9 +1,10 @@
-import pytest
-
-from jsonschema import validate
-import python_jsonschema_objects as pjo
 import json
 import logging
+
+import pytest
+from jsonschema import validate
+
+import python_jsonschema_objects as pjo
 
 
 @pytest.fixture
@@ -16,7 +17,8 @@ def nested_arrays():
                 "type": "array",
                 "items": {
                     "type": "array",
-                    # FIXME: not supported anymore in https://json-schema.org/draft/2020-12
+                    # FIXME: not supported anymore in
+                    # https://json-schema.org/draft/2020-12
                     "items": [{"type": "number"}, {"type": "number"}],
                 },
             }
@@ -49,7 +51,7 @@ def test_nested_array_regression(nested_arrays, instance):
 @pytest.fixture
 def complex_schema():
     return json.loads(
-        r'{"definitions": {"pnu_info": {"required": ["unit_name", "unit_type", "version", "system_time"], "type": "object", "properties": {"unit_type": {"enum": ["Other", "Backpack"], "type": "string"}, "unit_name": {"type": "string"}, "system_time": {"type": "string"}, "version": {"type": "string"}, "recording_state": {"type": "string"}}}, "error": {"additionalProperties": true, "required": ["message"], "type": "object", "properties": {"message": {"type": "string"}}}, "ptu_location": {"required": ["ptu_id", "latitude", "longitude"], "type": "object", "properties": {"latitude": {"type": "number"}, "ptu_id": {"type": "string"}, "longitude": {"type": "number"}, "orientation": {"minimum": 0, "type": "number", "description": "The orientation of this PTU (in degrees). 360 means *unknown*", "maximum": 360}}}, "geopath": {"items": {"required": ["lat", "lng"], "type": "object", "properties": {"lat": {"type": "number"}, "lng": {"type": "number"}}}, "type": "array", "description": "A path described by an ordered\\nlist of lat/long coordinates\\n"}}, "required": ["status", "boundary", "members", "name"], "type": "object", "properties": {"status": {"enum": ["pending", "active", "completed"]}, "boundary": {"$ref": "#/definitions/geopath"}, "name": {"type": "string"}, "members": {"minItems": 1, "items": {"type": "string"}, "type": "array"}}, "title": "mission"}'
+        r'{"definitions": {"pnu_info": {"required": ["unit_name", "unit_type", "version", "system_time"], "type": "object", "properties": {"unit_type": {"enum": ["Other", "Backpack"], "type": "string"}, "unit_name": {"type": "string"}, "system_time": {"type": "string"}, "version": {"type": "string"}, "recording_state": {"type": "string"}}}, "error": {"additionalProperties": true, "required": ["message"], "type": "object", "properties": {"message": {"type": "string"}}}, "ptu_location": {"required": ["ptu_id", "latitude", "longitude"], "type": "object", "properties": {"latitude": {"type": "number"}, "ptu_id": {"type": "string"}, "longitude": {"type": "number"}, "orientation": {"minimum": 0, "type": "number", "description": "The orientation of this PTU (in degrees). 360 means *unknown*", "maximum": 360}}}, "geopath": {"items": {"required": ["lat", "lng"], "type": "object", "properties": {"lat": {"type": "number"}, "lng": {"type": "number"}}}, "type": "array", "description": "A path described by an ordered\\nlist of lat/long coordinates\\n"}}, "required": ["status", "boundary", "members", "name"], "type": "object", "properties": {"status": {"enum": ["pending", "active", "completed"]}, "boundary": {"$ref": "#/definitions/geopath"}, "name": {"type": "string"}, "members": {"minItems": 1, "items": {"type": "string"}, "type": "array"}}, "title": "mission"}'  # noqa: E501
     )
 
 

@@ -1,4 +1,3 @@
-import pytest  # noqa
 import python_jsonschema_objects as pjo
 
 
@@ -13,10 +12,8 @@ def test_circular_references(markdown_examples):
     a.reference = b
 
     assert a.reference == b
-    assert b.oreference == None  # noqa
+    assert b.oreference is None
     assert a.message == "foo"
 
     serialized = a.serialize(sort_keys=True)
-    assert (
-        serialized == '{"message": "foo", "reference": {"author": "James Dean"}}'
-    )  # noqa
+    assert serialized == '{"message": "foo", "reference": {"author": "James Dean"}}'

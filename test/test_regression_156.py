@@ -1,4 +1,3 @@
-import pytest  # noqa
 import python_jsonschema_objects as pjo
 
 

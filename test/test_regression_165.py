@@ -1,5 +1,6 @@
-import python_jsonschema_objects as pjs
 import pytest
+
+import python_jsonschema_objects as pjs
 
 
 @pytest.fixture
@@ -56,17 +57,17 @@ def test_unrequired_real_properties_arent_really_deleted(Person):
 
     assert p.age == 20
     del p.age
-    assert p.age == None
+    assert p.age is None
 
     p.age = 20
     assert p.age == 20
     delattr(p, "age")
-    assert p.age == None
+    assert p.age is None
 
     p.age = 20
     assert p.age == 20
     del p["age"]
-    assert p.age == None
+    assert p.age is None
 
 
 def test_required_real_properties_throw_attributeerror_on_delete(Person):

@@ -1,12 +1,12 @@
-import pytest
-
-import warnings
 import json
-import six
-import jsonschema
-import python_jsonschema_objects as pjs
-
 import logging
+import warnings
+
+import jsonschema
+import pytest
+import six
+
+import python_jsonschema_objects as pjs
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -81,7 +81,7 @@ def test_build_classes_is_idempotent():
         },
     }
     builder = pjs.ObjectBuilder(schema)
-    x = builder.build_classes()
+    _ = builder.build_classes()
     builder.build_classes()
 
 
@@ -278,14 +278,16 @@ def test_still_raises_when_accessing_undefined_attrs(Person):
     person = Person()
     person.firstName = "James"
 
-    # If the attribute doesn't exist, we expect an AttributeError
+    # If the attribute doesn't exist, we expect an AttributeError.
     with pytest.raises(AttributeError):
         print(person.randomFoo)
 
-    # If the attribute is literal-esq, isn't set but isn't required, accessing it should be fine
-    assert person.gender == None
+    # If the attribute is literal-esq, isn't set but isn't required, accessing
+    # it should be fine.
+    assert person.gender is None
 
-    # If the attribute is an object, isn't set, but isn't required accessing it should throw an exception
+    # If the attribute is an object, isn't set, but isn't required accessing it
+    # should throw an exception.
     with pytest.raises(AttributeError) as e:
         print(person.address.street)
         assert "'NoneType' object has no attribute 'street'" in e
@@ -405,7 +407,7 @@ def test_keys_can_be_other_pjo_objects(Person, person_object):
     assert jane.lastName == person_object.lastName
 
     # We don't want the names to be the same literal object though.
-    # Changing one after assignment should not change the other
+    # Changing one after assignment should not change the other.
     jane.lastName = "Borges"
     assert jane.lastName != person_object.lastName
 

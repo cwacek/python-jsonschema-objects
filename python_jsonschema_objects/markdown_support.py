@@ -1,8 +1,8 @@
+import re
+
 import markdown
 from markdown.extensions import Extension
 from markdown.preprocessors import Preprocessor
-import re
-import json
 
 try:
     from markdown import __version_info__ as markdown_version_info

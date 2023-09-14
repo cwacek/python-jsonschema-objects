@@ -1,8 +1,9 @@
-import pytest
-
-from jsonschema import validate
-import python_jsonschema_objects as pjo
 import json
+
+import pytest
+from jsonschema import validate
+
+import python_jsonschema_objects as pjo
 
 
 @pytest.fixture

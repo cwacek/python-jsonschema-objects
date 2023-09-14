@@ -1,5 +1,3 @@
-import pytest
-
 import python_jsonschema_objects as pjs
 
 
