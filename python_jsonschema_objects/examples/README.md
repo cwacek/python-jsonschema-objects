@@ -219,7 +219,7 @@ The schema and code example below show how this works.
 
 The `$ref` operator is supported in nearly all locations, and
 dispatches the actual reference resolution to the
-`jsonschema.RefResolver`.
+`referencing.Registry` resolver.
 
 This example shows using the memory URI (described in more detail
 below) to create a wrapper object that is just a string literal.
@@ -297,6 +297,9 @@ ValidationError: '[u'author']' are required attributes for B
 ```
 
 #### The "memory:" URI
+
+**"memory:" URIs are deprecated (although they still work). Load resources into a
+`referencing.Registry` instead and pass those in**
 
 The ObjectBuilder can be passed a dictionary specifying
 'memory' schemas when instantiated. This will allow it to

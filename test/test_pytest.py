@@ -1,4 +1,7 @@
 import json
+
+import referencing.jsonschema
+import six
 import logging
 import warnings
 
@@ -12,32 +15,38 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @pytest.mark.parametrize(
-    "version, warn",
+    "version, warn, error",
     [
-        ("http://json-schema.org/schema#", True),
-        ("http://json-schema.org/draft-03/schema#", False),
-        ("http://json-schema.org/draft-04/schema#", False),
-        ("http://json-schema.org/draft-06/schema#", True),
-        ("http://json-schema.org/draft-07/schema#", True),
+        ("http://json-schema.org/schema#", True, True),
+        ("http://json-schema.org/draft-03/schema#", False, False),
+        ("http://json-schema.org/draft-04/schema#", False, False),
+        ("http://json-schema.org/draft-06/schema#", True, False),
+        ("http://json-schema.org/draft-07/schema#", True, False),
     ],
 )
-def test_warnings_on_schema_version(version, warn):
+def test_warnings_on_schema_version(version, warn, error):
     schema = {"$schema": version, "$id": "test", "type": "object", "properties": {}}
 
     with warnings.catch_warnings(record=True) as w:
-        pjs.ObjectBuilder(schema)
-
-        if warn:
-            assert len(w) == 1
-            assert "Schema version %s not recognized" % version in str(w[-1].message)
+        try:
+            pjs.ObjectBuilder(schema)
+        except Exception as e:
+            assert error == True
         else:
-            assert len(w) == 0, w[-1].message
+            warn_msgs = [str(m.message) for m in w]
+            present = [
+                "Schema version %s not recognized" % version in msg for msg in warn_msgs
+            ]
+            if warn:
+                assert any(present)
+            else:
+                assert not any(present)
 
 
 def test_schema_validation():
     """Test that the ObjectBuilder validates the schema itself."""
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "properties": {
@@ -52,7 +61,7 @@ def test_schema_validation():
 
 def test_regression_9():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "properties": {
@@ -67,7 +76,7 @@ def test_regression_9():
 
 def test_build_classes_is_idempotent():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "test",
         "type": "object",
         "properties": {
@@ -87,7 +96,7 @@ def test_build_classes_is_idempotent():
 
 def test_underscore_properties():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "AggregateQuery",
         "type": "object",
         "properties": {"group": {"type": "object", "properties": {}}},
@@ -108,7 +117,7 @@ def test_underscore_properties():
 
 def test_array_regressions():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "properties": {
@@ -140,7 +149,7 @@ def test_array_regressions():
 
 def test_arrays_can_have_reffed_items_of_mixed_type():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "properties": {
@@ -472,7 +481,7 @@ def test_dictionary_transformation(Person, pdict):
 
 def test_strict_mode():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "type": "object",
         "properties": {"firstName": {"type": "string"}, "lastName": {"type": "string"}},
         "$id": "test",
@@ -492,7 +501,7 @@ def test_strict_mode():
 
 def test_boolean_in_child_object():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "properties": {"data": {"type": "object", "additionalProperties": True}},
@@ -514,7 +523,7 @@ def test_boolean_in_child_object():
 def test_default_values(default):
     default = json.loads(default)
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "properties": {"sample": default},
@@ -537,7 +546,7 @@ def test_justareference_example(markdown_examples):
 
 def test_number_multiple_of_validation():
     schema = {
-        "$schema": "http://json-schema.org/schema#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
         "$id": "test",
         "type": "object",
         "title": "Base",
