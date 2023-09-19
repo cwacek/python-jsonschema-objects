@@ -40,7 +40,7 @@ class ObjectBuilder(object):
         resolved={},
         registry: Optional[referencing.Registry] = None,
         resolver: Optional[referencing.typing.Retrieve] = None,
-        specification_uri: str = "http://json-schema.org/draft-04/schema",
+        specification_uri: Optional[str] = None,
     ):
         if isinstance(schema_uri, six.string_types):
             uri = os.path.normpath(schema_uri)
@@ -95,21 +95,15 @@ class ObjectBuilder(object):
 
                 self.registry = Registry(retrieve=file_and_memory_handler)
 
-        if len(resolved) > 0:
-            warnings.warn(
-                "Use of 'memory:' URIs is deprecated. Provide a registry with properly resolved references "
-                "if you want to resolve items externally.",
-                DeprecationWarning,
-            )
-        for uri, contents in resolved.items():
-            self.registry = self.registry.with_resource(
-                "memory:" + uri,
-                referencing.Resource.from_contents(contents, specification_uri),
-            )
-
         if "$schema" not in self.schema:
-            warnings.warn("Schema version not specified. Defaulting to draft4")
-            updated = {"$schema": specification_uri}
+            warnings.warn(
+                "Schema version not specified. Defaulting to {}".format(
+                    specification_uri or "http://json-schema.org/draft-04/schema"
+                )
+            )
+            updated = {
+                "$schema": specification_uri or "http://json-schema.org/draft-04/schema"
+            }
             updated.update(self.schema)
             self.schema = updated
 
@@ -124,12 +118,23 @@ class ObjectBuilder(object):
         self.registry = self.registry.with_resource("", schema)
         self.resolver = self.registry.resolver()
 
-        if specification_uri is not None:
-            validatorClass = jsonschema.validators.validator_for(
-                {"$schema": specification_uri}
+        if len(resolved) > 0:
+            warnings.warn(
+                "Use of 'memory:' URIs is deprecated. Provide a registry with properly resolved references "
+                "if you want to resolve items externally.",
+                DeprecationWarning,
             )
-        else:
-            validatorClass = jsonschema.validators.validator_for(self.schema)
+        for uri, contents in resolved.items():
+            self.registry = self.registry.with_resource(
+                "memory:" + uri,
+                referencing.Resource.from_contents(
+                    contents, specification_uri or self.schema["$schema"]
+                ),
+            )
+
+        validatorClass = jsonschema.validators.validator_for(
+            {"$schema": specification_uri or self.schema["$schema"]}
+        )
 
         meta_validator = validatorClass(
             validatorClass.META_SCHEMA, registry=self.registry
