@@ -6,22 +6,20 @@ import json
 import logging
 import os.path
 import warnings
+from typing import Optional
 
 import inflection
 import jsonschema
+import referencing.jsonschema
+import referencing.retrieval
+import referencing.typing
 import six
+from referencing import Registry, Resource
+
 import python_jsonschema_objects.classbuilder as classbuilder
 import python_jsonschema_objects.markdown_support
 import python_jsonschema_objects.util
 from python_jsonschema_objects.validators import ValidationError
-from typing import Optional
-
-from jsonschema_specifications import REGISTRY as SPECIFICATIONS
-from referencing import Registry, Resource
-import referencing.typing
-import referencing.jsonschema
-import referencing.retrieval
-
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +69,8 @@ class ObjectBuilder(object):
 
             if resolver is not None:
                 raise AttributeError(
-                    "Cannot specify both registry and resolver. If you provide your own registry, pass the resolver directly to that"
+                    "Cannot specify both registry and resolver. If you provide your own registry, pass the resolver "
+                    "directly to that"
                 )
             self.registry = registry
         else:
@@ -228,7 +227,7 @@ class ObjectBuilder(object):
             elif not named_only:
                 classes[name_transform(uri.split("/")[-1])] = klass
 
-        return util.Namespace.from_mapping(classes)
+        return python_jsonschema_objects.util.Namespace.from_mapping(classes)
 
 
 if __name__ == "__main__":

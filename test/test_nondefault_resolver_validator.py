@@ -1,8 +1,8 @@
 import pytest  # noqa
 import referencing
-import json
-import referencing.jsonschema
 import referencing.exceptions
+import referencing.jsonschema
+
 import python_jsonschema_objects as pjo
 
 

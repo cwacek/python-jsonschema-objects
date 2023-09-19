@@ -1,16 +1,10 @@
-import referencing._core
-
-import python_jsonschema_objects.util as util
-import python_jsonschema_objects.validators as validators
-import python_jsonschema_objects.pattern_properties as pattern_properties
-from python_jsonschema_objects.literals import LiteralValue
-
-import collections
+import collections.abc
 import copy
 import itertools
 import logging
 import sys
 
+import referencing._core
 import six
 
 from python_jsonschema_objects import (

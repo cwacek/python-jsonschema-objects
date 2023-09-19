@@ -1,7 +1,4 @@
 import json
-
-import referencing.jsonschema
-import six
 import logging
 import warnings
 
@@ -30,8 +27,8 @@ def test_warnings_on_schema_version(version, warn, error):
     with warnings.catch_warnings(record=True) as w:
         try:
             pjs.ObjectBuilder(schema)
-        except Exception as e:
-            assert error == True
+        except Exception:
+            assert error == True  # noqa
         else:
             warn_msgs = [str(m.message) for m in w]
             present = [
