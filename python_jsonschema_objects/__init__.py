@@ -7,12 +7,13 @@ import logging
 import os.path
 import warnings
 from typing import Optional
+import typing
 
 import inflection
 import jsonschema
 import referencing.jsonschema
 import referencing.retrieval
-import referencing.typing
+import referencing._core
 import six
 from referencing import Registry, Resource
 
@@ -36,8 +37,8 @@ SUPPORTED_VERSIONS = (
 class ObjectBuilder(object):
     def __init__(
         self,
-        schema_uri,
-        resolved={},
+        schema_uri: typing.Union[typing.AnyStr, typing.Mapping],
+        resolved: typing.Dict[typing.AnyStr, typing.Mapping] = {},
         registry: Optional[referencing.Registry] = None,
         resolver: Optional[referencing.typing.Retrieve] = None,
         specification_uri: Optional[str] = None,
@@ -116,7 +117,6 @@ class ObjectBuilder(object):
             schema = Resource.from_contents(self.schema)
 
         self.registry = self.registry.with_resource("", schema)
-        self.resolver = self.registry.resolver()
 
         if len(resolved) > 0:
             warnings.warn(
@@ -144,6 +144,10 @@ class ObjectBuilder(object):
 
         self._classes = None
         self._resolved = None
+
+    @property
+    def resolver(self) -> referencing._core.Resolver:
+        return self.registry.resolver()
 
     @property
     def schema(self):
