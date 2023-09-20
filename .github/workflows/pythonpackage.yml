@@ -38,7 +38,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu, macos, windows]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           - experimental: false
           - python-version: "3.12"

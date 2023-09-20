@@ -1,24 +1,61 @@
-from jsonschema import Draft3Validator, RefResolver
-from jsonschema._utils import URIDict, load_schema
+import jsonschema.exceptions
+import pytest  # noqa
+import referencing
+import referencing.exceptions
+import referencing.jsonschema
 
+import python_jsonschema_objects
 import python_jsonschema_objects as pjo
 
 
-def test_non_default_resolver_validator(markdown_examples):
-    ms = URIDict()
-    draft3 = load_schema("draft3")
-    draft4 = load_schema("draft4")
-    ms[draft3["id"]] = draft3
-    ms[draft4["id"]] = draft4
-    resolver_with_store = RefResolver(draft3["id"], draft3, ms)
-
-    # 'Other' schema should be valid with draft3
-    builder = pjo.ObjectBuilder(
-        markdown_examples["Other"],
-        resolver=resolver_with_store,
-        validatorClass=Draft3Validator,
+def test_custom_spec_validator(markdown_examples):
+    # This schema shouldn't be valid under DRAFT-03
+    schema = {
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "title": "other",
+        "type": "any",  # this wasn't valid starting in 04
+    }
+    pjo.ObjectBuilder(
+        schema,
         resolved=markdown_examples,
     )
-    klasses = builder.build_classes()
-    a = klasses.Other(MyAddress="where I live")
-    assert a.MyAddress == "where I live"
+
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        pjo.ObjectBuilder(
+            schema,
+            specification_uri="http://json-schema.org/draft-04/schema",
+            resolved=markdown_examples,
+        )
+
+
+def test_non_default_resolver_finds_refs():
+    registry = referencing.Registry()
+
+    remote_schema = {
+        "$schema": "http://json-schema.org/draft-04/schema",
+        "type": "number",
+    }
+    registry = registry.with_resource(
+        "https://example.org/schema/example",
+        referencing.Resource.from_contents(remote_schema),
+    )
+
+    schema = {
+        "$schema": "http://json-schema.org/draft-04/schema",
+        "title": "other",
+        "type": "object",
+        "properties": {
+            "local": {"type": "string"},
+            "remote": {"$ref": "https://example.org/schema/example"},
+        },
+    }
+
+    builder = pjo.ObjectBuilder(
+        schema,
+        registry=registry,
+    )
+    ns = builder.build_classes()
+
+    thing = ns.Other(local="foo", remote=1)
+    with pytest.raises(python_jsonschema_objects.ValidationError):
+        thing = ns.Other(local="foo", remote="NaN")

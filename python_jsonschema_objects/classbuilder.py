@@ -1,9 +1,10 @@
-import collections
+import collections.abc
 import copy
 import itertools
 import logging
 import sys
 
+import referencing._core
 import six
 
 from python_jsonschema_objects import (
@@ -443,7 +444,7 @@ class TypeProxy(object):
 
 
 class ClassBuilder(object):
-    def __init__(self, resolver):
+    def __init__(self, resolver: referencing._core.Resolver):
         self.resolver = resolver
         self.resolved = {}
         self.under_construction = set()
@@ -462,10 +463,8 @@ class ClassBuilder(object):
         return pp
 
     def resolve_type(self, ref, source):
-        """Return a resolved type for a URI, potentially constructing one if
-        necessary.
-        """
-        uri = util.resolve_ref_uri(self.resolver.resolution_scope, ref)
+        """Return a resolved type for a URI, potentially constructing one if necessary"""
+        uri = util.resolve_ref_uri(self.resolver._base_uri, ref)
         if uri in self.resolved:
             return self.resolved[uri]
 
@@ -484,9 +483,9 @@ class ClassBuilder(object):
                     "Resolving direct reference object {0} -> {1}", source, uri
                 )
             )
-            with self.resolver.resolving(ref) as resolved:
-                self.resolved[uri] = self.construct(uri, resolved, (ProtocolBase,))
-                return self.resolved[uri]
+            resolved = self.resolver.lookup(ref)
+            self.resolved[uri] = self.construct(uri, resolved.contents, (ProtocolBase,))
+            return self.resolved[uri]
 
     def construct(self, uri, *args, **kw):
         """Wrapper to debug things"""

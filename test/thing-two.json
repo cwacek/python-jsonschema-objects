@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "thing_two",
   "title": "thing_two",
   "description": "The second thing.",

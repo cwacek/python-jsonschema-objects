@@ -41,13 +41,13 @@ if __name__ == "__main__":
         install_requires=[
             "inflection>=0.2",
             "Markdown>=2.4",
-            "jsonschema>=2.3,<4.18",
+            "jsonschema>=4.18",
             "six>=1.5.2",
         ],
+        python_requires=">=3.8",
         cmdclass=versioneer.get_cmdclass(),
         classifiers=[
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",

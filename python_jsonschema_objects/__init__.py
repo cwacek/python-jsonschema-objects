@@ -6,29 +6,43 @@ import json
 import logging
 import os.path
 import warnings
+from typing import Optional
+import typing
 
 import inflection
 import jsonschema
+import referencing.jsonschema
+import referencing.retrieval
+import referencing._core
 import six
-from jsonschema import Draft4Validator
+from referencing import Registry, Resource
 
-from python_jsonschema_objects import classbuilder, markdown_support, util
+import python_jsonschema_objects.classbuilder as classbuilder
+import python_jsonschema_objects.markdown_support
+import python_jsonschema_objects.util
 from python_jsonschema_objects.validators import ValidationError
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["ObjectBuilder", "markdown_support", "ValidationError"]
+
 FILE = __file__
 
 SUPPORTED_VERSIONS = (
-    "http://json-schema.org/draft-03/schema#",
-    "http://json-schema.org/draft-04/schema#",
+    "http://json-schema.org/draft-03/schema",
+    "http://json-schema.org/draft-04/schema",
 )
 
 
 class ObjectBuilder(object):
-    def __init__(self, schema_uri, resolved={}, resolver=None, validatorClass=None):
-        self.mem_resolved = resolved
-
+    def __init__(
+        self,
+        schema_uri: typing.Union[typing.AnyStr, typing.Mapping],
+        resolved: typing.Dict[typing.AnyStr, typing.Mapping] = {},
+        registry: Optional[referencing.Registry] = None,
+        resolver: Optional[referencing.typing.Retrieve] = None,
+        specification_uri: Optional[str] = None,
+    ):
         if isinstance(schema_uri, six.string_types):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
@@ -41,7 +55,7 @@ class ObjectBuilder(object):
 
         if (
             "$schema" in self.schema
-            and self.schema["$schema"] not in SUPPORTED_VERSIONS
+            and self.schema["$schema"].rstrip("#") not in SUPPORTED_VERSIONS
         ):
             warnings.warn(
                 "Schema version {} not recognized. Some "
@@ -50,18 +64,90 @@ class ObjectBuilder(object):
                 )
             )
 
-        self.resolver = resolver or jsonschema.RefResolver.from_schema(self.schema)
-        self.resolver.handlers.update(
-            {"file": self.relative_file_resolver, "memory": self.memory_resolver}
+        if registry is not None:
+            if not isinstance(registry, referencing.Registry):
+                raise TypeError("registry must be a Registry instance")
+
+            if resolver is not None:
+                raise AttributeError(
+                    "Cannot specify both registry and resolver. If you provide your own registry, pass the resolver "
+                    "directly to that"
+                )
+            self.registry = registry
+        else:
+            if resolver is not None:
+
+                def file_and_memory_handler(uri):
+                    if uri.startswith("file:"):
+                        return Resource.from_contents(self.relative_file_resolver(uri))
+                    return resolver(uri)
+
+                self.registry = Registry(retrieve=file_and_memory_handler)
+            else:
+
+                def file_and_memory_handler(uri):
+                    if uri.startswith("file:"):
+                        return Resource.from_contents(self.relative_file_resolver(uri))
+                    raise RuntimeError(
+                        "No remote resource resolver provided. Cannot resolve {}".format(
+                            uri
+                        )
+                    )
+
+                self.registry = Registry(retrieve=file_and_memory_handler)
+
+        if "$schema" not in self.schema:
+            warnings.warn(
+                "Schema version not specified. Defaulting to {}".format(
+                    specification_uri or "http://json-schema.org/draft-04/schema"
+                )
+            )
+            updated = {
+                "$schema": specification_uri or "http://json-schema.org/draft-04/schema"
+            }
+            updated.update(self.schema)
+            self.schema = updated
+
+        schema = Resource.from_contents(self.schema)
+        if schema.id() is None:
+            warnings.warn("Schema id not specified. Defaulting to 'self'")
+            updated = {"$id": "self", "id": "self"}
+            updated.update(self.schema)
+            self.schema = updated
+            schema = Resource.from_contents(self.schema)
+
+        self.registry = self.registry.with_resource("", schema)
+
+        if len(resolved) > 0:
+            warnings.warn(
+                "Use of 'memory:' URIs is deprecated. Provide a registry with properly resolved references "
+                "if you want to resolve items externally.",
+                DeprecationWarning,
+            )
+        for uri, contents in resolved.items():
+            self.registry = self.registry.with_resource(
+                "memory:" + uri,
+                referencing.Resource.from_contents(
+                    contents, specification_uri or self.schema["$schema"]
+                ),
+            )
+
+        validatorClass = jsonschema.validators.validator_for(
+            {"$schema": specification_uri or self.schema["$schema"]}
         )
 
-        validatorClass = validatorClass or Draft4Validator
-        meta_validator = validatorClass(validatorClass.META_SCHEMA)
+        meta_validator = validatorClass(
+            validatorClass.META_SCHEMA, registry=self.registry
+        )
         meta_validator.validate(self.schema)
-        self.validator = validatorClass(self.schema, resolver=self.resolver)
+        self.validator = validatorClass(self.schema, registry=self.registry)
 
         self._classes = None
         self._resolved = None
+
+    @property
+    def resolver(self) -> referencing._core.Resolver:
+        return self.registry.resolver()
 
     @property
     def schema(self):
@@ -84,9 +170,6 @@ class ObjectBuilder(object):
         if self._resolved is None:
             self._classes = self.build_classes()
         return self._resolved.get(uri, None)
-
-    def memory_resolver(self, uri):
-        return self.mem_resolved[uri[7:]]
 
     def relative_file_resolver(self, uri):
         path = os.path.join(self.basedir, uri[8:])
@@ -126,10 +209,11 @@ class ObjectBuilder(object):
         kw = {"strict": strict}
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in six.iteritems(self.schema.get("definitions", {})):
-            uri = util.resolve_ref_uri(
-                self.resolver.resolution_scope, "#/definitions/" + nm
+            resolved = self.resolver.lookup("#/definitions/" + nm)
+            uri = python_jsonschema_objects.util.resolve_ref_uri(
+                self.resolver._base_uri, "#/definitions/" + nm
             )
-            builder.construct(uri, defn, **kw)
+            builder.construct(uri, resolved.contents, **kw)
 
         if standardize_names:
             name_transform = lambda t: inflection.camelize(
@@ -152,7 +236,7 @@ class ObjectBuilder(object):
             elif not named_only:
                 classes[name_transform(uri.split("/")[-1])] = klass
 
-        return util.Namespace.from_mapping(classes)
+        return python_jsonschema_objects.util.Namespace.from_mapping(classes)
 
 
 if __name__ == "__main__":
