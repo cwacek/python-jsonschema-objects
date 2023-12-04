@@ -320,7 +320,6 @@ class ProtocolBase(collections.abc.MutableMapping):
         for prop, val in six.iteritems(self._properties):
             if val is None:
                 continue
-
             if isinstance(val, ProtocolBase):
                 val.validate()
             elif getattr(val, "isLiteralClass", None) is True:
@@ -502,9 +501,16 @@ class ClassBuilder(object):
 
     def _construct(self, uri, clsdata, parent=(ProtocolBase,), **kw):
         if "anyOf" in clsdata:
-            raise NotImplementedError("anyOf is not supported as bare property")
+            if kw.get("any_of", None) is None:
+                raise NotImplementedError("anyOf is not supported as bare property (workarounds available by setting any_of flag)")
+            if kw['any_of'] == 'use-first':
+                # Patch so the first anyOf becomes a single oneOf
+                clsdata["oneOf"] = [clsdata["anyOf"].pop(0), ]
+                del clsdata["anyOf"]
+            else:
+                raise NotImplementedError(f"anyOf workaround is not a recognized type (any_of = {kw['any_of']})")
 
-        elif "oneOf" in clsdata:
+        if "oneOf" in clsdata:
             """If this object itself has a 'oneOf' designation,
             then construct a TypeProxy.
             """
@@ -699,6 +705,7 @@ class ClassBuilder(object):
                     else:
                         uri = "{0}/{1}_{2}".format(nm, prop, "<anonymous_field>")
                         try:
+                            # NOTE: Currently anyOf workaround is applied on import, not here for serialization
                             if "oneOf" in detail["items"]:
                                 typ = TypeProxy(
                                     self.construct_objects(
