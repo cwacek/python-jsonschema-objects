@@ -502,13 +502,19 @@ class ClassBuilder(object):
     def _construct(self, uri, clsdata, parent=(ProtocolBase,), **kw):
         if "anyOf" in clsdata:
             if kw.get("any_of", None) is None:
-                raise NotImplementedError("anyOf is not supported as bare property (workarounds available by setting any_of flag)")
-            if kw['any_of'] == 'use-first':
+                raise NotImplementedError(
+                    "anyOf is not supported as bare property (workarounds available by setting any_of flag)"
+                )
+            if kw["any_of"] == "use-first":
                 # Patch so the first anyOf becomes a single oneOf
-                clsdata["oneOf"] = [clsdata["anyOf"].pop(0), ]
+                clsdata["oneOf"] = [
+                    clsdata["anyOf"].pop(0),
+                ]
                 del clsdata["anyOf"]
             else:
-                raise NotImplementedError(f"anyOf workaround is not a recognized type (any_of = {kw['any_of']})")
+                raise NotImplementedError(
+                    f"anyOf workaround is not a recognized type (any_of = {kw['any_of']})"
+                )
 
         if "oneOf" in clsdata:
             """If this object itself has a 'oneOf' designation,
@@ -567,7 +573,7 @@ class ClassBuilder(object):
                 uri,
                 item_constraint=clsdata_copy.pop("items"),
                 classbuilder=self,
-                **clsdata_copy
+                **clsdata_copy,
             )
             return self.resolved[uri]
 

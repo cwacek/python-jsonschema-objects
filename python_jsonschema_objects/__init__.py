@@ -183,8 +183,13 @@ class ObjectBuilder(object):
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
 
-    def build_classes(self, strict=False, named_only=False, standardize_names=True,
-                      any_of: typing.Optional[typing.Literal['use-first']]=None):
+    def build_classes(
+        self,
+        strict=False,
+        named_only=False,
+        standardize_names=True,
+        any_of: typing.Optional[typing.Literal["use-first"]] = None,
+    ):
         """
         Build all of the classes named in the JSONSchema.
 
