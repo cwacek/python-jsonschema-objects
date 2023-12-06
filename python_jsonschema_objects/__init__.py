@@ -183,7 +183,13 @@ class ObjectBuilder(object):
         except jsonschema.ValidationError as e:
             raise ValidationError(e)
 
-    def build_classes(self, strict=False, named_only=False, standardize_names=True):
+    def build_classes(
+        self,
+        strict=False,
+        named_only=False,
+        standardize_names=True,
+        any_of: typing.Optional[typing.Literal["use-first"]] = None,
+    ):
         """
         Build all of the classes named in the JSONSchema.
 
@@ -201,12 +207,15 @@ class ObjectBuilder(object):
                 generated).
             standardize_names: (bool) If true (the default), class names will be
                 transformed by camel casing
+            any_of: (literal) If not set to None, defines the way anyOf clauses are resolved:
+                - 'use-first': Generate to the first matching schema in the list under the anyOf
+                - None: default behavior, anyOf is not supported in the schema
 
         Returns:
             A namespace containing all the generated classes
 
         """
-        kw = {"strict": strict}
+        kw = {"strict": strict, "any_of": any_of}
         builder = classbuilder.ClassBuilder(self.resolver)
         for nm, defn in six.iteritems(self.schema.get("definitions", {})):
             resolved = self.resolver.lookup("#/definitions/" + nm)
