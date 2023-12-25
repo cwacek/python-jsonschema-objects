@@ -225,9 +225,7 @@ class ObjectBuilder(object):
             builder.construct(uri, resolved.contents, **kw)
 
         if standardize_names:
-            name_transform = lambda t: inflection.camelize(
-                inflection.parameterize(six.text_type(t), "_")
-            )
+            name_transform = lambda t: inflection.camelize(six.text_type(t).replace(" ", "_").replace("-", "_").replace(".", "_"))
         else:
             name_transform = lambda t: t
 
