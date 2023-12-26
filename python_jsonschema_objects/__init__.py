@@ -125,11 +125,14 @@ class ObjectBuilder(object):
                 DeprecationWarning,
             )
         for uri, contents in resolved.items():
+            from referencing.jsonschema import specification_with
+
+            specification = specification_with(
+                specification_uri or self.schema["$schema"]
+            )
             self.registry = self.registry.with_resource(
                 "memory:" + uri,
-                referencing.Resource.from_contents(
-                    contents, specification_uri or self.schema["$schema"]
-                ),
+                referencing.Resource.from_contents(contents, specification),
             )
 
         validatorClass = jsonschema.validators.validator_for(
