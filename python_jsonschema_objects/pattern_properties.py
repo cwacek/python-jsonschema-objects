@@ -95,8 +95,13 @@ class ExtensibleValidator(object):
                 for k, t in validators.SCHEMA_TYPE_MAPPING
                 if t is not None and isinstance(val, t)
             ]
-            valtype = valtype[0]
-            return MakeLiteral(name, valtype, val)
+
+            if valtype:
+                valtype = valtype[0]
+                return MakeLiteral(name, valtype, val)
+            else:
+                # Handle the case where valtype is an empty list
+                raise validators.ValidationError("Unable to determine valtype")
 
         elif isinstance(self._additional_type, (type, cb.TypeProxy)):
             return self._make_type(self._additional_type, val)
