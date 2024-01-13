@@ -100,12 +100,9 @@ class ExtensibleValidator(object):
                 valtype = valtype[0]
                 return MakeLiteral(name, valtype, val)
             else:
-                if self._additional_properties is False:
-                    # Handle the case where valtype is an empty list
-                    raise validators.ValidationError("Unable to determine valtype")
-                else:
-                    valtype={}
-                    return MakeLiteral(name, valtype, val)
+                # Handle the case where valtype is an empty list
+                raise validators.ValidationError("Unable to determine valtype")
+
         elif isinstance(self._additional_type, (type, cb.TypeProxy)):
             return self._make_type(self._additional_type, val)
         else:
