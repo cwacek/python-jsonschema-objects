@@ -6,7 +6,6 @@ import six
 
 from python_jsonschema_objects import util, validators, wrapper_types
 from python_jsonschema_objects.literals import MakeLiteral
-
 logger = logging.getLogger(__name__)
 
 PatternDef = collections.namedtuple("PatternDef", "pattern schema_type")
@@ -80,6 +79,7 @@ class ExtensibleValidator(object):
         )
 
     def instantiate(self, name, val):
+
         import python_jsonschema_objects.classbuilder as cb
 
         for p in self._pattern_types:
@@ -89,23 +89,27 @@ class ExtensibleValidator(object):
                 )
                 return self._make_type(p.schema_type, val)
 
-        if self._additional_type is True:
+        if self._additional_type is True:            
+            # Extract the type of the value
             valtype = [
-                k
-                for k, t in validators.SCHEMA_TYPE_MAPPING
-                if t is not None and isinstance(val, t)
+                key
+                for key, schema_type in validators.SCHEMA_TYPE_MAPPING
+                if schema_type is not None and isinstance(val, schema_type)
             ]
-
             if valtype:
                 valtype = valtype[0]
                 return MakeLiteral(name, valtype, val)
             else:
-                # Handle the case where valtype is an empty list
-                raise validators.ValidationError("Unable to determine valtype")
-
+                if self._additional_properties is False:
+                    # Handle the case where valtype is an empty list
+                    raise validators.ValidationError("Unable to determine valtype")
+                else:
+                    valtype={}
+                    return MakeLiteral(name, valtype, val)
         elif isinstance(self._additional_type, (type, cb.TypeProxy)):
             return self._make_type(self._additional_type, val)
+        else:
+            raise validators.ValidationError(
+                "additionalProperties not permitted " "and no patternProperties specified"
+            )
 
-        raise validators.ValidationError(
-            "additionalProperties not permitted " "and no patternProperties specified"
-        )

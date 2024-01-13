@@ -231,14 +231,19 @@ class ProtocolBase(collections.abc.MutableMapping):
         else:
             # This is an additional property of some kind
             try:
-                val = self.__extensible__.instantiate(name, val)
+                # ClassBuilder re-builds a class based on objects already defined by Python, 
+                # adding properties from the JSON file. If an object already exists, 
+                # it's not validated again during the build process.
+                # Your classes are in _extended_properties
+                # Properties from file are in _properties
+                if not isinstance(name, object):
+                    val = self.__extensible__.instantiate(name, val)
             except Exception as e:
                 raise validators.ValidationError(
                     "Attempted to set unknown property '{0}': {1} ".format(name, e)
                 )
 
             self._extended_properties[name] = val
-
     """ Implement collections.MutableMapping methods """
 
     def __iter__(self):
@@ -261,11 +266,13 @@ class ProtocolBase(collections.abc.MutableMapping):
         name = str(name)
         if name in self.__prop_names__:
             raise AttributeError(name)
+
         if name in self._extended_properties:
             return self._extended_properties[name]
-        raise AttributeError(
-            "{0} is not a valid property of {1}".format(name, self.__class__.__name__)
-        )
+        else:
+            raise AttributeError(
+                "{0} is not a valid property of {1}".format(name, self.__class__.__name__)
+            )
 
     def __setitem__(self, key, val):
         key = str(key)
@@ -803,3 +810,4 @@ def make_property(prop, info, desc=""):
 
     prop = descriptors.AttributeDescriptor(prop, info, desc)
     return prop
+
