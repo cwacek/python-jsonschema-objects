@@ -213,6 +213,8 @@ class ArrayWrapper(collections.abc.MutableSequence):
                 try:
                     if isinstance(elem, (six.string_types, six.integer_types, float)):
                         val = typ(elem)
+                    elif isinstance(elem, classbuilder.LiteralValue):
+                        val = typ(elem._value)
                     else:
                         val = typ(**util.coerce_for_expansion(elem))
                 except TypeError as e:

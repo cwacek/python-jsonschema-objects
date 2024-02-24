@@ -169,10 +169,14 @@ def test_arrays_can_have_reffed_items_of_mixed_type():
     builder = pjs.ObjectBuilder(schema)
     ns = builder.build_classes()
 
-    ns.Test(list=["foo", "bar"])
+    x = ns.Test(list=["foo", "bar"])
     ns.Test(list=[{"bar": "nice"}, "bar"])
     with pytest.raises(pjs.ValidationError):
         ns.Test(list=[100])
+
+    assert x.list == ["foo", "bar"]
+    x.list.append(ns.Foo("bleh"))
+    assert x.list == ["foo", "bar", "bleh"]
 
 
 def test_regression_39():
