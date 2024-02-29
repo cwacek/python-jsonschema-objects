@@ -63,8 +63,8 @@ def test_nested_anyOf():
                             {"type": "string", "format": "email"},
                             {"type": "string", "maxlength": 0},
                         ]
-                    }
-                }
+                    },
+                },
             }
         },
     }
@@ -72,14 +72,18 @@ def test_nested_anyOf():
     builder = pjo.ObjectBuilder(basicSchemaDefn)
 
     ns = builder.build_classes(any_of="use-first")
-    ns.Test().from_json('{"ExampleAnyOf" : {"something": "someone", "exampleAnyOf": "test@example.com"} }')
+    ns.Test().from_json(
+        '{"ExampleAnyOf" : {"something": "someone", "exampleAnyOf": "test@example.com"} }'
+    )
 
     with pytest.raises(pjo.ValidationError):
         # Because this does not match the email format:
-        ns.Test().from_json('{"ExampleAnyOf" : {"something": "someone", "exampleAnyOf": "not-a-email-com"} }')
+        ns.Test().from_json(
+            '{"ExampleAnyOf" : {"something": "someone", "exampleAnyOf": "not-a-email-com"} }'
+        )
 
     # Does it also work when not deserializing?
-    x = ns.Test(ExampleAnyOf={'something': 'somestring'})
+    x = ns.Test(ExampleAnyOf={"something": "somestring"})
     with pytest.raises(pjo.ValidationError):
         x.ExampleAnyOf.exampleAnyOf = ""
 
