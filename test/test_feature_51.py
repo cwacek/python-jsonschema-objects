@@ -46,6 +46,56 @@ def test_simple_array_anyOf():
     assert y.ExampleAnyOf == "test@example.com"
 
 
+def test_nested_anyOf():
+    basicSchemaDefn = {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "Test",
+        "properties": {"ExampleAnyOf": {"$ref": "#/definitions/externalItem"}},
+        "required": ["ExampleAnyOf"],
+        "type": "object",
+        "definitions": {
+            "externalItem": {
+                "type": "object",
+                "properties": {
+                    "something": {"type": "string"},
+                    "exampleAnyOf": {
+                        "anyOf": [
+                            {"type": "string", "format": "email"},
+                            {"type": "string", "maxlength": 0},
+                        ]
+                    },
+                },
+            }
+        },
+    }
+
+    builder = pjo.ObjectBuilder(basicSchemaDefn)
+
+    ns = builder.build_classes(any_of="use-first")
+    ns.Test().from_json(
+        '{"ExampleAnyOf" : {"something": "someone", "exampleAnyOf": "test@example.com"} }'
+    )
+
+    with pytest.raises(pjo.ValidationError):
+        # Because this does not match the email format:
+        ns.Test().from_json(
+            '{"ExampleAnyOf" : {"something": "someone", "exampleAnyOf": "not-a-email-com"} }'
+        )
+
+    # Does it also work when not deserializing?
+    x = ns.Test(ExampleAnyOf={"something": "somestring"})
+    with pytest.raises(pjo.ValidationError):
+        x.ExampleAnyOf.exampleAnyOf = ""
+
+    with pytest.raises(pjo.ValidationError):
+        x.ExampleAnyOf.exampleAnyOf = "not-an-email"
+
+    x.ExampleAnyOf.exampleAnyOf = "test@example.com"
+    out = x.serialize()
+    y = ns.Test.from_json(out)
+    assert y.ExampleAnyOf.exampleAnyOf == "test@example.com"
+
+
 def test_simple_array_anyOf_withoutConfig():
     basicSchemaDefn = {
         "$schema": "http://json-schema.org/draft-04/schema#",

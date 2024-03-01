@@ -672,7 +672,7 @@ class ClassBuilder(object):
 
             if detail.get("type", None) == "object":
                 uri = "{0}/{1}_{2}".format(nm, prop, "<anonymous>")
-                self.resolved[uri] = self.construct(uri, detail, (ProtocolBase,))
+                self.resolved[uri] = self.construct(uri, detail, (ProtocolBase,), **kw)
 
                 props[prop] = make_property(
                     prop, {"type": self.resolved[uri]}, self.resolved[uri].__doc__
@@ -719,7 +719,7 @@ class ClassBuilder(object):
                                     )
                                 )
                             else:
-                                typ = self.construct(uri, detail["items"])
+                                typ = self.construct(uri, detail["items"], **kw)
 
                             constraints = copy.copy(detail)
                             constraints["strict"] = kw.get("strict")
@@ -746,7 +746,7 @@ class ClassBuilder(object):
                     typs = []
                     for i, elem in enumerate(detail["items"]):
                         uri = "{0}/{1}/<anonymous_{2}>".format(nm, prop, i)
-                        typ = self.construct(uri, elem)
+                        typ = self.construct(uri, elem, **kw)
                         typs.append(typ)
 
                     props[prop] = make_property(prop, {"type": typs})
@@ -754,7 +754,7 @@ class ClassBuilder(object):
             else:
                 desc = detail["description"] if "description" in detail else ""
                 uri = "{0}/{1}".format(nm, prop)
-                typ = self.construct(uri, detail)
+                typ = self.construct(uri, detail, **kw)
 
                 props[prop] = make_property(prop, {"type": typ}, desc)
 
