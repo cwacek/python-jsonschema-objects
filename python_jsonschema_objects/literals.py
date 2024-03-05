@@ -44,6 +44,10 @@ class LiteralValue(object):
 
         self.validate()
 
+        constval = self.const()
+        if constval is not None:
+            self._value = constval
+
     def as_dict(self):
         return self.for_json()
 
@@ -53,6 +57,10 @@ class LiteralValue(object):
     @classmethod
     def default(cls):
         return cls.__propinfo__.get("__default__")
+
+    @classmethod
+    def const(cls):
+        return cls.__propinfo__.get("__literal__", {}).get("const", None)
 
     @classmethod
     def propinfo(cls, propname):

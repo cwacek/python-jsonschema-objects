@@ -4,6 +4,7 @@ import itertools
 import logging
 import sys
 
+import jsonschema.exceptions
 import referencing._core
 import six
 
@@ -184,11 +185,23 @@ class ProtocolBase(collections.abc.MutableMapping):
         # but only for the ones that have defaults set.
         for name in self.__has_default__:
             if name not in props:
-                default_value = copy.deepcopy(self.__propinfo__[name]["default"])
+                # "defaults" could come from either the 'default' keyword or the 'const' keyword
+                try:
+                    default_value = self.__propinfo__[name]["default"]
+                except KeyError:
+                    try:
+                        default_value = self.__propinfo__[name]["const"]
+                    except KeyError:
+                        raise jsonschema.exceptions.SchemaError(
+                            "Schema parsing error. Expected {0} to have default or const value".format(
+                                name
+                            )
+                        )
+
                 logger.debug(
                     util.lazy_format("Initializing '{0}' to '{1}'", name, default_value)
                 )
-                setattr(self, name, default_value)
+                setattr(self, name, copy.deepcopy(default_value))
 
         for prop in props:
             try:
@@ -626,7 +639,7 @@ class ClassBuilder(object):
                 "__propinfo__": {
                     "__literal__": clsdata,
                     "__title__": clsdata.get("title"),
-                    "__default__": clsdata.get("default"),
+                    "__default__": clsdata.get("default") or clsdata.get("const"),
                 }
             },
         )
@@ -666,6 +679,17 @@ class ClassBuilder(object):
                         nm,
                         prop,
                         detail["default"],
+                    )
+                )
+                defaults.add(prop)
+
+            if "const" in detail:
+                logger.debug(
+                    util.lazy_format(
+                        "Setting const for {0}.{1} to: {2}",
+                        nm,
+                        prop,
+                        detail["const"],
                     )
                 )
                 defaults.add(prop)
