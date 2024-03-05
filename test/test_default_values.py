@@ -53,15 +53,17 @@ def test_nullable_types_are_still_nullable(ns):
 
     thing1.p1 = None
     thing1.validate()
-    assert thing1.as_dict() == {"p1": 0, "p2": None}
+    assert thing1.as_dict() == {"p1": None, "p2": None}
 
 
 def test_null_types_without_defaults_do_not_serialize(ns):
     thing1 = ns.DefaultTest()
+
+    assert thing1.as_dict() == {"p1": 0, "p2": None}
 
     thing1.p3 = 10
     thing1.validate()
     thing1.p1 = None
     thing1.validate()
 
-    assert thing1.as_dict() == {"p1": 0, "p2": None, "p3": 10}
+    assert thing1.as_dict() == {"p1": None, "p2": None, "p3": 10}

@@ -59,6 +59,12 @@ def enum(param, value, _):
 
 
 @registry.register()
+def const(param, value, _):
+    if value != param:
+        raise ValidationError("{0} is not constant {1}".format(value, param))
+
+
+@registry.register()
 def minimum(param, value, type_data):
     exclusive = type_data.get("exclusiveMinimum")
     if exclusive:
