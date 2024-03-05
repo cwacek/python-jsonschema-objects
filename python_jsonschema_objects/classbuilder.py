@@ -765,7 +765,10 @@ class ClassBuilder(object):
         props["__prop_names__"] = name_translation
 
         props["__propinfo__"] = properties
-        required = set.union(*[p.__required__ for p in parents])
+        if len(parents):
+            required = set.union(*[p.__required__ for p in parents])
+        else:
+            required = set()
 
         if "required" in clsdata:
             for prop in clsdata["required"]:
