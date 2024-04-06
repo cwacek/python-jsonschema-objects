@@ -639,7 +639,7 @@ class ClassBuilder(object):
                 "__propinfo__": {
                     "__literal__": clsdata,
                     "__title__": clsdata.get("title"),
-                    "__default__": clsdata.get("default") or clsdata.get("const"),
+                    "__default__": clsdata["default"] if clsdata.get("default") is not None else clsdata.get("const"),
                 }
             },
         )
