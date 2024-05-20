@@ -39,9 +39,6 @@ class LiteralValue(object):
         else:
             self._value = value
 
-        if self._value is None and self.default() is not None:
-            self._value = self.default()
-
         self.validate()
 
         constval = self.const()
