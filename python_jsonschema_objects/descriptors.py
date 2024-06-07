@@ -60,7 +60,7 @@ class AttributeDescriptor(object):
                 elif util.safe_issubclass(typ, ProtocolBase):
                     # Force conversion- thus the val rather than validator assignment.
                     try:
-                        val = typ(**util.coerce_for_expansion(val))
+                        val = typ(**val)
                         val.validate()
                     except Exception as e:
                         errors.append("Failed to coerce to '{0}': {1}".format(typ, e))
@@ -82,7 +82,6 @@ class AttributeDescriptor(object):
                     try:
                         # Handle keyword expansion according to expected types. Using
                         # keywords like oneOf, value can be an object, array or literal.
-                        val = util.coerce_for_expansion(val)
                         if isinstance(val, dict):
                             val = typ(**val)
                         else:
@@ -120,12 +119,11 @@ class AttributeDescriptor(object):
 
         elif util.safe_issubclass(info["type"], ProtocolBase):
             if not isinstance(val, info["type"]):
-                val = info["type"](**util.coerce_for_expansion(val))
+                val = info["type"](**val)
 
             val.validate()
 
         elif isinstance(info["type"], TypeProxy):
-            val = util.coerce_for_expansion(val)
             if isinstance(val, dict):
                 val = info["type"](**val)
             else:

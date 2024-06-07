@@ -1,7 +1,6 @@
 import collections
 import logging
 
-import six
 
 from python_jsonschema_objects import util
 from python_jsonschema_objects.util import lazy_format as fmt
@@ -174,7 +173,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
         typed_elems = []
         for elem, typ in zip(self.data, type_checks):
             if isinstance(typ, dict):
-                for param, paramval in six.iteritems(typ):
+                for param, paramval in typ.items():
                     validator = registry(param)
                     if validator is not None:
                         validator(paramval, elem, typ)
@@ -188,11 +187,11 @@ class ArrayWrapper(collections.abc.MutableSequence):
                 if not isinstance(elem, typ):
                     try:
                         if isinstance(
-                            elem, (six.string_types, six.integer_types, float)
+                            elem, (str, int, float)
                         ):
                             val = typ(elem)
                         else:
-                            val = typ(**util.coerce_for_expansion(elem))
+                            val = typ(**elem)
                     except TypeError as e:
                         raise ValidationError(
                             "'{0}' is not a valid value for '{1}': {2}".format(
@@ -211,12 +210,12 @@ class ArrayWrapper(collections.abc.MutableSequence):
 
             elif isinstance(typ, (classbuilder.TypeProxy, classbuilder.TypeRef)):
                 try:
-                    if isinstance(elem, (six.string_types, six.integer_types, float)):
+                    if isinstance(elem, (str, int, float)):
                         val = typ(elem)
                     elif isinstance(elem, classbuilder.LiteralValue):
                         val = typ(elem._value)
                     else:
-                        val = typ(**util.coerce_for_expansion(elem))
+                        val = typ(**elem)
                 except TypeError as e:
                     raise ValidationError(
                         "'{0}' is not a valid value for '{1}': {2}".format(elem, typ, e)

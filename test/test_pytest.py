@@ -4,7 +4,6 @@ import warnings
 
 import jsonschema
 import pytest
-import six
 
 import python_jsonschema_objects as pjs
 
@@ -216,7 +215,7 @@ def test_object_builder_loads_memory_references(markdown_examples):
 
 
 def test_object_builder_reads_all_definitions(markdown_examples):
-    for nm, ex in six.iteritems(markdown_examples):
+    for nm, ex in markdown_examples.items():
         builder = pjs.ObjectBuilder(ex, resolved=markdown_examples)
         assert builder
 

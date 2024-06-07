@@ -1,17 +1,17 @@
 import decimal
 import logging
+import numbers
 
-import six
 
 logger = logging.getLogger(__name__)
 
 SCHEMA_TYPE_MAPPING = (
     ("array", list),
     ("boolean", bool),
-    ("integer", six.integer_types),
-    ("number", six.integer_types + (float,)),
+    ("integer", int),
+    ("number", numbers.Real),
     ("null", type(None)),
-    ("string", six.string_types),
+    ("string", str),
     ("object", dict),
 )
 """Sequence of schema type mappings to be checked in precedence order."""
@@ -140,7 +140,7 @@ def check_integer_type(param, value, _):
 
 @type_registry.register(name="number")
 def check_number_type(param, value, _):
-    if not isinstance(value, six.integer_types + (float,)) or isinstance(value, bool):
+    if not isinstance(value, numbers.Real):
         raise ValidationError("{0} is neither an integer nor a float".format(value))
 
 
@@ -152,7 +152,7 @@ def check_null_type(param, value, _):
 
 @type_registry.register(name="string")
 def check_string_type(param, value, _):
-    if not isinstance(value, six.string_types):
+    if not isinstance(value, str):
         raise ValidationError("{0} is not a string".format(value))
 
 

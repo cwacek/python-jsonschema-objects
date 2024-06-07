@@ -14,7 +14,6 @@ import jsonschema
 import referencing.jsonschema
 import referencing.retrieval
 import referencing._core
-import six
 from referencing import Registry, Resource
 
 import python_jsonschema_objects.classbuilder as classbuilder
@@ -43,7 +42,7 @@ class ObjectBuilder(object):
         resolver: Optional[referencing.typing.Retrieve] = None,
         specification_uri: Optional[str] = None,
     ):
-        if isinstance(schema_uri, six.string_types):
+        if isinstance(schema_uri, str):
             uri = os.path.normpath(schema_uri)
             self.basedir = os.path.dirname(uri)
             with codecs.open(uri, "r", "utf-8") as fin:
@@ -220,7 +219,7 @@ class ObjectBuilder(object):
         """
         kw = {"strict": strict, "any_of": any_of}
         builder = classbuilder.ClassBuilder(self.resolver)
-        for nm, defn in six.iteritems(self.schema.get("definitions", {})):
+        for nm, defn in self.schema.get("definitions", {}).items():
             resolved = self.resolver.lookup("#/definitions/" + nm)
             uri = python_jsonschema_objects.util.resolve_ref_uri(
                 self.resolver._base_uri, "#/definitions/" + nm
@@ -229,19 +228,19 @@ class ObjectBuilder(object):
 
         if standardize_names:
             name_transform = lambda t: inflection.camelize(
-                inflection.parameterize(six.text_type(t), "_")
+                inflection.parameterize(str(t), "_")
             )
         else:
             name_transform = lambda t: t
 
         nm = self.schema["title"] if "title" in self.schema else self.schema["$id"]
-        nm = inflection.parameterize(six.text_type(nm), "_")
+        nm = inflection.parameterize(str(nm), "_")
 
         builder.construct(nm, self.schema, **kw)
         self._resolved = builder.resolved
 
         classes = {}
-        for uri, klass in six.iteritems(builder.resolved):
+        for uri, klass in builder.resolved.items():
             title = getattr(klass, "__title__", None)
             if title is not None:
                 classes[name_transform(title)] = klass

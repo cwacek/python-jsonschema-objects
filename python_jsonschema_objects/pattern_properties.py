@@ -2,7 +2,6 @@ import collections
 import logging
 import re
 
-import six
 
 from python_jsonschema_objects import util, validators, wrapper_types
 from python_jsonschema_objects.literals import MakeLiteral
@@ -39,7 +38,7 @@ class ExtensibleValidator(object):
 
             self._additional_type = typ
 
-        for pattern, typedef in six.iteritems(schemadef.get("patternProperties", {})):
+        for pattern, typedef in schemadef.get("patternProperties", {}).items():
             if "$ref" in typedef:
                 typ = builder.resolve_type(typedef["$ref"], name)
             else:
@@ -61,13 +60,12 @@ class ExtensibleValidator(object):
             return typ(val)
 
         if util.safe_issubclass(typ, cb.ProtocolBase):
-            return typ(**util.coerce_for_expansion(val))
+            return typ(**val)
 
         if util.safe_issubclass(typ, wrapper_types.ArrayWrapper):
             return typ(val)
 
         if isinstance(typ, cb.TypeProxy):
-            val = util.coerce_for_expansion(val)
             if isinstance(val, dict):
                 val = typ(**val)
             else:
