@@ -186,9 +186,7 @@ class ArrayWrapper(collections.abc.MutableSequence):
             elif util.safe_issubclass(typ, classbuilder.ProtocolBase):
                 if not isinstance(elem, typ):
                     try:
-                        if isinstance(
-                            elem, (str, int, float)
-                        ):
+                        if isinstance(elem, (str, int, float)):
                             val = typ(elem)
                         else:
                             val = typ(**elem)

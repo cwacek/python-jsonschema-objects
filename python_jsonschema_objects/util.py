@@ -7,7 +7,6 @@ import json
 from collections.abc import Mapping, Sequence
 
 
-
 class lazy_format(object):
     __slots__ = ("fmt", "args", "kwargs")
 
@@ -33,7 +32,6 @@ def safe_issubclass(x, y):
         return issubclass(x, y)
     except TypeError:
         return False
-
 
 
 class ProtocolJSONEncoder(json.JSONEncoder):
