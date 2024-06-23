@@ -42,7 +42,6 @@ if __name__ == "__main__":
             "inflection>=0.2",
             "Markdown>=2.4",
             "jsonschema>=4.18",
-            "six>=1.5.2",
         ],
         python_requires=">=3.8",
         cmdclass=versioneer.get_cmdclass(),

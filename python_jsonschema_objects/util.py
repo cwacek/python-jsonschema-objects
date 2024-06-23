@@ -6,8 +6,6 @@ import copy
 import json
 from collections.abc import Mapping, Sequence
 
-import six
-
 
 class lazy_format(object):
     __slots__ = ("fmt", "args", "kwargs")
@@ -36,18 +34,6 @@ def safe_issubclass(x, y):
         return False
 
 
-def coerce_for_expansion(mapping):
-    """Given a value, make sure it is usable for f(**val) expansion.
-
-    In py2.7, the value must be a dictionary- thus a as_dict() method
-    will be invoked if available.  In py3k, the raw mapping is returned
-    unmodified.
-    """
-    if six.PY2 and hasattr(mapping, "as_dict"):
-        return mapping.as_dict()
-    return mapping
-
-
 class ProtocolJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         from python_jsonschema_objects import classbuilder, wrapper_types
@@ -69,13 +55,13 @@ def propmerge(into, data_from):
     """Merge JSON schema requirements into a dictionary"""
     newprops = copy.deepcopy(into)
 
-    for prop, propval in six.iteritems(data_from):
+    for prop, propval in data_from.items():
         if prop not in newprops:
             newprops[prop] = propval
             continue
 
         new_sp = newprops[prop]
-        for subprop, spval in six.iteritems(propval):
+        for subprop, spval in propval.items():
             if subprop not in new_sp:
                 new_sp[subprop] = spval
 

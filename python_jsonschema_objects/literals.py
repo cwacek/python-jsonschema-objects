@@ -1,7 +1,6 @@
 import functools
 import operator
 
-import six
 
 from python_jsonschema_objects import util, validators
 
@@ -74,7 +73,7 @@ class LiteralValue(object):
         return "<Literal<%s> %s>" % (self._value.__class__.__name__, str(self._value))
 
     def __str__(self):
-        if isinstance(self._value, six.string_types):
+        if isinstance(self._value, str):
             return self._value
         return str(self._value)
 
@@ -84,7 +83,7 @@ class LiteralValue(object):
         # TODO: this duplicates logic in validators.ArrayValidator.check_items;
         # unify it.
         for param, paramval in sorted(
-            six.iteritems(info), key=lambda x: x[0].lower() != "type"
+            info.items(), key=lambda x: x[0].lower() != "type"
         ):
             validator = validators.registry(param)
             if validator is not None:
