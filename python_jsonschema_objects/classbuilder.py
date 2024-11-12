@@ -1,4 +1,5 @@
 import collections.abc
+from urllib.parse import urldefrag, urljoin
 import copy
 import itertools
 import logging
@@ -491,8 +492,17 @@ class ClassBuilder(object):
                     "Resolving direct reference object {0} -> {1}", source, uri
                 )
             )
-            resolved = self.resolver.lookup(ref)
-            self.resolved[uri] = self.construct(uri, resolved.contents, (ProtocolBase,))
+            resolved = self.resolver.lookup(uri)
+            if resolved.resolver != self.resolver:
+                sub_cb = ClassBuilder(resolved.resolver)
+                self.resolved[uri] = sub_cb.construct(
+                    uri, resolved.contents, (ProtocolBase,)
+                )
+            else:
+                self.resolved[uri] = self.construct(
+                    uri, resolved.contents, (ProtocolBase,)
+                )
+
             return self.resolved[uri]
 
     def construct(self, uri, *args, **kw):
