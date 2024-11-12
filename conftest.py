@@ -1,4 +1,5 @@
 import importlib.resources
+import importlib.resources
 import json
 
 import pytest
@@ -8,8 +9,8 @@ import python_jsonschema_objects as pjs
 
 @pytest.fixture
 def markdown_examples():
-    with importlib.resources.path(
-        "python_jsonschema_objects.examples", "README.md"
+    with importlib.resources.as_file(
+        importlib.resources.files("python_jsonschema_objects.examples") / "README.md"
     ) as md:
         examples = pjs.markdown_support.extract_code_blocks(md)
 
