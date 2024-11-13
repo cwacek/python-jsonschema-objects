@@ -26,11 +26,9 @@ def test_297_expect_fail_without_anyof_flag(adaptive_card_schema):
         builder.build_classes()
 
 
-"""
-This test is expected to pass because the any_of flag is set.
-"""
-
-
+@pytest.mark.xfail(
+    reason="Microsoft apparently doesn't care about valid schemas: https://github.com/microsoft/AdaptiveCards/discussions/8943"
+)
 def test_should_work_with_anyof_flag_set(adaptive_card_schema):
     builder = pjs.ObjectBuilder(adaptive_card_schema)
     ns = builder.build_classes(any_of="use-first")
