@@ -217,14 +217,14 @@ class ObjectBuilder(object):
             A namespace containing all the generated classes
 
         """
-        kw = {"strict": strict, "any_of": any_of}
-        builder = classbuilder.ClassBuilder(self.resolver)
+        opts = {"strict": strict, "any_of": any_of}
+        builder = classbuilder.ClassBuilder(self.resolver, opts)
         for nm, defn in self.schema.get("definitions", {}).items():
             resolved = self.resolver.lookup("#/definitions/" + nm)
             uri = python_jsonschema_objects.util.resolve_ref_uri(
                 self.resolver._base_uri, "#/definitions/" + nm
             )
-            builder.construct(uri, resolved.contents, **kw)
+            builder.construct(uri, resolved.contents)
 
         if standardize_names:
             name_transform = lambda t: inflection.camelize(
@@ -236,7 +236,7 @@ class ObjectBuilder(object):
         nm = self.schema["title"] if "title" in self.schema else self.schema["$id"]
         nm = inflection.parameterize(str(nm), "_")
 
-        builder.construct(nm, self.schema, **kw)
+        builder.construct(nm, self.schema)
         self._resolved = builder.resolved
 
         classes = {}
