@@ -666,7 +666,7 @@ class ClassBuilder(object):
                             "default",
                             "asldkfn24olkjalskdfn e;laishd;1loj;flkansd;iow;naosdinfe;lkamjsdfj",
                         )
-                        is not "asldkfn24olkjalskdfn e;laishd;1loj;flkansd;iow;naosdinfe;lkamjsdfj"
+                        != "asldkfn24olkjalskdfn e;laishd;1loj;flkansd;iow;naosdinfe;lkamjsdfj"
                         else clsdata.get("const")
                     ),
                 }
