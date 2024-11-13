@@ -1,5 +1,5 @@
 import collections.abc
-from urllib.parse import urldefrag, urljoin
+import typing
 import copy
 import itertools
 import logging
@@ -452,11 +452,19 @@ class TypeProxy(object):
             )
 
 
+class ClassBuilderOptions(typing.TypedDict):
+    strict: bool
+    any_of: str
+
+
 class ClassBuilder(object):
-    def __init__(self, resolver: referencing._core.Resolver):
+    def __init__(
+        self, resolver: referencing._core.Resolver, options: ClassBuilderOptions
+    ):
         self.resolver = resolver
         self.resolved = {}
         self.under_construction = set()
+        self.options = options
 
     def expand_references(self, source_uri, iterable):
         """Give an iterable of jsonschema descriptors, expands any
@@ -494,7 +502,7 @@ class ClassBuilder(object):
             )
             resolved = self.resolver.lookup(uri)
             if resolved.resolver != self.resolver:
-                sub_cb = ClassBuilder(resolved.resolver)
+                sub_cb = ClassBuilder(resolved.resolver, self.options)
                 self.resolved[uri] = sub_cb.construct(
                     uri, resolved.contents, (ProtocolBase,)
                 )
@@ -505,26 +513,30 @@ class ClassBuilder(object):
 
             return self.resolved[uri]
 
-    def construct(self, uri, *args, **kw):
+    def construct(
+        self, uri: str, clsdata: typing.Mapping[str, any], parent=(ProtocolBase,)
+    ):
         """Wrapper to debug things"""
         logger.debug(util.lazy_format("Constructing {0}", uri))
-        if ("override" not in kw or kw["override"] is False) and uri in self.resolved:
+        if uri in self.resolved:
             logger.debug(util.lazy_format("Using existing {0}", uri))
             assert self.resolved[uri] is not None
             return self.resolved[uri]
         else:
-            ret = self._construct(uri, *args, **kw)
+            ret = self._construct(uri, clsdata, parent=parent)
         logger.debug(util.lazy_format("Constructed {0}", ret))
 
         return ret
 
-    def _construct(self, uri, clsdata, parent=(ProtocolBase,), **kw):
+    def _construct(
+        self, uri: str, clsdata: typing.Mapping[str, any], parent=(ProtocolBase,)
+    ):
         if "anyOf" in clsdata:
-            if kw.get("any_of", None) is None:
+            if self.options.get("any_of", None) is None:
                 raise NotImplementedError(
                     "anyOf is not supported as bare property (workarounds available by setting any_of flag)"
                 )
-            if kw["any_of"] == "use-first":
+            if self.options["any_of"] == "use-first":
                 # Patch so the first anyOf becomes a single oneOf
                 clsdata["oneOf"] = [
                     clsdata["anyOf"].pop(0),
@@ -532,7 +544,7 @@ class ClassBuilder(object):
                 del clsdata["anyOf"]
             else:
                 raise NotImplementedError(
-                    f"anyOf workaround is not a recognized type (any_of = {kw['any_of']})"
+                    f"anyOf workaround is not a recognized type (any_of = {self.options['any_of']})"
                 )
 
         if "oneOf" in clsdata:
@@ -557,7 +569,7 @@ class ClassBuilder(object):
                 elif util.safe_issubclass(p, ProtocolBase):
                     parents.append(p)
 
-            self.resolved[uri] = self._build_object(uri, clsdata, parents, **kw)
+            self.resolved[uri] = self._build_object(uri, clsdata, parents)
             return self.resolved[uri]
 
         elif "$ref" in clsdata:
@@ -611,7 +623,7 @@ class ClassBuilder(object):
             or clsdata.get("properties", None) is not None
             or clsdata.get("additionalProperties", False)
         ):
-            self.resolved[uri] = self._build_object(uri, clsdata, parent, **kw)
+            self.resolved[uri] = self._build_object(uri, clsdata, parent)
             return self.resolved[uri]
         elif clsdata.get("type") in ("integer", "number", "string", "boolean", "null"):
             self.resolved[uri] = self._build_literal(uri, clsdata)
@@ -663,7 +675,7 @@ class ClassBuilder(object):
 
         return cls
 
-    def _build_object(self, nm, clsdata, parents, **kw):
+    def _build_object(self, nm, clsdata, parents):
         logger.debug(util.lazy_format("Building object {0}", nm))
 
         # To support circular references, we tag objects that we're
@@ -713,7 +725,7 @@ class ClassBuilder(object):
 
             if detail.get("type", None) == "object":
                 uri = "{0}/{1}_{2}".format(nm, prop, "<anonymous>")
-                self.resolved[uri] = self.construct(uri, detail, (ProtocolBase,), **kw)
+                self.resolved[uri] = self.construct(uri, detail, (ProtocolBase,))
 
                 props[prop] = make_property(
                     prop, {"type": self.resolved[uri]}, self.resolved[uri].__doc__
@@ -741,7 +753,7 @@ class ClassBuilder(object):
                     if "$ref" in detail["items"]:
                         typ = self.resolve_type(detail["items"]["$ref"], nm)
                         constraints = copy.copy(detail)
-                        constraints["strict"] = kw.get("strict")
+                        constraints["strict"] = self.options.get("strict")
                         propdata = {
                             "type": "array",
                             "validator": wrapper_types.ArrayWrapper.create(
@@ -760,10 +772,10 @@ class ClassBuilder(object):
                                     )
                                 )
                             else:
-                                typ = self.construct(uri, detail["items"], **kw)
+                                typ = self.construct(uri, detail["items"])
 
                             constraints = copy.copy(detail)
-                            constraints["strict"] = kw.get("strict")
+                            constraints["strict"] = self.options.get("strict")
                             propdata = {
                                 "type": "array",
                                 "validator": wrapper_types.ArrayWrapper.create(
@@ -774,7 +786,7 @@ class ClassBuilder(object):
                         except NotImplementedError:
                             typ = detail["items"]
                             constraints = copy.copy(detail)
-                            constraints["strict"] = kw.get("strict")
+                            constraints["strict"] = self.options.get("strict")
                             propdata = {
                                 "type": "array",
                                 "validator": wrapper_types.ArrayWrapper.create(
@@ -787,7 +799,7 @@ class ClassBuilder(object):
                     typs = []
                     for i, elem in enumerate(detail["items"]):
                         uri = "{0}/{1}/<anonymous_{2}>".format(nm, prop, i)
-                        typ = self.construct(uri, elem, **kw)
+                        typ = self.construct(uri, elem)
                         typs.append(typ)
 
                     props[prop] = make_property(prop, {"type": typs})
@@ -795,7 +807,7 @@ class ClassBuilder(object):
             else:
                 desc = detail["description"] if "description" in detail else ""
                 uri = "{0}/{1}".format(nm, prop)
-                typ = self.construct(uri, detail, **kw)
+                typ = self.construct(uri, detail)
 
                 props[prop] = make_property(prop, {"type": typ}, desc)
 
@@ -821,7 +833,7 @@ class ClassBuilder(object):
 
         props["__required__"] = required
         props["__has_default__"] = defaults
-        if required and kw.get("strict"):
+        if required and self.options.get("strict"):
             props["__strict__"] = True
 
         props["__title__"] = clsdata.get("title")
