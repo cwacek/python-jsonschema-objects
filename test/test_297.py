@@ -2,7 +2,6 @@ import json
 import os.path
 
 import python_jsonschema_objects as pjs
-import requests
 
 import pytest
 
